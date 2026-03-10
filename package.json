@@ -1,5 +1,5 @@
 {
-  "name": "ripperdoc",
+  "name": "ripperclaw",
   "version": "0.1.0",
   "description": "Cyberware manager for AI agents — loadout export, import, diff, and discovery",
   "type": "module",
