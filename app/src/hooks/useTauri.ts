@@ -2,7 +2,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useState } from 'react';
 import type { SlotData, Mod } from '../types';
 
-// Generic hook for invoking Tauri commands with caching
 function useTauriCommand<T>(command: string, fallback: T, deps: unknown[] = []): {
   data: T;
   loading: boolean;
@@ -44,7 +43,6 @@ export function useSkills() {
     []
   );
 
-  // Map to Mod type
   const mods: Mod[] = result.data.map((s) => ({
     name: s.name,
     source: s.source as Mod['source'],
@@ -78,4 +76,23 @@ export function useCronJobs() {
 
 export function useConfig() {
   return useTauriCommand<Record<string, unknown>>('get_config', {});
+}
+
+export function useExportLoadout() {
+  const [loading, setLoading] = useState(false);
+
+  const exportLoadout = async () => {
+    setLoading(true);
+    try {
+      const loadout = await invoke('export_loadout');
+      return loadout;
+    } catch (err) {
+      console.error('Export failed:', err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { exportLoadout, loading };
 }

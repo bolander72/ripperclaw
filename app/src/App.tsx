@@ -3,16 +3,17 @@ import { Header } from './components/Header';
 import { SlotCard } from './components/SlotCard';
 import { SlotDetail } from './components/SlotDetail';
 import { ModList } from './components/ModList';
+import { CompareView } from './components/CompareView';
+import { FeedView } from './components/FeedView';
 import { useSlots, useSkills, useSystemStatus } from './hooks/useTauri';
 import { slots as mockSlots, mods as mockMods } from './data/mockLoadout';
 
-type View = 'rig' | 'mods';
+type View = 'rig' | 'mods' | 'compare' | 'feed';
 
 function App() {
   const [selectedSlot, setSelectedSlot] = useState('soul');
   const [view, setView] = useState<View>('rig');
 
-  // Try real data, fall back to mock
   const { data: realSlots, loading: slotsLoading, error: slotsError } = useSlots();
   const { data: realMods, loading: modsLoading } = useSkills();
   const { data: status } = useSystemStatus();
@@ -22,7 +23,6 @@ function App() {
 
   const activeSlot = slots.find((s) => s.id === selectedSlot) ?? slots[0];
 
-  // Select first slot on load
   useEffect(() => {
     if (slots.length > 0 && !slots.find((s) => s.id === selectedSlot)) {
       setSelectedSlot(slots[0].id);
@@ -31,6 +31,13 @@ function App() {
 
   const dataSource = slotsError ? 'mock' : 'live';
 
+  const navItems: { id: View; icon: string; label: string }[] = [
+    { id: 'rig', icon: '⬡', label: 'Your Rig' },
+    { id: 'mods', icon: '◆', label: 'Mods' },
+    { id: 'compare', icon: '⊕', label: 'Compare' },
+    { id: 'feed', icon: '◎', label: 'The Feed' },
+  ];
+
   return (
     <div className="h-screen flex flex-col scanlines">
       <Header />
@@ -38,38 +45,29 @@ function App() {
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar nav */}
         <nav
-          className="w-14 flex flex-col items-center py-4 gap-3 border-r"
+          className="w-14 flex flex-col items-center py-4 gap-2 border-r"
           style={{ borderColor: 'var(--rc-border)', background: 'var(--rc-surface)' }}
         >
-          <button
-            onClick={() => setView('rig')}
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-sm transition-all"
-            style={{
-              background: view === 'rig' ? 'rgba(0, 240, 255, 0.1)' : 'transparent',
-              color: view === 'rig' ? 'var(--rc-cyan)' : 'var(--rc-text-muted)',
-              border: view === 'rig' ? '1px solid var(--rc-cyan)' : '1px solid transparent',
-            }}
-            title="Your Rig"
-          >
-            ⬡
-          </button>
-          <button
-            onClick={() => setView('mods')}
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-sm transition-all"
-            style={{
-              background: view === 'mods' ? 'rgba(0, 240, 255, 0.1)' : 'transparent',
-              color: view === 'mods' ? 'var(--rc-cyan)' : 'var(--rc-text-muted)',
-              border: view === 'mods' ? '1px solid var(--rc-cyan)' : '1px solid transparent',
-            }}
-            title="Mods"
-          >
-            ◆
-          </button>
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setView(item.id)}
+              className="w-9 h-9 rounded-lg flex items-center justify-center text-sm transition-all"
+              style={{
+                background: view === item.id ? 'rgba(0, 240, 255, 0.1)' : 'transparent',
+                color: view === item.id ? 'var(--rc-cyan)' : 'var(--rc-text-muted)',
+                border: view === item.id ? '1px solid var(--rc-cyan)' : '1px solid transparent',
+              }}
+              title={item.label}
+            >
+              {item.icon}
+            </button>
+          ))}
         </nav>
 
         {/* Main content */}
         <main className="flex-1 flex overflow-hidden">
-          {view === 'rig' ? (
+          {view === 'rig' && (
             <>
               {/* Slot grid */}
               <div className="w-[340px] p-4 overflow-y-auto border-r" style={{ borderColor: 'var(--rc-border)' }}>
@@ -79,9 +77,7 @@ function App() {
                 >
                   Cyberware Slots
                   {slotsLoading && (
-                    <span className="ml-2 animate-pulse" style={{ color: 'var(--rc-cyan)' }}>
-                      ●
-                    </span>
+                    <span className="ml-2 animate-pulse" style={{ color: 'var(--rc-cyan)' }}>●</span>
                   )}
                 </h3>
                 <div className="space-y-2">
@@ -101,7 +97,9 @@ function App() {
                 <SlotDetail slot={activeSlot} />
               </div>
             </>
-          ) : (
+          )}
+
+          {view === 'mods' && (
             <div className="flex-1 p-6 overflow-y-auto">
               <div className="max-w-2xl">
                 <h3
@@ -110,9 +108,7 @@ function App() {
                 >
                   Installed Mods
                   {modsLoading && (
-                    <span className="ml-2 animate-pulse" style={{ color: 'var(--rc-cyan)' }}>
-                      ●
-                    </span>
+                    <span className="ml-2 animate-pulse" style={{ color: 'var(--rc-cyan)' }}>●</span>
                   )}
                 </h3>
                 <p className="text-xs mb-6" style={{ color: 'var(--rc-text-dim)' }}>
@@ -122,6 +118,16 @@ function App() {
               </div>
             </div>
           )}
+
+          {view === 'compare' && (
+            <CompareView
+              currentSlots={slots}
+              currentMods={mods}
+              currentName="Quinn"
+            />
+          )}
+
+          {view === 'feed' && <FeedView />}
         </main>
       </div>
 
