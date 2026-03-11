@@ -7,6 +7,7 @@ interface Props {
   currentName: string;
   initialLoadout?: unknown;
   onClear?: () => void;
+  onClone?: (loadout: Loadout, mode: 'overwrite' | 'new') => void;
 }
 
 // Build a diff between current rig and imported loadout
@@ -63,7 +64,7 @@ const statusColor: Record<string, string> = {
   empty: 'var(--rc-text-muted)',
 };
 
-export function CompareView({ currentSlots, currentMods, currentName, initialLoadout, onClear }: Props) {
+export function CompareView({ currentSlots, currentMods, currentName, initialLoadout, onClear, onClone }: Props) {
   const [imported, setImported] = useState<Loadout | null>(
     initialLoadout ? (initialLoadout as Loadout) : null
   );
@@ -170,17 +171,45 @@ export function CompareView({ currentSlots, currentMods, currentName, initialLoa
               <span style={{ color: 'var(--rc-magenta)' }}>{imported.meta?.name || 'Unknown'}</span>
             </p>
           </div>
-          <button
-            onClick={() => { setImported(null); onClear?.(); }}
-            className="px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
-            style={{
-              borderColor: 'var(--rc-border)',
-              color: 'var(--rc-text-dim)',
-              background: 'transparent',
-            }}
-          >
-            Clear
-          </button>
+          <div className="flex items-center gap-2">
+            {imported && onClone && (
+              <>
+                <button
+                  onClick={() => onClone(imported, 'overwrite')}
+                  className="px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                  style={{
+                    borderColor: 'var(--rc-cyan)',
+                    color: 'var(--rc-bg)',
+                    background: 'var(--rc-cyan)',
+                  }}
+                >
+                  Clone to My Rig
+                </button>
+                <button
+                  onClick={() => onClone(imported, 'new')}
+                  className="px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                  style={{
+                    borderColor: 'var(--rc-magenta)',
+                    color: 'var(--rc-magenta)',
+                    background: 'transparent',
+                  }}
+                >
+                  Save as New Build
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => { setImported(null); onClear?.(); }}
+              className="px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+              style={{
+                borderColor: 'var(--rc-border)',
+                color: 'var(--rc-text-dim)',
+                background: 'transparent',
+              }}
+            >
+              Clear
+            </button>
+          </div>
         </div>
 
         {/* Column headers */}

@@ -96,3 +96,43 @@ export function useExportLoadout() {
 
   return { exportLoadout, loading };
 }
+
+export function useCloneLoadout() {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{
+    applied_skills: string[];
+    skipped_skills: string[];
+    slot_changes: string[];
+    backup_path?: string;
+  } | null>(null);
+
+  const cloneLoadout = async (loadoutJson: string, mode: 'overwrite' | 'new') => {
+    setLoading(true);
+    try {
+      const res = await invoke<typeof result>('clone_loadout', {
+        loadoutJson,
+        mode,
+      });
+      setResult(res);
+      return res;
+    } catch (err) {
+      console.error('Clone failed:', err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { cloneLoadout, loading, result };
+}
+
+export function useBuilds() {
+  return useTauriCommand<Array<{
+    filename: string;
+    name: string;
+    exportedAt: string;
+    path: string;
+    slots: number;
+    mods: number;
+  }>>('list_builds', []);
+}

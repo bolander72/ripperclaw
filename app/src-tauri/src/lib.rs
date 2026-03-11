@@ -866,6 +866,136 @@ fn export_loadout_safe(
     Ok((scrubbed, report))
 }
 
+// ─── Clone loadout (apply another loadout to current rig) ───
+
+#[derive(Serialize)]
+struct CloneResult {
+    applied_skills: Vec<String>,
+    skipped_skills: Vec<String>,
+    slot_changes: Vec<String>,
+    backup_path: Option<String>,
+}
+
+#[tauri::command]
+fn clone_loadout(loadout_json: String, mode: String) -> Result<CloneResult, String> {
+    let loadout: Value = serde_json::from_str(&loadout_json)
+        .map_err(|e| format!("Invalid loadout JSON: {}", e))?;
+
+    let builds_dir = workspace_dir().join("builds");
+    let _ = fs::create_dir_all(&builds_dir);
+
+    if mode == "new" {
+        // Save as a new named build file
+        let name = loadout.pointer("/meta/name")
+            .and_then(|v| v.as_str())
+            .unwrap_or("imported-build");
+        let safe_name: String = name.chars()
+            .map(|c| if c.is_alphanumeric() || c == '-' || c == '_' { c } else { '-' })
+            .collect();
+        let timestamp = chrono_now().replace(':', "-").replace('T', "_");
+        let filename = format!("{}-{}.loadout.json", safe_name, timestamp);
+        let path = builds_dir.join(&filename);
+
+        fs::write(&path, serde_json::to_string_pretty(&loadout).unwrap_or_default())
+            .map_err(|e| format!("Failed to write build: {}", e))?;
+
+        return Ok(CloneResult {
+            applied_skills: vec![],
+            skipped_skills: vec![],
+            slot_changes: vec![format!("Saved as {}", filename)],
+            backup_path: Some(path.to_string_lossy().to_string()),
+        });
+    }
+
+    // Mode: "overwrite" - apply to current rig
+    // First, backup current config
+    let config_path = openclaw_dir().join("openclaw.json");
+    let backup_name = format!("openclaw.backup-{}.json", chrono_now().replace(':', "-"));
+    let backup_path = openclaw_dir().join(&backup_name);
+    if config_path.exists() {
+        let _ = fs::copy(&config_path, &backup_path);
+    }
+
+    let mut applied_skills: Vec<String> = Vec::new();
+    let mut skipped_skills: Vec<String> = Vec::new();
+    let mut slot_changes: Vec<String> = Vec::new();
+
+    // Extract skill names from the loadout mods
+    if let Some(mods) = loadout.get("mods").and_then(|m| m.as_array()) {
+        for m in mods {
+            let name = m.get("name").and_then(|n| n.as_str()).unwrap_or("");
+            let source = m.get("source").and_then(|s| s.as_str()).unwrap_or("");
+            if name.is_empty() { continue; }
+
+            // Check if skill exists locally
+            let bundled = PathBuf::from("/opt/homebrew/lib/node_modules/openclaw/skills").join(name);
+            let custom = workspace_dir().join("skills").join(name);
+
+            if bundled.exists() || custom.exists() {
+                applied_skills.push(name.to_string());
+            } else {
+                skipped_skills.push(format!("{} (source: {}, not found locally)", name, source));
+            }
+        }
+    }
+
+    // Document slot differences
+    if let Some(slots) = loadout.get("slots").and_then(|s| s.as_object()) {
+        for (id, slot_data) in slots {
+            let component = slot_data.get("component").and_then(|c| c.as_str()).unwrap_or("unknown");
+            slot_changes.push(format!("{}: {}", id, component));
+        }
+    }
+
+    // Save the loadout to builds dir for reference
+    let ref_name = format!("cloned-{}.loadout.json", chrono_now().replace(':', "-"));
+    let ref_path = builds_dir.join(&ref_name);
+    let _ = fs::write(&ref_path, serde_json::to_string_pretty(&loadout).unwrap_or_default());
+
+    Ok(CloneResult {
+        applied_skills,
+        skipped_skills,
+        slot_changes,
+        backup_path: Some(backup_path.to_string_lossy().to_string()),
+    })
+}
+
+// ─── List saved builds ───
+
+#[tauri::command]
+fn list_builds() -> Vec<Value> {
+    let builds_dir = workspace_dir().join("builds");
+    if !builds_dir.exists() { return vec![]; }
+
+    let mut builds = Vec::new();
+    if let Ok(entries) = fs::read_dir(&builds_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().and_then(|e| e.to_str()) == Some("json") {
+                if let Ok(content) = fs::read_to_string(&path) {
+                    if let Ok(loadout) = serde_json::from_str::<Value>(&content) {
+                        let name = loadout.pointer("/meta/name")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("unknown");
+                        let exported_at = loadout.pointer("/meta/exportedAt")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("");
+                        builds.push(serde_json::json!({
+                            "filename": path.file_name().unwrap_or_default().to_string_lossy(),
+                            "name": name,
+                            "exportedAt": exported_at,
+                            "path": path.to_string_lossy(),
+                            "slots": loadout.get("slots").and_then(|s| s.as_object()).map(|o| o.len()).unwrap_or(0),
+                            "mods": loadout.get("mods").and_then(|m| m.as_array()).map(|a| a.len()).unwrap_or(0),
+                        }));
+                    }
+                }
+            }
+        }
+    }
+    builds
+}
+
 fn chrono_now() -> String {
     // Simple ISO timestamp without chrono crate
     let output = Command::new("date")
@@ -892,6 +1022,8 @@ pub fn run() {
             import_loadout,
             export_loadout,
             export_loadout_safe,
+            clone_loadout,
+            list_builds,
             nostr::nostr_get_keys,
             nostr::nostr_generate_keys,
             nostr::nostr_import_keys,

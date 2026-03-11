@@ -6,7 +6,7 @@ import { ModList } from './components/ModList';
 import { CompareView } from './components/CompareView';
 import { FeedView } from './components/FeedView';
 import { PublishDialog } from './components/PublishDialog';
-import { useSlots, useSkills, useSystemStatus } from './hooks/useTauri';
+import { useSlots, useSkills, useSystemStatus, useCloneLoadout } from './hooks/useTauri';
 import { slots as mockSlots, mods as mockMods } from './data/mockLoadout';
 
 type View = 'rig' | 'mods' | 'compare' | 'feed';
@@ -16,6 +16,8 @@ function App() {
   const [view, setView] = useState<View>('rig');
   const [showPublish, setShowPublish] = useState(false);
   const [compareTarget, setCompareTarget] = useState<unknown | null>(null);
+  const [cloneResult, setCloneResult] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const { cloneLoadout } = useCloneLoadout();
 
   const { data: realSlots, loading: slotsLoading, error: slotsError } = useSlots();
   const { data: realMods, loading: modsLoading } = useSkills();
@@ -145,6 +147,20 @@ function App() {
               currentName="Quinn"
               initialLoadout={compareTarget}
               onClear={() => setCompareTarget(null)}
+              onClone={async (loadout, mode) => {
+                const json = JSON.stringify(loadout);
+                const res = await cloneLoadout(json, mode);
+                if (res) {
+                  const msg = mode === 'new'
+                    ? `Saved as new build: ${res.slot_changes[0] || 'done'}`
+                    : `Cloned to your rig. ${res.applied_skills.length} skills matched, ${res.skipped_skills.length} skipped. Backup: ${res.backup_path || 'none'}`;
+                  setCloneResult({ message: msg, type: 'success' });
+                  setTimeout(() => setCloneResult(null), 6000);
+                } else {
+                  setCloneResult({ message: 'Clone failed', type: 'error' });
+                  setTimeout(() => setCloneResult(null), 4000);
+                }
+              }}
             />
           )}
 
@@ -180,6 +196,19 @@ function App() {
         </span>
         <span>LOADOUT: QUINN · {slots.length} SLOTS · {mods.length} MODS</span>
       </footer>
+
+      {/* Clone result toast */}
+      {cloneResult && (
+        <div
+          className="fixed bottom-12 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg text-xs font-semibold z-50 transition-all"
+          style={{
+            background: cloneResult.type === 'success' ? 'var(--rc-green)' : 'var(--rc-red)',
+            color: 'var(--rc-bg)',
+          }}
+        >
+          {cloneResult.message}
+        </div>
+      )}
 
       {/* Publish dialog */}
       {showPublish && <PublishDialog onClose={() => setShowPublish(false)} />}
