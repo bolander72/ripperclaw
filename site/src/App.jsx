@@ -193,6 +193,7 @@ function VitruvianDiagram({ activeSlot, setActiveSlot }) {
               className="cursor-pointer transition-all"
               onMouseEnter={() => setActiveSlot(slot)}
               onMouseLeave={() => setActiveSlot(null)}
+              onClick={() => setActiveSlot(activeSlot?.id === slot.id ? null : slot)}
             >
               {/* Invisible hit area for easier clicking */}
               <circle
@@ -395,7 +396,7 @@ function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="text-7xl font-bold mb-3"
+                className="text-5xl md:text-7xl font-bold mb-3"
                 style={{
                   fontFamily: 'Space Grotesk, sans-serif',
                   letterSpacing: '-0.02em',
@@ -430,12 +431,12 @@ function App() {
               transition={{ delay: 0.8, duration: 0.8 }}
               className="text-rc-text-dim text-center text-sm"
             >
-              Hover over the body to explore each slot
+              Tap or hover the body to explore each slot
             </motion.p>
           </div>
           
           {/* Right: Detail Panel */}
-          <div className="min-h-[400px] flex items-center justify-center">
+          <div className="min-h-[200px] lg:min-h-[400px] flex items-center justify-center">
             <AnimatePresence mode="wait">
               {activeSlot ? (
                 <SlotDetailPanel key={activeSlot.id} slot={activeSlot} />
@@ -446,12 +447,11 @@ function App() {
                   exit={{ opacity: 0 }}
                   className="text-center space-y-6 p-8"
                 >
-                  <div className="text-6xl mb-4">⚡</div>
-                  <h2 className="text-2xl font-bold text-rc-cyan">
+                  <h2 className="text-xl md:text-2xl font-bold text-rc-cyan">
                     Your Agent Is More Than Config
                   </h2>
                   <p className="text-rc-text-dim max-w-md leading-relaxed">
-                    Map every component to 9 cyberware slots. Export the whole loadout.
+                    Tap a slot on the body to see what it maps to. 9 cyberware slots. Export the whole loadout.
                     Share it. Compare it. Clone what works.
                   </p>
                 </motion.div>
@@ -483,10 +483,10 @@ function App() {
           
           {/* Flowing timeline */}
           <div className="relative">
-            {/* Connection line */}
-            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-rc-cyan via-rc-magenta via-rc-yellow to-rc-green" />
+            {/* Connection line - hidden on mobile */}
+            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-rc-cyan via-rc-magenta via-rc-yellow to-rc-green" />
             
-            <div className="grid grid-cols-4 gap-8 relative">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 relative">
               {[
                 { num: '1', label: 'Publish', desc: 'Export to Nostr (kind 38333). PII scrubbed.', color: 'rc-cyan' },
                 { num: '2', label: 'Browse', desc: 'See what others are running. Filter by slot.', color: 'rc-magenta' },
