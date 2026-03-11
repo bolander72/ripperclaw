@@ -15,6 +15,7 @@ function App() {
   const [selectedSlot, setSelectedSlot] = useState('soul');
   const [view, setView] = useState<View>('rig');
   const [showPublish, setShowPublish] = useState(false);
+  const [compareTarget, setCompareTarget] = useState<unknown | null>(null);
 
   const { data: realSlots, loading: slotsLoading, error: slotsError } = useSlots();
   const { data: realMods, loading: modsLoading } = useSkills();
@@ -142,10 +143,19 @@ function App() {
               currentSlots={slots}
               currentMods={mods}
               currentName="Quinn"
+              initialLoadout={compareTarget}
+              onClear={() => setCompareTarget(null)}
             />
           )}
 
-          {view === 'feed' && <FeedView />}
+          {view === 'feed' && (
+            <FeedView
+              onCompare={(loadout) => {
+                setCompareTarget(loadout);
+                setView('compare');
+              }}
+            />
+          )}
         </main>
       </div>
 

@@ -121,7 +121,11 @@ function parseFeedRig(rig: FeedRig): DisplayRig {
   };
 }
 
-export function FeedView() {
+interface FeedViewProps {
+  onCompare?: (loadout: unknown) => void;
+}
+
+export function FeedView({ onCompare }: FeedViewProps) {
   const [filter, setFilter] = useState<string | null>(null);
   const [selectedRig, setSelectedRig] = useState<DisplayRig | null>(null);
   const [showKeySetup, setShowKeySetup] = useState(false);
@@ -460,6 +464,30 @@ export function FeedView() {
                   borderColor: 'var(--rc-cyan)',
                   color: 'var(--rc-cyan)',
                   background: 'rgba(0,240,255,0.1)',
+                }}
+                onClick={() => {
+                  if (!onCompare || !selectedRig) return;
+                  // Build a Loadout-shaped object from the Feed rig
+                  let parsed: Record<string, unknown> = {};
+                  try {
+                    // For real nostr events, content is the full loadout JSON
+                    const realRig = nostrFeed.find((r) => r.id === selectedRig.id);
+                    if (realRig) {
+                      parsed = JSON.parse(realRig.content);
+                    }
+                  } catch { /* use mock structure */ }
+
+                  const loadout = parsed.schema ? parsed : {
+                    schema: 1,
+                    meta: {
+                      name: selectedRig.name,
+                      author: selectedRig.author,
+                      template: selectedRig.template,
+                    },
+                    slots: (parsed.slots as Record<string, unknown>) || {},
+                    mods: (parsed.mods as unknown[]) || [],
+                  };
+                  onCompare(loadout);
                 }}
               >
                 Compare to Mine

@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Loadout, SlotData } from '../types';
 
 interface Props {
   currentSlots: SlotData[];
   currentMods: { name: string; source: string; enabled: boolean; version?: string }[];
   currentName: string;
+  initialLoadout?: unknown;
+  onClear?: () => void;
 }
 
 // Build a diff between current rig and imported loadout
@@ -61,9 +63,18 @@ const statusColor: Record<string, string> = {
   empty: 'var(--rc-text-muted)',
 };
 
-export function CompareView({ currentSlots, currentMods, currentName }: Props) {
-  const [imported, setImported] = useState<Loadout | null>(null);
+export function CompareView({ currentSlots, currentMods, currentName, initialLoadout, onClear }: Props) {
+  const [imported, setImported] = useState<Loadout | null>(
+    initialLoadout ? (initialLoadout as Loadout) : null
+  );
   const [dragOver, setDragOver] = useState(false);
+
+  // Sync when a Feed rig gets passed in
+  useEffect(() => {
+    if (initialLoadout) {
+      setImported(initialLoadout as Loadout);
+    }
+  }, [initialLoadout]);
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
@@ -160,7 +171,7 @@ export function CompareView({ currentSlots, currentMods, currentName }: Props) {
             </p>
           </div>
           <button
-            onClick={() => setImported(null)}
+            onClick={() => { setImported(null); onClear?.(); }}
             className="px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
             style={{
               borderColor: 'var(--rc-border)',
