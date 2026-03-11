@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { BODY_PATH } from './bodyPath.js'
 
 // ── Mock loadout data (what a real OpenClaw agent would have) ──────────
 const DEMO_LOADOUT = {
@@ -131,111 +132,107 @@ function tierLabel(tier) {
 }
 
 // ── The Body SVG ──────────
+// Real anatomical silhouette from Wikimedia Commons (Public Domain)
+// Rescaled from 970x2200 to 300x590 viewBox
+
+// Node positions mapped to the Wikimedia anatomical silhouette (300x590 viewBox)
+// The body is centered around x~145, head top ~87, feet ~580
+const BODY_NODES = {
+  brain:   { x: 145, y: 102 },  // head center (brain/skull)
+  ears:    { x: 145, y: 118 },  // lower head / ear level
+  mouth:   { x: 145, y: 128 },  // jaw/neck junction
+  soul:    { x: 145, y: 97 },   // upper head (identity/consciousness)
+  eyes:    { x: 145, y: 108 },  // eye level
+  heart:   { x: 140, y: 210 },  // left chest
+  os:      { x: 145, y: 260 },  // core/torso center
+  nervous: { x: 145, y: 320 },  // lower torso / spine
+  skeleton:{ x: 145, y: 410 },  // structural, legs
+}
+
+// Node positions as percentages of the body image dimensions
+const BODY_NODES_PCT = {
+  brain:   { x: 50, y: 7 },    // top of head
+  ears:    { x: 50, y: 10 },   // ear level
+  mouth:   { x: 50, y: 12.5 }, // jaw
+  soul:    { x: 50, y: 5 },    // crown
+  eyes:    { x: 50, y: 8.5 },  // eye level
+  heart:   { x: 45, y: 30 },   // left chest
+  os:      { x: 50, y: 40 },   // core
+  nervous: { x: 50, y: 52 },   // lower torso
+  skeleton:{ x: 50, y: 68 },   // legs
+}
+
 function BodyFigure({ activeSlot, slots }) {
   return (
-    <svg viewBox="0 0 300 600" className="w-full h-full" style={{ maxHeight: '70vh' }}>
-      <defs>
-        <filter id="body-glow">
-          <feGaussianBlur stdDeviation="3" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-        <filter id="strong-glow">
-          <feGaussianBlur stdDeviation="6" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-        <linearGradient id="body-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.4" />
-          <stop offset="40%" stopColor="#ff00aa" stopOpacity="0.2" />
-          <stop offset="100%" stopColor="#00f0ff" stopOpacity="0.1" />
-        </linearGradient>
-        <linearGradient id="circuit-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#00f0ff" stopOpacity="0.2" />
-        </linearGradient>
-      </defs>
+    <div className="relative w-full h-full flex items-center justify-center" style={{ maxHeight: '70vh' }}>
+      {/* The holographic body image */}
+      <img
+        src="./body.png"
+        alt="Agent body diagram"
+        className="h-full object-contain relative z-10"
+        style={{
+          maxHeight: '70vh',
+          filter: 'drop-shadow(0 0 30px rgba(0, 240, 255, 0.3)) drop-shadow(0 0 60px rgba(255, 0, 170, 0.15))',
+        }}
+        draggable={false}
+      />
 
-      {/* Scanning line animation */}
-      <rect x="80" y="0" width="140" height="3" fill="url(#circuit-grad)" opacity="0.4">
-        <animate attributeName="y" from="-10" to="600" dur="4s" repeatCount="indefinite" />
-      </rect>
+      {/* Scan beam overlay */}
+      <div
+        className="absolute inset-0 z-20 pointer-events-none overflow-hidden"
+        style={{ mixBlendMode: 'screen' }}
+      >
+        <div
+          className="absolute w-full h-16"
+          style={{
+            background: 'linear-gradient(to bottom, transparent, rgba(0,240,255,0.08), rgba(0,240,255,0.15), rgba(0,240,255,0.08), transparent)',
+            animation: 'scanBeam 4s linear infinite',
+          }}
+        />
+      </div>
 
-      {/* Outer body silhouette - translucent holographic */}
-      <g filter="url(#body-glow)" opacity="0.85">
-        {/* Head */}
-        <ellipse cx="150" cy="52" rx="28" ry="34" fill="url(#body-grad)" stroke="#00f0ff" strokeWidth="0.8" opacity="0.6" />
-        {/* Neck */}
-        <rect x="140" y="82" width="20" height="18" fill="url(#body-grad)" stroke="#00f0ff" strokeWidth="0.5" opacity="0.4" />
-        {/* Torso */}
-        <path d="M 110 100 Q 108 110 105 140 Q 100 180 105 220 Q 108 250 115 270 L 150 275 L 185 270 Q 192 250 195 220 Q 200 180 195 140 Q 192 110 190 100 Z"
-          fill="url(#body-grad)" stroke="#00f0ff" strokeWidth="0.8" opacity="0.5" />
-        {/* Left arm */}
-        <path d="M 110 105 Q 90 115 75 145 Q 65 170 60 200 Q 55 225 52 250 Q 50 260 48 270"
-          fill="none" stroke="#00f0ff" strokeWidth="3" opacity="0.3" strokeLinecap="round" />
-        {/* Right arm */}
-        <path d="M 190 105 Q 210 115 225 145 Q 235 170 240 200 Q 245 225 248 250 Q 250 260 252 270"
-          fill="none" stroke="#00f0ff" strokeWidth="3" opacity="0.3" strokeLinecap="round" />
-        {/* Left leg */}
-        <path d="M 125 270 Q 120 310 118 360 Q 115 410 112 460 Q 110 500 108 540"
-          fill="none" stroke="#00f0ff" strokeWidth="4" opacity="0.3" strokeLinecap="round" />
-        {/* Right leg */}
-        <path d="M 175 270 Q 180 310 182 360 Q 185 410 188 460 Q 190 500 192 540"
-          fill="none" stroke="#00f0ff" strokeWidth="4" opacity="0.3" strokeLinecap="round" />
-      </g>
+      {/* SVG overlay for nodes */}
+      <svg
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        className="absolute inset-0 w-full h-full z-30 pointer-events-none"
+      >
+        <defs>
+          <filter id="node-glow">
+            <feGaussianBlur stdDeviation="1" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
 
-      {/* Internal structure - skeleton/circuit hints */}
-      <g stroke="#ff00aa" strokeWidth="0.5" opacity="0.3" fill="none">
-        {/* Spine */}
-        <line x1="150" y1="85" x2="150" y2="270" strokeDasharray="3,2" />
-        {/* Ribs */}
-        <path d="M 130 130 Q 150 120 170 130" />
-        <path d="M 125 145 Q 150 135 175 145" />
-        <path d="M 122 160 Q 150 150 178 160" />
-        <path d="M 125 175 Q 150 165 175 175" />
-        {/* Pelvis */}
-        <path d="M 120 260 Q 150 275 180 260" />
-        {/* Collarbone */}
-        <line x1="110" y1="105" x2="190" y2="105" />
-      </g>
+        {Object.entries(slots).map(([id, slot]) => {
+          const node = BODY_NODES_PCT[id] || { x: 50, y: 50 }
+          const isActive = activeSlot === id
+          const r = isActive ? 1.8 : 1.2
+          return (
+            <g key={id}>
+              <circle cx={node.x} cy={node.y} r={r * 1.8} fill="none" stroke={slot.color} strokeWidth={isActive ? 0.3 : 0.15} opacity={isActive ? 0.8 : 0.3} />
+              <circle cx={node.x} cy={node.y} r={r} fill={slot.color} opacity={isActive ? 1 : 0.7} filter="url(#node-glow)" />
+              {isActive && (
+                <>
+                  <circle cx={node.x} cy={node.y} r={r} fill="none" stroke={slot.color} strokeWidth="0.3" opacity="0.6">
+                    <animate attributeName="r" from={r} to={r * 4} dur="2s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" from="0.6" to="0" dur="2s" repeatCount="indefinite" />
+                  </circle>
+                </>
+              )}
+            </g>
+          )
+        })}
+      </svg>
 
-      {/* Circuit traces */}
-      <g stroke="#00f0ff" strokeWidth="0.6" opacity="0.5" fill="none">
-        {/* Brain circuits */}
-        <path d="M 135 45 L 130 55 L 125 50" strokeDasharray="2,2" />
-        <path d="M 165 45 L 170 55 L 175 50" strokeDasharray="2,2" />
-        {/* Spine data bus */}
-        <line x1="153" y1="100" x2="153" y2="265" strokeDasharray="1,3" />
-        <line x1="147" y1="100" x2="147" y2="265" strokeDasharray="1,3" />
-        {/* Heart circuit */}
-        <circle cx="140" cy="145" r="8" stroke="#ff3366" opacity="0.5" />
-        {/* Nerve branches */}
-        <path d="M 150 200 L 110 220 L 90 250" strokeDasharray="2,3" />
-        <path d="M 150 200 L 190 220 L 210 250" strokeDasharray="2,3" />
-      </g>
-
-      {/* Glowing nodes at key body points */}
-      {Object.entries(slots).map(([id, slot]) => {
-        const y = slot.bodyY * 600
-        const x = 150
-        const isActive = activeSlot === id
-        return (
-          <g key={id}>
-            <circle cx={x} cy={y} r={isActive ? 5 : 3} fill={slot.color} opacity={isActive ? 1 : 0.6} filter={isActive ? 'url(#strong-glow)' : 'url(#body-glow)'} />
-            {isActive && (
-              <circle cx={x} cy={y} r="10" fill="none" stroke={slot.color} strokeWidth="1" opacity="0.5">
-                <animate attributeName="r" from="5" to="18" dur="1.5s" repeatCount="indefinite" />
-                <animate attributeName="opacity" from="0.8" to="0" dur="1.5s" repeatCount="indefinite" />
-              </circle>
-            )}
-          </g>
-        )
-      })}
-    </svg>
+      {/* Diagnostic label */}
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 font-mono text-[8px] tracking-[0.3em] text-[#00f0ff] opacity-20 pointer-events-none">
+        RIPPERCLAW DIAGNOSTIC v0.1
+      </div>
+    </div>
   )
 }
 
