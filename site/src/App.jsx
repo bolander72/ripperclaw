@@ -1,368 +1,482 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-// The 9 cyberware slots
-const SLOTS = [
-  {
-    id: 'brain',
-    name: 'Brain',
-    tagline: 'Context Engine',
-    description: 'Memory architecture, LCM/DAG compaction, conversation history management',
-    position: { x: 200, y: 60 },
-    path: 'M 180 45 Q 200 30 220 45 L 220 75 Q 200 90 180 75 Z', // simplified brain outline
-    color: '#00f0ff',
+// ── Mock loadout data (what a real OpenClaw agent would have) ──────────
+const DEMO_LOADOUT = {
+  name: 'quinn-homelab',
+  template: 'Homelab',
+  level: 26,  // total mods installed
+  capacity: 40,
+  slots: {
+    brain: {
+      label: 'BRAIN',
+      tagline: 'Context Engine',
+      side: 'left',
+      bodyY: 0.08,
+      color: '#00f0ff',
+      mods: [
+        { name: 'lossless-claw', version: '0.2.8', tier: 3, desc: 'DAG-based rolling summarization. Lossless context compaction.' },
+        { name: 'LCM Tools', version: 'built-in', tier: 2, desc: 'grep, expand, describe, expand_query across compacted history.' },
+      ],
+    },
+    ears: {
+      label: 'EARS',
+      tagline: 'Audio Input',
+      side: 'left',
+      bodyY: 0.14,
+      color: '#00f0ff',
+      mods: [
+        { name: 'Whisper (local)', version: 'base.en', tier: 2, desc: 'On-device speech-to-text. Zero cost, ~2s latency.' },
+      ],
+    },
+    mouth: {
+      label: 'MOUTH',
+      tagline: 'Voice Output',
+      side: 'left',
+      bodyY: 0.20,
+      color: '#00ff88',
+      mods: [
+        { name: 'Kokoro-ONNX', version: '1.0', tier: 3, desc: 'Local neural TTS. Voice: af_bella. ~1s latency.' },
+        { name: 'iMessage Voice', version: '1.0', tier: 2, desc: 'CAF/Opus voice bubbles for native iMessage playback.' },
+      ],
+    },
+    heart: {
+      label: 'HEART',
+      tagline: 'Heartbeat System',
+      side: 'left',
+      bodyY: 0.34,
+      color: '#ff3366',
+      mods: [
+        { name: 'Heartbeat Tasks', version: 'built-in', tier: 2, desc: 'Periodic health checks, cron monitoring, ClawHub watch.' },
+        { name: 'Cron Engine', version: '22 jobs', tier: 3, desc: 'Email check, vault sync, health checkin, LinkedIn posts, security audit.' },
+      ],
+    },
+    nervous: {
+      label: 'NERVOUS SYSTEM',
+      tagline: 'Integrations',
+      side: 'left',
+      bodyY: 0.52,
+      color: '#00ff88',
+      mods: [
+        { name: 'BlueBubbles', version: '1.0', tier: 3, desc: 'iMessage send/receive, reactions, attachments, voice.' },
+        { name: 'Home Assistant', version: 'API', tier: 2, desc: 'Ecobee, UniFi cameras, garage door, sensors.' },
+        { name: 'caldir', version: '1.0', tier: 2, desc: 'iCloud + Google Calendar read/write/sync.' },
+        { name: 'himalaya', version: '1.0', tier: 2, desc: 'IMAP/SMTP email for work + personal accounts.' },
+      ],
+    },
+    soul: {
+      label: 'SOUL',
+      tagline: 'Identity Layer',
+      side: 'right',
+      bodyY: 0.08,
+      color: '#ff00aa',
+      mods: [
+        { name: 'SOUL.md', version: 'v3', tier: 3, desc: 'Personality, anti-patterns, communication style, productive flaws.' },
+        { name: 'IDENTITY.md', version: 'v1', tier: 1, desc: 'Name, creature type, vibe, avatar config.' },
+      ],
+    },
+    eyes: {
+      label: 'EYES',
+      tagline: 'Vision & Capture',
+      side: 'right',
+      bodyY: 0.14,
+      color: '#ff00aa',
+      mods: [
+        { name: 'Peekaboo', version: '1.0', tier: 2, desc: 'macOS screen capture and UI automation.' },
+        { name: 'UniFi G4 Doorbell', version: 'Pro', tier: 2, desc: 'Front porch camera + package cam via HA.' },
+      ],
+    },
+    os: {
+      label: 'OPERATING SYSTEM',
+      tagline: 'Runtime Core',
+      side: 'right',
+      bodyY: 0.28,
+      color: '#ffcc00',
+      mods: [
+        { name: 'OpenClaw', version: '2026.3.7', tier: 3, desc: 'Base runtime. Darwin ARM64, Node 22, zsh.' },
+        { name: 'Mac mini M4', version: 'macOS 15', tier: 2, desc: 'Always-on host. 24/7 uptime.' },
+      ],
+    },
+    skeleton: {
+      label: 'SKELETON',
+      tagline: 'Model Router',
+      side: 'right',
+      bodyY: 0.44,
+      color: '#8888a0',
+      mods: [
+        { name: 'claude-opus-4-6', version: 'Anthropic', tier: 3, desc: 'Primary model. Main session reasoning.' },
+        { name: 'claude-sonnet-4-5', version: 'Anthropic', tier: 2, desc: 'Sub-agents, voice session, fast tasks.' },
+        { name: 'qwen3.5:4b', version: 'Ollama', tier: 1, desc: 'Local model. Heartbeats, utility, free.' },
+        { name: 'Kokoro-ONNX', version: 'local', tier: 1, desc: 'Local TTS inference. Zero API cost.' },
+        { name: 'Whisper', version: 'local', tier: 1, desc: 'Local STT inference. Zero API cost.' },
+      ],
+    },
   },
-  {
-    id: 'eyes',
-    name: 'Eyes',
-    tagline: 'Vision Models',
-    description: 'Image recognition, cameras, screen capture, visual understanding',
-    position: { x: 185, y: 70 },
-    path: 'M 175 65 L 185 65 L 185 75 L 175 75 Z', // left eye
-    color: '#ff00aa',
-  },
-  {
-    id: 'ears',
-    name: 'Ears',
-    tagline: 'Audio Input',
-    description: 'Speech-to-text, voice input, Whisper transcription',
-    position: { x: 165, y: 70 },
-    path: 'M 160 65 Q 155 70 160 75', // left ear
-    color: '#00f0ff',
-  },
-  {
-    id: 'mouth',
-    name: 'Mouth',
-    tagline: 'Voice Output',
-    description: 'Text-to-speech, Kokoro-ONNX, voice synthesis',
-    position: { x: 200, y: 85 },
-    path: 'M 190 85 Q 200 88 210 85', // mouth
-    color: '#00ff88',
-  },
-  {
-    id: 'soul',
-    name: 'Soul',
-    tagline: 'Identity Layer',
-    description: 'Personality files, behavioral rules, identity and values',
-    position: { x: 200, y: 130 },
-    path: 'M 190 120 L 210 120 L 210 140 L 190 140 Z', // heart/soul area
-    color: '#ff00aa',
-  },
-  {
-    id: 'heart',
-    name: 'Heart',
-    tagline: 'Heartbeat Tasks',
-    description: 'Scheduled automations, health checks, cron jobs, periodic tasks',
-    position: { x: 180, y: 135 },
-    path: 'M 175 130 Q 170 135 175 140 Q 180 145 185 140 Q 190 135 185 130 Z', // heart shape
-    color: '#ff3366',
-  },
-  {
-    id: 'os',
-    name: 'OS',
-    tagline: 'Runtime Core',
-    description: 'Base OpenClaw runtime, platform, shell, node version',
-    position: { x: 200, y: 160 },
-    path: 'M 195 150 L 205 150 L 205 170 L 195 170 Z', // spine/core
-    color: '#ffcc00',
-  },
-  {
-    id: 'nervous',
-    name: 'Nervous System',
-    tagline: 'Integrations',
-    description: 'Channels, calendar, email, Home Assistant, external APIs',
-    position: { x: 200, y: 200 },
-    path: 'M 200 170 L 180 190 M 200 170 L 220 190 M 200 180 L 170 200 M 200 180 L 230 200', // branching nerves
-    color: '#00ff88',
-  },
-  {
-    id: 'skeleton',
-    name: 'Skeleton',
-    tagline: 'Model Router',
-    description: 'LLM providers, model config, the load-bearing structure',
-    position: { x: 200, y: 250 },
-    path: 'M 195 100 L 195 270 M 205 100 L 205 270 M 195 270 L 170 320 M 205 270 L 230 320', // legs/skeleton
-    color: '#8888a0',
-  },
-]
+}
 
-function VitruvianDiagram({ activeSlot, setActiveSlot }) {
+const LEFT_SLOTS = ['brain', 'ears', 'mouth', 'heart', 'nervous']
+const RIGHT_SLOTS = ['soul', 'eyes', 'os', 'skeleton']
+
+// ── Tier badge colors ──────────
+function tierColor(tier) {
+  if (tier === 3) return '#ffcc00'
+  if (tier === 2) return '#00f0ff'
+  return '#8888a0'
+}
+
+function tierLabel(tier) {
+  if (tier === 3) return 'T3'
+  if (tier === 2) return 'T2'
+  return 'T1'
+}
+
+// ── The Body SVG ──────────
+function BodyFigure({ activeSlot, slots }) {
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <svg
-        viewBox="0 0 400 400"
-        className="w-full h-full max-h-[70vh]"
-        style={{ filter: 'drop-shadow(0 0 20px rgba(0, 240, 255, 0.3))' }}
-      >
-        {/* SVG filters for glow effects */}
-        <defs>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-          <filter id="glow-strong">
-            <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-          
-          {/* Da Vinci parchment texture */}
-          <pattern id="parchment" width="400" height="400" patternUnits="userSpaceOnUse">
-            <rect width="400" height="400" fill="#0a0a0f" opacity="0.1"/>
-          </pattern>
-        </defs>
+    <svg viewBox="0 0 300 600" className="w-full h-full" style={{ maxHeight: '70vh' }}>
+      <defs>
+        <filter id="body-glow">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <filter id="strong-glow">
+          <feGaussianBlur stdDeviation="6" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <linearGradient id="body-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.4" />
+          <stop offset="40%" stopColor="#ff00aa" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#00f0ff" stopOpacity="0.1" />
+        </linearGradient>
+        <linearGradient id="circuit-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.8" />
+          <stop offset="100%" stopColor="#00f0ff" stopOpacity="0.2" />
+        </linearGradient>
+      </defs>
 
-        {/* Background circle (Vitruvian Man style) */}
-        <circle
-          cx="200"
-          cy="200"
-          r="180"
-          fill="none"
-          stroke="rgba(205, 180, 140, 0.3)"
-          strokeWidth="1"
-          strokeDasharray="4,4"
-        />
-        
-        {/* Background square */}
-        <rect
-          x="40"
-          y="40"
-          width="320"
-          height="320"
-          fill="none"
-          stroke="rgba(205, 180, 140, 0.3)"
-          strokeWidth="1"
-          strokeDasharray="4,4"
-        />
+      {/* Scanning line animation */}
+      <rect x="80" y="0" width="140" height="3" fill="url(#circuit-grad)" opacity="0.4">
+        <animate attributeName="y" from="-10" to="600" dur="4s" repeatCount="indefinite" />
+      </rect>
 
-        {/* Body outline - da Vinci sketch style */}
-        <g stroke="#cdb48c" strokeWidth="1.5" fill="none" opacity="0.8">
-          {/* Head */}
-          <circle cx="200" cy="60" r="25" />
-          
-          {/* Neck */}
-          <line x1="200" y1="85" x2="200" y2="100" />
-          
-          {/* Shoulders and arms */}
-          <line x1="165" y1="110" x2="235" y2="110" />
-          <line x1="165" y1="110" x2="145" y2="180" />
-          <line x1="235" y1="110" x2="255" y2="180" />
-          
-          {/* Torso outline */}
-          <path d="M 180 100 L 170 130 L 165 160 L 170 200 L 180 240" />
-          <path d="M 220 100 L 230 130 L 235 160 L 230 200 L 220 240" />
-          
-          {/* Spine */}
-          <line x1="200" y1="100" x2="200" y2="240" strokeDasharray="2,2" opacity="0.5" />
-          
-          {/* Hips */}
-          <line x1="180" y1="240" x2="220" y2="240" />
-          
-          {/* Legs */}
-          <line x1="185" y1="240" x2="175" y2="320" />
-          <line x1="215" y1="240" x2="225" y2="320" />
-          
-          {/* Crosshatch details (da Vinci style) */}
-          <g opacity="0.3" strokeWidth="0.5">
-            <line x1="190" y1="130" x2="195" y2="140" />
-            <line x1="205" y1="130" x2="210" y2="140" />
-            <line x1="190" y1="160" x2="195" y2="170" />
-            <line x1="205" y1="160" x2="210" y2="170" />
+      {/* Outer body silhouette - translucent holographic */}
+      <g filter="url(#body-glow)" opacity="0.85">
+        {/* Head */}
+        <ellipse cx="150" cy="52" rx="28" ry="34" fill="url(#body-grad)" stroke="#00f0ff" strokeWidth="0.8" opacity="0.6" />
+        {/* Neck */}
+        <rect x="140" y="82" width="20" height="18" fill="url(#body-grad)" stroke="#00f0ff" strokeWidth="0.5" opacity="0.4" />
+        {/* Torso */}
+        <path d="M 110 100 Q 108 110 105 140 Q 100 180 105 220 Q 108 250 115 270 L 150 275 L 185 270 Q 192 250 195 220 Q 200 180 195 140 Q 192 110 190 100 Z"
+          fill="url(#body-grad)" stroke="#00f0ff" strokeWidth="0.8" opacity="0.5" />
+        {/* Left arm */}
+        <path d="M 110 105 Q 90 115 75 145 Q 65 170 60 200 Q 55 225 52 250 Q 50 260 48 270"
+          fill="none" stroke="#00f0ff" strokeWidth="3" opacity="0.3" strokeLinecap="round" />
+        {/* Right arm */}
+        <path d="M 190 105 Q 210 115 225 145 Q 235 170 240 200 Q 245 225 248 250 Q 250 260 252 270"
+          fill="none" stroke="#00f0ff" strokeWidth="3" opacity="0.3" strokeLinecap="round" />
+        {/* Left leg */}
+        <path d="M 125 270 Q 120 310 118 360 Q 115 410 112 460 Q 110 500 108 540"
+          fill="none" stroke="#00f0ff" strokeWidth="4" opacity="0.3" strokeLinecap="round" />
+        {/* Right leg */}
+        <path d="M 175 270 Q 180 310 182 360 Q 185 410 188 460 Q 190 500 192 540"
+          fill="none" stroke="#00f0ff" strokeWidth="4" opacity="0.3" strokeLinecap="round" />
+      </g>
+
+      {/* Internal structure - skeleton/circuit hints */}
+      <g stroke="#ff00aa" strokeWidth="0.5" opacity="0.3" fill="none">
+        {/* Spine */}
+        <line x1="150" y1="85" x2="150" y2="270" strokeDasharray="3,2" />
+        {/* Ribs */}
+        <path d="M 130 130 Q 150 120 170 130" />
+        <path d="M 125 145 Q 150 135 175 145" />
+        <path d="M 122 160 Q 150 150 178 160" />
+        <path d="M 125 175 Q 150 165 175 175" />
+        {/* Pelvis */}
+        <path d="M 120 260 Q 150 275 180 260" />
+        {/* Collarbone */}
+        <line x1="110" y1="105" x2="190" y2="105" />
+      </g>
+
+      {/* Circuit traces */}
+      <g stroke="#00f0ff" strokeWidth="0.6" opacity="0.5" fill="none">
+        {/* Brain circuits */}
+        <path d="M 135 45 L 130 55 L 125 50" strokeDasharray="2,2" />
+        <path d="M 165 45 L 170 55 L 175 50" strokeDasharray="2,2" />
+        {/* Spine data bus */}
+        <line x1="153" y1="100" x2="153" y2="265" strokeDasharray="1,3" />
+        <line x1="147" y1="100" x2="147" y2="265" strokeDasharray="1,3" />
+        {/* Heart circuit */}
+        <circle cx="140" cy="145" r="8" stroke="#ff3366" opacity="0.5" />
+        {/* Nerve branches */}
+        <path d="M 150 200 L 110 220 L 90 250" strokeDasharray="2,3" />
+        <path d="M 150 200 L 190 220 L 210 250" strokeDasharray="2,3" />
+      </g>
+
+      {/* Glowing nodes at key body points */}
+      {Object.entries(slots).map(([id, slot]) => {
+        const y = slot.bodyY * 600
+        const x = 150
+        const isActive = activeSlot === id
+        return (
+          <g key={id}>
+            <circle cx={x} cy={y} r={isActive ? 5 : 3} fill={slot.color} opacity={isActive ? 1 : 0.6} filter={isActive ? 'url(#strong-glow)' : 'url(#body-glow)'} />
+            {isActive && (
+              <circle cx={x} cy={y} r="10" fill="none" stroke={slot.color} strokeWidth="1" opacity="0.5">
+                <animate attributeName="r" from="5" to="18" dur="1.5s" repeatCount="indefinite" />
+                <animate attributeName="opacity" from="0.8" to="0" dur="1.5s" repeatCount="indefinite" />
+              </circle>
+            )}
           </g>
-        </g>
-
-        {/* Cyberpunk circuit overlays */}
-        <g stroke="#00f0ff" strokeWidth="0.5" fill="none" opacity="0.4">
-          <path d="M 200 60 L 200 100" strokeDasharray="2,2" />
-          <path d="M 200 100 L 200 240" strokeDasharray="3,3" />
-          <circle cx="200" cy="130" r="3" fill="#ff00aa" opacity="0.6" />
-          <circle cx="200" cy="160" r="3" fill="#ffcc00" opacity="0.6" />
-        </g>
-
-        {/* Interactive slot regions */}
-        {SLOTS.map((slot) => {
-          const isActive = activeSlot?.id === slot.id
-          return (
-            <g
-              key={slot.id}
-              className="cursor-pointer transition-all"
-              onMouseEnter={() => setActiveSlot(slot)}
-              onMouseLeave={() => setActiveSlot(null)}
-              onClick={() => setActiveSlot(activeSlot?.id === slot.id ? null : slot)}
-            >
-              {/* Invisible hit area for easier clicking */}
-              <circle
-                cx={slot.position.x}
-                cy={slot.position.y}
-                r="20"
-                fill="transparent"
-              />
-              
-              {/* Slot marker */}
-              <circle
-                cx={slot.position.x}
-                cy={slot.position.y}
-                r={isActive ? 8 : 6}
-                fill={slot.color}
-                opacity={isActive ? 1 : 0.7}
-                filter={isActive ? 'url(#glow-strong)' : 'url(#glow)'}
-                className="transition-all"
-              />
-              
-              {/* Pulsing ring when active */}
-              {isActive && (
-                <motion.circle
-                  cx={slot.position.x}
-                  cy={slot.position.y}
-                  r="12"
-                  fill="none"
-                  stroke={slot.color}
-                  strokeWidth="2"
-                  initial={{ r: 8, opacity: 1 }}
-                  animate={{ r: 20, opacity: 0 }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                />
-              )}
-              
-              {/* Connection line to detail panel (when active) */}
-              {isActive && (
-                <motion.line
-                  x1={slot.position.x}
-                  y1={slot.position.y}
-                  x2="400"
-                  y2="200"
-                  stroke={slot.color}
-                  strokeWidth="1"
-                  strokeDasharray="4,4"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 0.6 }}
-                  transition={{ duration: 0.3 }}
-                />
-              )}
-            </g>
-          )
-        })}
-      </svg>
-    </div>
+        )
+      })}
+    </svg>
   )
 }
 
-function SlotDetailPanel({ slot }) {
-  if (!slot) return null
-  
+// ── Slot Card (flanking the body) ──────────
+function SlotCard({ id, slot, isActive, onClick }) {
+  const modCount = slot.mods.length
+  const maxTier = Math.max(...slot.mods.map(m => m.tier))
+
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      transition={{ duration: 0.3 }}
-      className="p-8 border-2 bg-rc-bg/95 backdrop-blur-md"
+      onClick={onClick}
+      className="cursor-pointer group relative"
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+    >
+      <div
+        className={`border transition-all duration-200 ${isActive ? 'border-opacity-100 bg-opacity-20' : 'border-opacity-40 bg-opacity-5 hover:border-opacity-70'}`}
+        style={{
+          borderColor: slot.color,
+          backgroundColor: isActive ? `${slot.color}15` : `${slot.color}08`,
+          boxShadow: isActive ? `0 0 20px ${slot.color}40, inset 0 0 20px ${slot.color}10` : 'none',
+        }}
+      >
+        {/* Header */}
+        <div className="px-3 py-2 border-b" style={{ borderColor: `${slot.color}30` }}>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold tracking-widest" style={{ color: slot.color }}>
+              {slot.label}
+            </span>
+            <span className="text-[10px] font-mono" style={{ color: `${slot.color}99` }}>
+              {modCount} MOD{modCount !== 1 ? 'S' : ''}
+            </span>
+          </div>
+          <div className="text-[10px] text-[#8888a0] mt-0.5">{slot.tagline}</div>
+        </div>
+
+        {/* Mod slots grid */}
+        <div className="px-3 py-2 flex gap-1.5 flex-wrap">
+          {slot.mods.map((mod, i) => (
+            <div
+              key={i}
+              className="w-7 h-7 border flex items-center justify-center text-[8px] font-bold"
+              style={{
+                borderColor: tierColor(mod.tier),
+                backgroundColor: `${tierColor(mod.tier)}15`,
+                color: tierColor(mod.tier),
+              }}
+              title={mod.name}
+            >
+              {tierLabel(mod.tier)}
+            </div>
+          ))}
+          {/* Empty mod slots */}
+          {Array.from({ length: Math.max(0, 4 - modCount) }).map((_, i) => (
+            <div
+              key={`empty-${i}`}
+              className="w-7 h-7 border border-[#1e1e2e] bg-[#0a0a0f] flex items-center justify-center"
+            >
+              <span className="text-[8px] text-[#333]">-</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Connection line indicator */}
+      <div
+        className={`absolute top-1/2 ${slot.side === 'left' ? '-right-3' : '-left-3'} w-3 h-px transition-opacity`}
+        style={{
+          backgroundColor: slot.color,
+          opacity: isActive ? 1 : 0.3,
+        }}
+      />
+    </motion.div>
+  )
+}
+
+// ── Detail Panel (when a slot is selected) ──────────
+function DetailPanel({ slotId, slot, onClose }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 20, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+      className="absolute bottom-0 left-0 right-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-1/2 md:-translate-x-1/2 md:w-[500px] z-50 border-2 bg-[#0a0a0f]/95 backdrop-blur-md"
       style={{ borderColor: slot.color }}
     >
-      <div className="space-y-4">
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: `${slot.color}40` }}>
         <div>
-          <h3
-            className="text-3xl font-bold mb-1 font-mono"
-            style={{ color: slot.color, textShadow: `0 0 20px ${slot.color}` }}
-          >
-            {slot.name}
-          </h3>
-          <p className="text-lg text-rc-text-dim">{slot.tagline}</p>
+          <h3 className="text-lg font-bold font-mono" style={{ color: slot.color }}>{slot.label}</h3>
+          <span className="text-xs text-[#8888a0]">{slot.tagline}</span>
         </div>
-        
-        <p className="text-rc-text leading-relaxed">
-          {slot.description}
-        </p>
-        
-        <div className="flex items-center gap-2 text-xs font-mono text-rc-text-dim pt-4 border-t border-rc-border">
-          <div
-            className="w-2 h-2 rounded-full"
-            style={{ backgroundColor: slot.color }}
-          />
-          <span>SLOT_{slot.id.toUpperCase()}</span>
-        </div>
+        <button onClick={onClose} className="text-[#8888a0] hover:text-white text-xl leading-none px-2">x</button>
+      </div>
+
+      {/* Installed mods list */}
+      <div className="p-4 space-y-3 max-h-[50vh] overflow-y-auto">
+        {slot.mods.map((mod, i) => (
+          <div key={i} className="border border-[#1e1e2e] bg-[#12121a]/50 p-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                <span
+                  className="text-[9px] font-bold px-1.5 py-0.5 border"
+                  style={{ color: tierColor(mod.tier), borderColor: tierColor(mod.tier) }}
+                >
+                  TIER {mod.tier}
+                </span>
+                <span className="text-sm font-bold text-[#e8e8f0]">{mod.name}</span>
+              </div>
+              <span className="text-[10px] text-[#8888a0] font-mono">{mod.version}</span>
+            </div>
+            <p className="text-xs text-[#8888a0] leading-relaxed">{mod.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Stats bar */}
+      <div className="px-4 py-2.5 border-t flex items-center justify-between text-[10px] font-mono" style={{ borderColor: `${slot.color}30` }}>
+        <span style={{ color: slot.color }}>SLOT_{slotId.toUpperCase()}</span>
+        <span className="text-[#8888a0]">{slot.mods.length} / 4 CAPACITY</span>
       </div>
     </motion.div>
   )
 }
 
+// ── Status Bar (top) ──────────
+function StatusBar({ loadout }) {
+  const totalMods = Object.values(loadout.slots).reduce((sum, s) => sum + s.mods.length, 0)
+  return (
+    <div className="flex items-center justify-between px-4 py-2 border-b border-[#1e1e2e] bg-[#0a0a0f]/90 backdrop-blur-sm text-xs font-mono">
+      <div className="flex items-center gap-4">
+        <span className="text-[#ffcc00] font-bold">{totalMods} MODS</span>
+        <span className="text-[#8888a0]">|</span>
+        <span className="text-[#00f0ff]">{loadout.name}</span>
+        <span className="text-[#8888a0]">|</span>
+        <span className="text-[#8888a0]">TEMPLATE: <span className="text-[#e8e8f0]">{loadout.template}</span></span>
+      </div>
+      <div className="flex items-center gap-4">
+        <span className="text-[#8888a0]">{totalMods}/{loadout.capacity}</span>
+        <div className="w-24 h-1.5 bg-[#1e1e2e] overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-[#00f0ff] to-[#ff00aa]"
+            style={{ width: `${(totalMods / loadout.capacity) * 100}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Connect Modal ──────────
+function ConnectModal({ onClose }) {
+  const [url, setUrl] = useState('')
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        onClick={e => e.stopPropagation()}
+        className="w-full max-w-md border-2 border-[#00f0ff] bg-[#0a0a0f] p-6 space-y-4"
+      >
+        <h3 className="text-xl font-bold text-[#00f0ff] font-mono">CONNECT YOUR AGENT</h3>
+        <p className="text-sm text-[#8888a0]">
+          Enter your OpenClaw instance URL to view your live loadout. Your config stays local — we fetch read-only slot data.
+        </p>
+        <input
+          value={url}
+          onChange={e => setUrl(e.target.value)}
+          placeholder="http://localhost:3000"
+          className="w-full bg-[#12121a] border border-[#1e1e2e] px-4 py-3 text-sm font-mono text-[#e8e8f0] placeholder-[#555570] focus:border-[#00f0ff] focus:outline-none"
+        />
+        <div className="flex gap-3">
+          <button className="flex-1 py-2.5 bg-[#00f0ff] text-[#0a0a0f] font-bold text-sm hover:bg-[#00d4dd] transition-colors">
+            CONNECT
+          </button>
+          <button onClick={onClose} className="flex-1 py-2.5 border border-[#1e1e2e] text-[#8888a0] text-sm hover:border-[#555570] transition-colors">
+            CANCEL
+          </button>
+        </div>
+        <p className="text-[10px] text-[#555570] text-center">Coming soon. Download the desktop app to view your loadout now.</p>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ── Terminal Demo ──────────
 function TerminalDemo() {
   const [lines, setLines] = useState([])
   const [visible, setVisible] = useState(false)
   const ref = useRef(null)
-  
+
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !visible) {
-          setVisible(true)
-        }
-      },
+      ([entry]) => { if (entry.isIntersecting && !visible) setVisible(true) },
       { threshold: 0.3 }
     )
-    
     if (ref.current) observer.observe(ref.current)
     return () => observer.disconnect()
   }, [visible])
-  
+
   useEffect(() => {
     if (!visible) return
-    
-    const sequence = [
+    const seq = [
       { type: 'input', text: 'ripperclaw export', delay: 300 },
-      { type: 'output', text: '✓ Mapping 9 slots...', delay: 700 },
-      { type: 'output', text: '✓ 26 mods detected', delay: 1000 },
-      { type: 'output', text: '✓ quinn-homelab.json exported', delay: 1300 },
-      { type: 'blank', delay: 1700 },
-      { type: 'input', text: 'ripperclaw publish --scrub', delay: 2000 },
-      { type: 'output', text: '✓ PII scrubbed', delay: 2400 },
-      { type: 'output', text: '✓ Signed with npub1...', delay: 2700 },
-      { type: 'output', text: '✓ Published to 2/3 relays', delay: 3000 },
+      { type: 'output', text: '\u2713 Mapping 9 slots...', delay: 700 },
+      { type: 'output', text: '\u2713 26 mods detected (5 T3, 12 T2, 9 T1)', delay: 1100 },
+      { type: 'output', text: '\u2713 quinn-homelab.json exported', delay: 1500 },
+      { type: 'blank', delay: 1900 },
+      { type: 'input', text: 'ripperclaw publish --scrub', delay: 2200 },
+      { type: 'output', text: '\u2713 PII scrubbed (12 patterns checked)', delay: 2600 },
+      { type: 'output', text: '\u2713 Signed with npub1q2w3...', delay: 2900 },
+      { type: 'output', text: '\u2713 Published to 2/3 relays (kind:38333)', delay: 3200 },
     ]
-    
     setLines([])
-    sequence.forEach(line => {
-      setTimeout(() => setLines(prev => [...prev, line]), line.delay)
-    })
+    seq.forEach(l => setTimeout(() => setLines(prev => [...prev, l]), l.delay))
   }, [visible])
-  
+
   return (
-    <div ref={ref} className="font-mono text-sm border border-rc-cyan bg-rc-bg/90 backdrop-blur-sm p-6">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-rc-border">
-        <div className="flex gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-rc-red/60" />
-          <div className="w-3 h-3 rounded-full bg-rc-yellow/60" />
-          <div className="w-3 h-3 rounded-full bg-rc-green/60" />
+    <div ref={ref} className="font-mono text-xs border border-[#1e1e2e] bg-[#0a0a0f]/90 p-4">
+      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[#1e1e2e]">
+        <div className="flex gap-1">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#ff3366]/60" />
+          <div className="w-2.5 h-2.5 rounded-full bg-[#ffcc00]/60" />
+          <div className="w-2.5 h-2.5 rounded-full bg-[#00ff88]/60" />
         </div>
-        <span className="ml-2 text-rc-text-dim">terminal</span>
+        <span className="ml-1 text-[#555570] text-[10px]">terminal</span>
       </div>
-      
-      <div className="space-y-1">
+      <div className="space-y-0.5 min-h-[120px]">
         {lines.map((line, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className={
-              line.type === 'input' ? 'text-rc-cyan' :
-              line.type === 'blank' ? 'h-3' :
-              'text-rc-green'
-            }
-          >
-            {line.type === 'input' && <span className="text-rc-magenta">$ </span>}
+          <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className={line.type === 'input' ? 'text-[#00f0ff]' : line.type === 'blank' ? 'h-2' : 'text-[#00ff88]'}>
+            {line.type === 'input' && <span className="text-[#ff00aa]">$ </span>}
             {line.text}
-            {i === lines.length - 1 && line.type !== 'blank' && (
-              <motion.span
-                animate={{ opacity: [1, 0] }}
-                transition={{ duration: 0.8, repeat: Infinity }}
-                className="inline-block ml-1 w-1.5 h-3.5 bg-rc-cyan align-middle"
-              />
-            )}
           </motion.div>
         ))}
       </div>
@@ -370,220 +484,125 @@ function TerminalDemo() {
   )
 }
 
+// ── Connection Lines SVG (between slots and body) ──────────
+function ConnectionLines({ slots, activeSlot, leftRef, rightRef, bodyRef }) {
+  // These are decorative — CSS handles the actual layout
+  return null
+}
+
+// ── Main App ──────────
 function App() {
   const [activeSlot, setActiveSlot] = useState(null)
-  
+  const [showConnect, setShowConnect] = useState(false)
+  const loadout = DEMO_LOADOUT
+
+  const handleSlotClick = (id) => {
+    setActiveSlot(activeSlot === id ? null : id)
+  }
+
   return (
-    <div className="min-h-screen bg-rc-bg text-rc-text antialiased scanlines">
-      {/* Hero - The Diagram */}
-      <section className="min-h-screen flex items-center justify-center px-6 py-12 relative overflow-hidden">
-        {/* Background effects */}
-        <div className="absolute inset-0 opacity-20">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: 'radial-gradient(circle, rgba(0, 240, 255, 0.1) 1px, transparent 1px)',
-              backgroundSize: '50px 50px',
-            }}
-          />
-        </div>
-        
-        <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-12 items-center relative z-10">
-          {/* Left: Title & Diagram */}
-          <div className="space-y-8">
-            <div>
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="text-5xl md:text-7xl font-bold mb-3"
-                style={{
-                  fontFamily: 'Space Grotesk, sans-serif',
-                  letterSpacing: '-0.02em',
-                  textShadow: '0 0 40px rgba(0, 240, 255, 0.5)',
-                }}
-              >
-                RIPPER
-                <span className="text-rc-magenta">CLAW</span>
-              </motion.h1>
-              
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.8 }}
-                className="text-xl text-rc-text-dim font-mono"
-              >
-                &gt; AI Agent Configuration Management
-              </motion.p>
-            </div>
-            
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5, duration: 1 }}
-            >
-              <VitruvianDiagram activeSlot={activeSlot} setActiveSlot={setActiveSlot} />
-            </motion.div>
-            
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
-              className="text-rc-text-dim text-center text-sm"
-            >
-              Tap or hover the body to explore each slot
-            </motion.p>
-          </div>
-          
-          {/* Right: Detail Panel */}
-          <div className="min-h-[200px] lg:min-h-[400px] flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              {activeSlot ? (
-                <SlotDetailPanel key={activeSlot.id} slot={activeSlot} />
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="text-center space-y-6 p-8"
-                >
-                  <h2 className="text-xl md:text-2xl font-bold text-rc-cyan">
-                    Your Agent Is More Than Config
-                  </h2>
-                  <p className="text-rc-text-dim max-w-md leading-relaxed">
-                    Tap a slot on the body to see what it maps to. 9 cyberware slots. Export the whole loadout.
-                    Share it. Compare it. Clone what works.
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </section>
+    <div className="min-h-screen bg-[#0a0a0f] text-[#e8e8f0] scanlines" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+      {/* Status Bar */}
+      <StatusBar loadout={loadout} />
 
-      {/* The Feed - Flowing narrative */}
-      <section className="py-20 px-6 relative border-t border-rc-border bg-rc-surface/30">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-rc-cyan/5 to-transparent" />
-        
-        <div className="max-w-5xl mx-auto relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-5xl font-bold mb-4">
-              <span className="text-rc-magenta font-mono">&gt;</span> The Feed
-            </h2>
-            <p className="text-xl text-rc-text-dim max-w-2xl mx-auto">
-              A Nostr-powered feed of agent loadouts. Publish yours. Browse others. Compare. Clone. Iterate.
-            </p>
-          </motion.div>
-          
-          {/* Flowing timeline */}
-          <div className="relative">
-            {/* Connection line - hidden on mobile */}
-            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-rc-cyan via-rc-magenta via-rc-yellow to-rc-green" />
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 relative">
-              {[
-                { num: '1', label: 'Publish', desc: 'Export to Nostr (kind 38333). PII scrubbed.', color: 'rc-cyan' },
-                { num: '2', label: 'Browse', desc: 'See what others are running. Filter by slot.', color: 'rc-magenta' },
-                { num: '3', label: 'Compare', desc: 'Diff their loadout against yours.', color: 'rc-yellow' },
-                { num: '4', label: 'Clone', desc: 'One click. Import. Adapt. Ship.', color: 'rc-green' },
-              ].map((step, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.15, duration: 0.6 }}
-                  className="text-center relative"
-                >
-                  <div
-                    className={`w-16 h-16 mx-auto mb-4 border-2 border-${step.color} bg-rc-bg flex items-center justify-center text-2xl font-bold text-${step.color} relative z-10`}
-                    style={{
-                      boxShadow: `0 0 20px var(--color-${step.color})`,
-                    }}
-                  >
-                    {step.num}
-                  </div>
-                  <h3 className={`font-bold mb-2 text-${step.color} text-lg`}>{step.label}</h3>
-                  <p className="text-sm text-rc-text-dim">{step.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Terminal demo integrated here */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-            className="mt-16 max-w-2xl mx-auto"
-          >
-            <TerminalDemo />
-          </motion.div>
+      {/* Nav bar */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-[#1e1e2e]">
+        <div className="flex items-center gap-6 text-xs font-mono">
+          <span className="text-[#00f0ff] font-bold tracking-wider">RIPPERCLAW</span>
+          <span className="text-[#ffcc00] border-b border-[#ffcc00]">CYBERWARE</span>
+          <a href="https://github.com/bolander72/ripperclaw" className="text-[#8888a0] hover:text-[#e8e8f0] transition-colors hidden sm:inline">GITHUB</a>
         </div>
-      </section>
-
-      {/* CTA - Minimal */}
-      <section className="py-20 px-6 border-t border-rc-border">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="max-w-4xl mx-auto text-center space-y-8"
+        <button
+          onClick={() => setShowConnect(true)}
+          className="text-[10px] font-mono px-3 py-1 border border-[#00f0ff] text-[#00f0ff] hover:bg-[#00f0ff]/10 transition-colors"
         >
-          <h2 className="text-4xl font-bold">Ready to Export Your Rig?</h2>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <motion.a
-              href="https://github.com/bolander72/ripperclaw/releases"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-rc-cyan text-rc-bg font-bold text-lg border-2 border-rc-cyan transition-all"
-              style={{ boxShadow: '0 0 30px rgba(0, 240, 255, 0.5)' }}
-            >
-              DOWNLOAD
-            </motion.a>
-            
-            <motion.a
-              href="https://github.com/bolander72/ripperclaw"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 border-2 border-rc-cyan text-rc-cyan font-bold text-lg hover:bg-rc-cyan/10 transition-all"
-            >
-              ⭐ STAR ON GITHUB
-            </motion.a>
-          </div>
-          
-          <p className="text-sm text-rc-text-dim font-mono">
-            MIT Licensed • Built for OpenClaw • Community-Driven
-          </p>
-        </motion.div>
-      </section>
+          CONNECT AGENT
+        </button>
+      </div>
 
-      {/* Footer */}
-      <footer className="py-8 px-6 border-t border-rc-border text-center text-sm text-rc-text-dim font-mono">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div>RipperClaw © 2026</div>
-          <div className="flex gap-6">
-            <a href="https://github.com/bolander72/ripperclaw" className="hover:text-rc-cyan transition-colors">
-              GitHub
-            </a>
-            <a href="https://github.com/bolander72/ripperclaw/blob/main/LICENSE" className="hover:text-rc-cyan transition-colors">
-              License
-            </a>
-            <a href="https://github.com/bolander72/ripperclaw/blob/main/README.md" className="hover:text-rc-cyan transition-colors">
-              Docs
-            </a>
+      {/* Main ripperdoc view */}
+      <div className="relative flex flex-col md:flex-row min-h-[calc(100vh-73px)]">
+        {/* Left slot column */}
+        <div className="md:w-[280px] lg:w-[320px] p-3 md:p-4 space-y-2 md:space-y-3 flex-shrink-0 order-2 md:order-1">
+          {LEFT_SLOTS.map(id => (
+            <SlotCard
+              key={id}
+              id={id}
+              slot={loadout.slots[id]}
+              isActive={activeSlot === id}
+              onClick={() => handleSlotClick(id)}
+            />
+          ))}
+        </div>
+
+        {/* Center body */}
+        <div className="flex-1 flex items-center justify-center relative order-1 md:order-2 py-6 md:py-0 min-h-[300px] md:min-h-0">
+          <div className="w-full max-w-[250px] md:max-w-[300px]">
+            <BodyFigure activeSlot={activeSlot} slots={loadout.slots} />
+          </div>
+
+          {/* "DEMO" watermark */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] font-mono text-[#555570]">
+            DEMO LOADOUT — <button onClick={() => setShowConnect(true)} className="text-[#00f0ff] hover:underline">connect yours</button>
+          </div>
+
+          {/* Detail panel overlay */}
+          <AnimatePresence>
+            {activeSlot && loadout.slots[activeSlot] && (
+              <DetailPanel
+                slotId={activeSlot}
+                slot={loadout.slots[activeSlot]}
+                onClose={() => setActiveSlot(null)}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Right slot column */}
+        <div className="md:w-[280px] lg:w-[320px] p-3 md:p-4 space-y-2 md:space-y-3 flex-shrink-0 order-3">
+          {RIGHT_SLOTS.map(id => (
+            <SlotCard
+              key={id}
+              id={id}
+              slot={loadout.slots[id]}
+              isActive={activeSlot === id}
+              onClick={() => handleSlotClick(id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Below the fold: Terminal + CTA */}
+      <section className="border-t border-[#1e1e2e] py-12 px-4">
+        <div className="max-w-2xl mx-auto space-y-8">
+          <TerminalDemo />
+          <div className="text-center space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <a
+                href="https://github.com/bolander72/ripperclaw/releases"
+                className="px-6 py-3 bg-[#00f0ff] text-[#0a0a0f] font-bold text-sm hover:bg-[#00d4dd] transition-colors text-center"
+                style={{ boxShadow: '0 0 20px rgba(0, 240, 255, 0.3)' }}
+              >
+                DOWNLOAD APP
+              </a>
+              <a
+                href="https://github.com/bolander72/ripperclaw"
+                className="px-6 py-3 border border-[#1e1e2e] text-[#8888a0] text-sm hover:border-[#00f0ff] hover:text-[#00f0ff] transition-colors text-center"
+              >
+                VIEW SOURCE
+              </a>
+            </div>
+            <p className="text-[10px] text-[#555570] font-mono">
+              MIT Licensed | Nostr-powered | Built for OpenClaw
+            </p>
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* Connect modal */}
+      <AnimatePresence>
+        {showConnect && <ConnectModal onClose={() => setShowConnect(false)} />}
+      </AnimatePresence>
     </div>
   )
 }
