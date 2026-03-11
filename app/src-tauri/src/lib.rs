@@ -996,6 +996,11 @@ fn list_builds() -> Vec<Value> {
     builds
 }
 
+#[tauri::command]
+fn read_file_absolute(path: String) -> Result<String, String> {
+    fs::read_to_string(&path).map_err(|e| format!("Failed to read {}: {}", path, e))
+}
+
 fn chrono_now() -> String {
     // Simple ISO timestamp without chrono crate
     let output = Command::new("date")
@@ -1024,6 +1029,7 @@ pub fn run() {
             export_loadout_safe,
             clone_loadout,
             list_builds,
+            read_file_absolute,
             nostr::nostr_get_keys,
             nostr::nostr_generate_keys,
             nostr::nostr_import_keys,

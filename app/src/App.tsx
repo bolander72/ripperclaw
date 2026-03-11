@@ -5,11 +5,12 @@ import { SlotDetail } from './components/SlotDetail';
 import { ModList } from './components/ModList';
 import { CompareView } from './components/CompareView';
 import { FeedView } from './components/FeedView';
+import { LoadoutsView } from './components/LoadoutsView';
 import { PublishDialog } from './components/PublishDialog';
 import { useSlots, useSkills, useSystemStatus, useCloneLoadout } from './hooks/useTauri';
 import { slots as mockSlots, mods as mockMods } from './data/mockLoadout';
 
-type View = 'rig' | 'mods' | 'compare' | 'feed';
+type View = 'rig' | 'mods' | 'loadouts' | 'compare' | 'feed';
 
 function App() {
   const [selectedSlot, setSelectedSlot] = useState('soul');
@@ -39,6 +40,7 @@ function App() {
   const navItems: { id: View; icon: string; label: string }[] = [
     { id: 'rig', icon: '⬡', label: 'Your Rig' },
     { id: 'mods', icon: '◆', label: 'Mods' },
+    { id: 'loadouts', icon: '▤', label: 'Loadouts' },
     { id: 'compare', icon: '⊕', label: 'Compare' },
     { id: 'feed', icon: '◎', label: 'The Feed' },
   ];
@@ -138,6 +140,26 @@ function App() {
                 <ModList mods={mods} />
               </div>
             </div>
+          )}
+
+          {view === 'loadouts' && (
+            <LoadoutsView
+              onCompare={(loadout) => {
+                setCompareTarget(loadout);
+                setView('compare');
+              }}
+              onApply={async (loadout) => {
+                const json = JSON.stringify(loadout);
+                const res = await cloneLoadout(json, 'overwrite');
+                if (res) {
+                  setCloneResult({
+                    message: `Applied. ${res.applied_skills.length} skills matched, ${res.skipped_skills.length} skipped.`,
+                    type: 'success',
+                  });
+                  setTimeout(() => setCloneResult(null), 6000);
+                }
+              }}
+            />
           )}
 
           {view === 'compare' && (
