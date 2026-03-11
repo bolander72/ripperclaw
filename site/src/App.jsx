@@ -11,6 +11,7 @@ import {
   IconArrowDown, IconExternalLink, IconCopy, IconChevronRight,
   IconRefresh, IconPuzzle, IconMessages,
   IconChevronDown, IconBook2, IconBrandDiscord,
+  IconBrandApple, IconBrandWindows, IconBrandDebian,
 } from '@tabler/icons-react'
 import { loadouts } from './loadouts'
 
@@ -42,6 +43,73 @@ function formatDate(dateStr) {
   if (diff === 1) return 'Yesterday'
   if (diff < 7) return `${diff}d ago`
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+// ─── Download Dropdown ─────────────────────────────────────
+
+const RELEASE_BASE = 'https://github.com/bolander72/ripperclaw/releases/latest'
+
+function DownloadDropdown() {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const platforms = [
+    { label: 'macOS', icon: IconBrandApple, href: `${RELEASE_BASE}/download/Ripperclaw.dmg` },
+    { label: 'Windows', icon: IconBrandWindows, href: `${RELEASE_BASE}/download/Ripperclaw.msi` },
+    { label: 'Linux', icon: IconBrandDebian, href: `${RELEASE_BASE}/download/Ripperclaw.AppImage` },
+  ]
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center gap-2"
+      >
+        Get Ripperclaw
+        <IconChevronDown size={16} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full left-0 mt-2 w-full min-w-[180px] bg-rc-surface border border-rc-border rounded-xl overflow-hidden shadow-xl z-50"
+          >
+            {platforms.map((p) => (
+              <a
+                key={p.label}
+                href={p.href}
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-rc-text hover:bg-white/5 transition-colors text-sm font-grotesk"
+              >
+                <p.icon size={18} stroke={1.5} />
+                {p.label}
+              </a>
+            ))}
+            <div className="border-t border-rc-border">
+              <a
+                href={RELEASE_BASE}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-rc-text-dim hover:bg-white/5 transition-colors text-xs font-mono"
+              >
+                All releases →
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
 }
 
 // ─── Hero Section ──────────────────────────────────────────
@@ -91,15 +159,7 @@ function Hero() {
 
         {/* CTA */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a
-            href="https://github.com/bolander72/ripperclaw/releases"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center gap-2"
-          >
-            Get Ripperclaw
-            <IconArrowDown size={16} />
-          </a>
+          <DownloadDropdown />
           <button
             onClick={() => document.getElementById('showcase')?.scrollIntoView({ behavior: 'smooth' })}
             className="px-6 py-3 bg-white/5 text-rc-text font-grotesk font-semibold rounded-xl hover:bg-white/10 transition-colors border border-rc-border flex items-center gap-2"
@@ -228,7 +288,7 @@ function ConveyorBelt({ onSelectLoadout }) {
   const displayLoadouts = [...loadouts, ...loadouts]
 
   return (
-    <section id="showcase" className="relative py-16 overflow-hidden">
+    <section id="showcase" className="relative py-16 overflow-hidden max-w-[100vw]">
       {/* Section header */}
       <div className="text-center mb-12 px-6">
         <h2 className="text-2xl md:text-3xl font-grotesk font-bold text-rc-text mb-3">
@@ -239,20 +299,11 @@ function ConveyorBelt({ onSelectLoadout }) {
         </p>
       </div>
 
-      {/* Spotlight overlay */}
+      {/* Edge fade */}
       <div className="absolute inset-0 pointer-events-none z-10">
-        <div className="absolute top-0 left-0 w-40 h-full bg-gradient-to-r from-rc-bg to-transparent" />
-        <div className="absolute top-0 right-0 w-40 h-full bg-gradient-to-l from-rc-bg to-transparent" />
+        <div className="absolute top-0 left-0 w-20 md:w-40 h-full bg-gradient-to-r from-rc-bg to-transparent" />
+        <div className="absolute top-0 right-0 w-20 md:w-40 h-full bg-gradient-to-l from-rc-bg to-transparent" />
       </div>
-
-      {/* Moving spotlight */}
-      <motion.div
-        className="absolute top-0 w-[300px] h-full pointer-events-none z-5"
-        animate={{ left: ['-300px', 'calc(100% + 300px)'] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'linear', repeatDelay: 2 }}
-      >
-        <div className="w-full h-full bg-gradient-to-r from-transparent via-rc-cyan/[0.03] to-transparent" />
-      </motion.div>
 
       {/* Conveyor track */}
       <div
@@ -746,20 +797,10 @@ function Footer() {
           <p className="text-rc-text-dim text-sm mb-8 max-w-md mx-auto">
             Create your agent loadout, publish it for the community, and discover builds you never thought of.
           </p>
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <DownloadDropdown />
             <a
-              href="https://github.com/bolander72/ripperclaw/releases"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center gap-2"
-            >
-              <IconArrowDown size={18} />
-              Get Ripperclaw
-            </a>
-            <a
-              href="https://docs.openclaw.ai"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="https://ripperclaw.com/docs"
               className="px-6 py-3 bg-white/5 hover:bg-white/10 text-rc-text font-grotesk font-semibold rounded-xl transition-colors border border-rc-border flex items-center gap-2"
             >
               <IconBook2 size={18} />
@@ -774,29 +815,29 @@ function Footer() {
             <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Ripperclaw</h4>
             <ul className="space-y-2.5">
               <li><a href="#showcase" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Browse Loadouts</a></li>
-              <li><a href="https://clawhub.com" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">ClawHub Skills</a></li>
+              <li><a href="https://ripperclaw.com/docs" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Documentation</a></li>
+              <li><a href={RELEASE_BASE} target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Download</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">OpenClaw</h4>
             <ul className="space-y-2.5">
-              <li><a href="https://docs.openclaw.ai" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Documentation</a></li>
-              <li><a href="https://docs.openclaw.ai/install" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Installation</a></li>
-              <li><a href="https://docs.openclaw.ai/config" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Configuration</a></li>
+              <li><a href="https://docs.openclaw.ai" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Docs</a></li>
+              <li><a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">GitHub</a></li>
+              <li><a href="https://clawhub.com" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">ClawHub Skills</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Community</h4>
             <ul className="space-y-2.5">
               <li><a href="https://discord.com/invite/clawd" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Discord</a></li>
-              <li><a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">GitHub</a></li>
-              <li><a href="https://github.com/openclaw/openclaw/discussions" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Discussions</a></li>
+              <li><a href="https://github.com/bolander72/ripperclaw/discussions" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Discussions</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Legal</h4>
             <ul className="space-y-2.5">
-              <li><a href="https://github.com/openclaw/openclaw/blob/main/LICENSE" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">MIT License</a></li>
+              <li><a href="https://github.com/bolander72/ripperclaw/blob/main/LICENSE" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">MIT License</a></li>
             </ul>
           </div>
         </div>
@@ -804,10 +845,10 @@ function Footer() {
         {/* Bottom bar */}
         <div className="flex items-center justify-between pt-8 border-t border-rc-border">
           <p className="text-rc-text-muted text-xs font-mono">
-            openclaw · open source ai agents
+            ripperclaw · agent loadouts for openclaw
           </p>
           <div className="flex items-center gap-4">
-            <a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors">
+            <a href="https://github.com/bolander72/ripperclaw" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors">
               <IconBrandGithub size={18} />
             </a>
             <a href="https://discord.com/invite/clawd" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors">
@@ -826,7 +867,7 @@ export default function App() {
   const [selectedLoadout, setSelectedLoadout] = useState(null)
 
   return (
-    <div className="min-h-screen bg-rc-bg">
+    <div className="min-h-screen bg-rc-bg overflow-x-hidden">
       <Hero />
       <ConveyorBelt onSelectLoadout={setSelectedLoadout} />
       <WhatIsSection />
