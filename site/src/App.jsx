@@ -389,13 +389,6 @@ function LoadoutDetail({ loadout, onClose }) {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => showToast('Loadout copied!')}
-                className="px-4 py-2 bg-rc-cyan/10 hover:bg-rc-cyan/20 text-rc-cyan rounded-lg transition-colors text-sm font-medium border border-rc-cyan/20 flex items-center gap-2"
-              >
-                <IconCopy size={14} />
-                Copy Loadout
-              </button>
-              <button
                 onClick={onClose}
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors text-rc-text"
               >
