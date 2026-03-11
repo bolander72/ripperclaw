@@ -7,18 +7,35 @@ import { CompareView } from './components/CompareView';
 import { FeedView } from './components/FeedView';
 import { LoadoutsView } from './components/LoadoutsView';
 import { PublishDialog } from './components/PublishDialog';
+import { ApplyWizard } from './components/ApplyWizard';
 import { useSlots, useSkills, useSystemStatus, useCloneLoadout, useAgents } from './hooks/useTauri';
 import { slots as mockSlots, mods as mockMods } from './data/mockLoadout';
 
 type View = 'rig' | 'mods' | 'loadouts' | 'compare' | 'feed';
 
+function CloneToast({ result }: { result: { message: string; type: 'success' | 'error' } | null }) {
+  if (!result) return null;
+  return (
+    <div
+      className="fixed bottom-12 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg text-xs font-semibold z-50 transition-all"
+      style={{
+        background: result.type === 'success' ? 'var(--rc-green)' : 'var(--rc-red)',
+        color: 'var(--rc-bg)',
+      }}
+    >
+      {result.message}
+    </div>
+  );
+}
+
 function App() {
   const [selectedSlot, setSelectedSlot] = useState('soul');
   const [view, setView] = useState<View>('rig');
   const [showPublish, setShowPublish] = useState(false);
-  const [compareTarget, setCompareTarget] = useState<unknown | null>(null);
+  const [compareTarget, setCompareTarget] = useState<Record<string, unknown> | null>(null);
   const [cloneResult, setCloneResult] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [activeAgent, setActiveAgent] = useState<string | undefined>(undefined);
+  const [applyTarget, setApplyTarget] = useState<Record<string, unknown> | null>(null);
   const { cloneLoadout } = useCloneLoadout();
 
   const { data: agents } = useAgents();
@@ -176,19 +193,11 @@ function App() {
           {view === 'loadouts' && (
             <LoadoutsView
               onCompare={(loadout) => {
-                setCompareTarget(loadout);
+                setCompareTarget(loadout as Record<string, unknown>);
                 setView('compare');
               }}
-              onApply={async (loadout) => {
-                const json = JSON.stringify(loadout);
-                const res = await cloneLoadout(json, 'overwrite');
-                if (res) {
-                  setCloneResult({
-                    message: `Applied. ${res.applied_skills.length} skills matched, ${res.skipped_skills.length} skipped.`,
-                    type: 'success',
-                  });
-                  setTimeout(() => setCloneResult(null), 6000);
-                }
+              onApply={(loadout) => {
+                setApplyTarget(loadout as Record<string, unknown>);
               }}
             />
           )}
@@ -220,7 +229,7 @@ function App() {
           {view === 'feed' && (
             <FeedView
               onCompare={(loadout) => {
-                setCompareTarget(loadout);
+                setCompareTarget(loadout as Record<string, unknown>);
                 setView('compare');
               }}
             />
@@ -251,20 +260,23 @@ function App() {
       </footer>
 
       {/* Clone result toast */}
-      {cloneResult && (
-        <div
-          className="fixed bottom-12 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg text-xs font-semibold z-50 transition-all"
-          style={{
-            background: cloneResult.type === 'success' ? 'var(--rc-green)' : 'var(--rc-red)',
-            color: 'var(--rc-bg)',
-          }}
-        >
-          {cloneResult.message}
-        </div>
-      )}
+      <CloneToast result={cloneResult as { message: string; type: 'success' | 'error' } | null} />
 
       {/* Publish dialog */}
       {showPublish && <PublishDialog onClose={() => setShowPublish(false)} />}
+
+      {/* Apply wizard */}
+      {applyTarget != null ? (
+        <ApplyWizard
+          loadout={applyTarget as any}
+          agents={agents}
+          onClose={() => setApplyTarget(null)}
+          onComplete={() => {
+            setCloneResult({ message: 'Agent created! Restart OpenClaw to activate.', type: 'success' });
+            setTimeout(() => setCloneResult(null), 8000);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

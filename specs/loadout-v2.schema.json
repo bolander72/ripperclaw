@@ -1,0 +1,337 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ripperclaw.com/schemas/loadout-v2.json",
+  "title": "Ripperclaw Loadout v2",
+  "description": "Canonical format for OpenClaw agent loadouts — export, share, and apply.",
+  "type": "object",
+  "required": ["schema", "meta", "slots"],
+  "properties": {
+    "schema": {
+      "const": 2,
+      "description": "Schema version. Must be 2."
+    },
+    "meta": {
+      "type": "object",
+      "required": ["name", "agentName", "author", "version", "exportedAt"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name for this loadout"
+        },
+        "agentName": {
+          "type": "string",
+          "description": "Name of the agent this was exported from"
+        },
+        "description": {
+          "type": "string",
+          "description": "One-liner about what this agent does"
+        },
+        "author": {
+          "type": "string",
+          "description": "Creator handle (e.g., @Bolander72)"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Loadout revision number, bumps on re-export"
+        },
+        "exportedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of export"
+        },
+        "openclawVersion": {
+          "type": "string",
+          "description": "OpenClaw version at export time"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Searchable tags"
+        }
+      }
+    },
+    "slots": {
+      "type": "object",
+      "properties": {
+        "model": { "$ref": "#/definitions/modelSlot" },
+        "persona": { "$ref": "#/definitions/personaSlot" },
+        "skills": { "$ref": "#/definitions/skillsSlot" },
+        "integrations": { "$ref": "#/definitions/integrationsSlot" },
+        "automations": { "$ref": "#/definitions/automationsSlot" },
+        "memory": { "$ref": "#/definitions/memorySlot" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "definitions": {
+    "modelTier": {
+      "type": "object",
+      "required": ["provider", "model"],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "description": "Provider name (anthropic, openai, ollama, google, etc.)"
+        },
+        "model": {
+          "type": "string",
+          "description": "Full model identifier"
+        },
+        "alias": {
+          "type": "string",
+          "description": "Human-friendly name (e.g., Opus, Sonnet)"
+        },
+        "paid": {
+          "type": "boolean",
+          "description": "Whether this model requires a paid API key"
+        },
+        "local": {
+          "type": "boolean",
+          "description": "Whether this model runs locally"
+        }
+      }
+    },
+    "modelSlot": {
+      "type": "object",
+      "required": ["tiers"],
+      "properties": {
+        "tiers": {
+          "type": "object",
+          "properties": {
+            "main": { "$ref": "#/definitions/modelTier" },
+            "subagent": { "$ref": "#/definitions/modelTier" },
+            "heartbeat": { "$ref": "#/definitions/modelTier" },
+            "utility": { "$ref": "#/definitions/modelTier" }
+          },
+          "additionalProperties": { "$ref": "#/definitions/modelTier" }
+        },
+        "routing": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Human-readable routing strategy"
+            }
+          }
+        }
+      }
+    },
+    "personaSlot": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "creature": { "type": "string" },
+            "vibe": { "type": "string" }
+          }
+        },
+        "soul": {
+          "type": "object",
+          "properties": {
+            "included": { "type": "boolean" },
+            "preview": {
+              "type": "string",
+              "description": "First ~500 chars for preview before applying"
+            },
+            "content": {
+              "type": "string",
+              "description": "Full SOUL.md content (PII-scrubbed)"
+            },
+            "tokenEstimate": { "type": "integer" }
+          }
+        },
+        "user": {
+          "type": "object",
+          "properties": {
+            "included": {
+              "const": false,
+              "description": "USER.md is never included in shared loadouts"
+            },
+            "note": { "type": "string" }
+          }
+        },
+        "agents": {
+          "type": "object",
+          "properties": {
+            "included": { "type": "boolean" },
+            "preview": { "type": "string" },
+            "content": { "type": "string" }
+          }
+        }
+      }
+    },
+    "skillItem": {
+      "type": "object",
+      "required": ["name", "source"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Skill package name"
+        },
+        "version": {
+          "type": "string",
+          "description": "Semver version string"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["clawhub", "local", "custom"],
+          "description": "Where this skill comes from"
+        },
+        "description": {
+          "type": "string",
+          "description": "What this skill does"
+        },
+        "requiresConfig": {
+          "type": "boolean",
+          "description": "Whether post-install configuration is needed"
+        },
+        "configHint": {
+          "type": "string",
+          "description": "What configuration is needed"
+        }
+      }
+    },
+    "skillsSlot": {
+      "type": "object",
+      "required": ["items"],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/skillItem" }
+        }
+      }
+    },
+    "integrationItem": {
+      "type": "object",
+      "required": ["type", "name", "provider"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["channel", "calendar", "email", "smart-home", "code", "voice", "camera", "other"],
+          "description": "Integration category"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable integration name"
+        },
+        "provider": {
+          "type": "string",
+          "description": "Provider/tool identifier (bluebubbles, caldir, himalaya, etc.)"
+        },
+        "autoApply": {
+          "const": false,
+          "description": "Integrations are never auto-applied"
+        },
+        "docsUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Link to setup docs"
+        }
+      }
+    },
+    "integrationsSlot": {
+      "type": "object",
+      "required": ["items"],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/integrationItem" }
+        }
+      }
+    },
+    "cronItem": {
+      "type": "object",
+      "required": ["name", "schedule"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Cron job display name"
+        },
+        "schedule": {
+          "type": "object",
+          "description": "Schedule definition (kind: at | every | cron)",
+          "required": ["kind"],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["at", "every", "cron"]
+            }
+          }
+        },
+        "description": {
+          "type": "string",
+          "description": "What this automation does"
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Dot-path references to required integrations/skills (e.g., integrations.email)"
+        }
+      }
+    },
+    "automationsSlot": {
+      "type": "object",
+      "properties": {
+        "heartbeat": {
+          "type": "object",
+          "properties": {
+            "included": { "type": "boolean" },
+            "content": {
+              "type": "string",
+              "description": "HEARTBEAT.md content"
+            },
+            "taskCount": { "type": "integer" }
+          }
+        },
+        "cron": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/cronItem" }
+        }
+      }
+    },
+    "templateFile": {
+      "type": "object",
+      "required": ["path", "content"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Relative path within workspace"
+        },
+        "content": {
+          "type": "string",
+          "description": "File template content"
+        }
+      }
+    },
+    "memorySlot": {
+      "type": "object",
+      "properties": {
+        "structure": {
+          "type": "object",
+          "properties": {
+            "directories": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Directories to create"
+            },
+            "templateFiles": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/templateFile" },
+              "description": "Template files to seed (never overwrites existing)"
+            }
+          }
+        },
+        "engine": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string" },
+            "description": { "type": "string" }
+          },
+          "description": "Informational — what memory engine this agent uses"
+        }
+      }
+    }
+  }
+}

@@ -1035,6 +1035,298 @@ fn clone_loadout(loadout_json: String, mode: String) -> Result<CloneResult, Stri
     })
 }
 
+// ─── Apply loadout to new agent ───
+
+#[derive(Serialize)]
+struct ApplyResult {
+    ok: bool,
+    results: Vec<Value>,
+    warnings: Vec<String>,
+    workspace: String,
+}
+
+#[tauri::command]
+fn apply_loadout(
+    loadout_json: String,
+    agent_id: String,
+    agent_name: String,
+    use_my_models: bool,
+) -> Result<ApplyResult, String> {
+    let loadout: Value = serde_json::from_str(&loadout_json)
+        .map_err(|e| format!("Invalid loadout JSON: {}", e))?;
+
+    let agents_dir = openclaw_dir().join("agents");
+    let agent_workspace = agents_dir.join(&agent_id);
+
+    // Safety: never overwrite existing agent
+    if agent_workspace.exists() {
+        return Err(format!(
+            "Agent workspace already exists at {}. Choose a different agent ID.",
+            agent_workspace.display()
+        ));
+    }
+
+    let config = read_config();
+    let defaults = config.pointer("/agents/defaults").cloned().unwrap_or(Value::Null);
+    let agents_list = config.pointer("/agents/list")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    let mut results: Vec<Value> = Vec::new();
+    let mut warnings: Vec<String> = Vec::new();
+    let mut config_entries: Vec<Value> = Vec::new();
+
+    // Protect current default agent if agents.list is empty
+    if agents_list.is_empty() {
+        let default_workspace = defaults.pointer("/workspace")
+            .and_then(|v| v.as_str())
+            .unwrap_or("~/.openclaw/workspace");
+        let default_model = defaults.pointer("/model/primary")
+            .and_then(|v| v.as_str())
+            .unwrap_or("anthropic/claude-sonnet-4-5");
+
+        config_entries.push(serde_json::json!({
+            "id": "main",
+            "name": "Main Agent",
+            "workspace": default_workspace,
+            "model": { "primary": default_model },
+            "default": true
+        }));
+        warnings.push("📌 Your current agent added to agents.list as \"main\" with default: true".to_string());
+    }
+
+    // Create workspace
+    fs::create_dir_all(&agent_workspace)
+        .map_err(|e| format!("Failed to create workspace: {}", e))?;
+    fs::create_dir_all(agent_workspace.join("memory"))
+        .map_err(|e| format!("Failed to create memory dir: {}", e))?;
+    results.push(serde_json::json!({
+        "type": "create-workspace",
+        "status": "ok"
+    }));
+
+    // Model — resolved via config entry below
+    let main_model = if use_my_models {
+        defaults.pointer("/model/primary")
+            .and_then(|v| v.as_str())
+            .unwrap_or("anthropic/claude-sonnet-4-5")
+            .to_string()
+    } else if let Some(tiers) = loadout.pointer("/slots/model/tiers") {
+        if let Some(main_tier) = tiers.get("main") {
+            format!(
+                "{}/{}",
+                main_tier.get("provider").and_then(|v| v.as_str()).unwrap_or("anthropic"),
+                main_tier.get("model").and_then(|v| v.as_str()).unwrap_or("claude-sonnet-4-5")
+            )
+        } else {
+            "anthropic/claude-sonnet-4-5".to_string()
+        }
+    } else {
+        "anthropic/claude-sonnet-4-5".to_string()
+    };
+
+    results.push(serde_json::json!({
+        "type": "set-model",
+        "status": "ok",
+        "model": main_model
+    }));
+
+    // Persona files
+    if let Some(persona) = loadout.pointer("/slots/persona") {
+        // IDENTITY.md
+        if let Some(identity) = persona.get("identity") {
+            let name = identity.get("name").and_then(|v| v.as_str()).unwrap_or("Agent");
+            let creature = identity.get("creature").and_then(|v| v.as_str()).unwrap_or("AI assistant");
+            let vibe = identity.get("vibe").and_then(|v| v.as_str()).unwrap_or("");
+            let content = format!(
+                "# IDENTITY.md - Who Am I?\n\n- **Name:** {}\n- **Creature:** {}\n- **Vibe:** {}\n",
+                name, creature, vibe
+            );
+            fs::write(agent_workspace.join("IDENTITY.md"), &content)
+                .map_err(|e| format!("Write IDENTITY.md: {}", e))?;
+            results.push(serde_json::json!({ "type": "write-identity", "status": "ok" }));
+        }
+
+        // SOUL.md
+        if let Some(soul) = persona.get("soul") {
+            if soul.get("included").and_then(|v| v.as_bool()).unwrap_or(false) {
+                if let Some(content) = soul.get("content").and_then(|v| v.as_str()) {
+                    fs::write(agent_workspace.join("SOUL.md"), content)
+                        .map_err(|e| format!("Write SOUL.md: {}", e))?;
+                    results.push(serde_json::json!({ "type": "write-soul", "status": "ok" }));
+                }
+            }
+        }
+
+        // AGENTS.md
+        if let Some(agents_md) = persona.get("agents") {
+            if agents_md.get("included").and_then(|v| v.as_bool()).unwrap_or(false) {
+                if let Some(content) = agents_md.get("content").and_then(|v| v.as_str()) {
+                    fs::write(agent_workspace.join("AGENTS.md"), content)
+                        .map_err(|e| format!("Write AGENTS.md: {}", e))?;
+                    results.push(serde_json::json!({ "type": "write-agents", "status": "ok" }));
+                }
+            }
+        }
+
+        // USER.md — blank template
+        let user_path = agent_workspace.join("USER.md");
+        if !user_path.exists() {
+            fs::write(&user_path, "# USER.md - About Your Human\n\n_(Fill in your details)_\n")
+                .map_err(|e| format!("Write USER.md: {}", e))?;
+        }
+    }
+
+    // Skills
+    if let Some(skills) = loadout.pointer("/slots/skills/items").and_then(|v| v.as_array()) {
+        let bundled: Vec<&str> = skills.iter()
+            .filter(|s| s.get("source").and_then(|v| v.as_str()) == Some("bundled"))
+            .filter_map(|s| s.get("name").and_then(|v| v.as_str()))
+            .collect();
+        let clawhub: Vec<&str> = skills.iter()
+            .filter(|s| s.get("source").and_then(|v| v.as_str()) == Some("clawhub"))
+            .filter_map(|s| s.get("name").and_then(|v| v.as_str()))
+            .collect();
+
+        if !bundled.is_empty() {
+            results.push(serde_json::json!({
+                "type": "enable-skills",
+                "status": "ok",
+                "count": bundled.len(),
+                "detail": "Bundled skills enabled via agent config"
+            }));
+        }
+
+        // Install ClawHub skills into agent workspace
+        let skills_dir = agent_workspace.join("skills");
+        let _ = fs::create_dir_all(&skills_dir);
+        let mut installed = 0;
+        let mut failed = 0;
+        for skill_name in &clawhub {
+            let result = Command::new("clawhub")
+                .args(["install", skill_name, "--workdir", &agent_workspace.to_string_lossy(), "--no-input"])
+                .output();
+            match result {
+                Ok(output) if output.status.success() => installed += 1,
+                _ => {
+                    failed += 1;
+                    warnings.push(format!("Failed to install skill: {}", skill_name));
+                }
+            }
+        }
+        results.push(serde_json::json!({
+            "type": "install-skills",
+            "status": if failed == 0 { "ok" } else { "partial" },
+            "installed": installed,
+            "failed": failed
+        }));
+    }
+
+    // Integrations — always manual
+    if let Some(items) = loadout.pointer("/slots/integrations/items").and_then(|v| v.as_array()) {
+        for item in items {
+            let name = item.get("name").and_then(|v| v.as_str()).unwrap_or("?");
+            warnings.push(format!("🔧 Integration \"{}\" — manual setup required", name));
+        }
+        results.push(serde_json::json!({
+            "type": "flag-integrations",
+            "status": "ok",
+            "count": items.len()
+        }));
+    }
+
+    // Automations — write HEARTBEAT.md
+    if let Some(hb) = loadout.pointer("/slots/automations/heartbeat") {
+        if hb.get("included").and_then(|v| v.as_bool()).unwrap_or(false) {
+            if let Some(content) = hb.get("content").and_then(|v| v.as_str()) {
+                fs::write(agent_workspace.join("HEARTBEAT.md"), content)
+                    .map_err(|e| format!("Write HEARTBEAT.md: {}", e))?;
+                results.push(serde_json::json!({ "type": "write-heartbeat", "status": "ok" }));
+            }
+        }
+    }
+
+    // Memory structure
+    if let Some(structure) = loadout.pointer("/slots/memory/structure") {
+        if let Some(dirs) = structure.get("directories").and_then(|v| v.as_array()) {
+            for dir in dirs {
+                if let Some(d) = dir.as_str() {
+                    let _ = fs::create_dir_all(agent_workspace.join(d));
+                }
+            }
+        }
+        if let Some(templates) = structure.get("templateFiles").and_then(|v| v.as_array()) {
+            for tmpl in templates {
+                let path = tmpl.get("path").and_then(|v| v.as_str()).unwrap_or("");
+                let content = tmpl.get("content").and_then(|v| v.as_str()).unwrap_or("");
+                if !path.is_empty() {
+                    let full_path = agent_workspace.join(path);
+                    if !full_path.exists() {
+                        if let Some(parent) = full_path.parent() {
+                            let _ = fs::create_dir_all(parent);
+                        }
+                        let _ = fs::write(&full_path, content);
+                    }
+                }
+            }
+        }
+        results.push(serde_json::json!({ "type": "create-memory", "status": "ok" }));
+    }
+
+    // Write agent config entry
+    config_entries.push(serde_json::json!({
+        "id": agent_id,
+        "name": agent_name,
+        "workspace": agent_workspace.to_string_lossy(),
+        "model": { "primary": main_model }
+    }));
+
+    // Update openclaw.json
+    let config_path = openclaw_dir().join("openclaw.json");
+    let mut config: Value = fs::read_to_string(&config_path)
+        .ok()
+        .and_then(|c| serde_json::from_str(&c).ok())
+        .unwrap_or(serde_json::json!({}));
+
+    // Backup first
+    let backup_name = format!("openclaw.backup-{}.json", chrono_now().replace(':', "-"));
+    let _ = fs::copy(&config_path, openclaw_dir().join(&backup_name));
+
+    // Ensure agents.list exists
+    if config.pointer("/agents/list").is_none() {
+        if config.get("agents").is_none() {
+            config.as_object_mut().unwrap().insert("agents".to_string(), serde_json::json!({}));
+        }
+        config.pointer_mut("/agents").unwrap()
+            .as_object_mut().unwrap()
+            .insert("list".to_string(), serde_json::json!([]));
+    }
+
+    let list = config.pointer_mut("/agents/list").unwrap().as_array_mut().unwrap();
+    for entry in config_entries {
+        let entry_id = entry.get("id").and_then(|v| v.as_str()).unwrap_or("");
+        if !list.iter().any(|a| a.get("id").and_then(|v| v.as_str()) == Some(entry_id)) {
+            list.push(entry);
+        }
+    }
+
+    fs::write(&config_path, serde_json::to_string_pretty(&config).unwrap_or_default())
+        .map_err(|e| format!("Failed to write config: {}", e))?;
+
+    results.push(serde_json::json!({
+        "type": "add-agent-config",
+        "status": "ok"
+    }));
+
+    Ok(ApplyResult {
+        ok: true,
+        results,
+        warnings,
+        workspace: agent_workspace.to_string_lossy().to_string(),
+    })
+}
+
 // ─── List saved loadouts ───
 
 #[tauri::command]
@@ -1108,6 +1400,7 @@ pub fn run() {
             export_loadout,
             export_loadout_safe,
             clone_loadout,
+            apply_loadout,
             list_loadouts,
             read_file_absolute,
             nostr::nostr_get_keys,
