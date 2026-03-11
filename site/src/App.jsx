@@ -9,6 +9,9 @@ import {
   IconHeartbeat, IconClock, IconBell,
   IconCube, IconPlug, IconBolt, IconSparkles, IconServer, IconClockHour4,
   IconArrowDown, IconExternalLink, IconCopy, IconChevronRight,
+  IconBrandApple, IconBrandDebian, IconDownload, IconTerminal,
+  IconLock, IconRefresh, IconPuzzle, IconMessages, IconRobot,
+  IconChevronDown, IconBook2, IconBrandDiscord,
 } from '@tabler/icons-react'
 import { loadouts } from './loadouts'
 
@@ -457,49 +460,408 @@ function LoadoutDetail({ loadout, onClose }) {
   )
 }
 
+// ─── What Is OpenClaw ──────────────────────────────────────
+
+function WhatIsSection() {
+  const features = [
+    {
+      icon: IconRobot,
+      title: 'Your own AI agent',
+      desc: 'OpenClaw runs on your machine — a Mac mini, a Raspberry Pi, a VPS. It connects to your life: messages, calendar, email, smart home, files. One agent that actually knows your context.',
+    },
+    {
+      icon: IconPuzzle,
+      title: 'Modular by design',
+      desc: 'Swap models, add integrations, install skills, tune personality. Everything is a config file. No vendor lock-in, no black boxes. You own the whole stack.',
+    },
+    {
+      icon: IconLock,
+      title: 'Private by default',
+      desc: 'Your data stays on your hardware. API keys stay in your keychain. No telemetry, no training on your conversations. Open source means you can verify every claim.',
+    },
+    {
+      icon: IconMessages,
+      title: 'Meets you where you are',
+      desc: 'iMessage, Discord, Telegram, Signal, WhatsApp, Slack — OpenClaw connects to the channels you already use. Talk to your agent like you\'d talk to a friend.',
+    },
+    {
+      icon: IconRefresh,
+      title: 'Always running',
+      desc: 'Cron jobs, heartbeats, scheduled tasks. Your agent monitors what matters and acts without being asked. Set it and forget it.',
+    },
+    {
+      icon: IconBolt,
+      title: 'Skills marketplace',
+      desc: 'Browse ClawHub for community-built skills — weather, smart home, voice, coding, marketing, and more. Install with one command. Or build your own.',
+    },
+  ]
+
+  return (
+    <section className="py-24 px-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
+            What is OpenClaw?
+          </h2>
+          <p className="text-rc-text-dim text-lg max-w-2xl mx-auto">
+            An open source AI agent framework that lives on your hardware, connects to your life,
+            and gets better the longer you use it.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((f, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ delay: i * 0.08, duration: 0.5 }}
+              className="p-6 rounded-2xl bg-rc-surface border border-rc-border hover:border-rc-cyan/30 transition-colors group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-rc-cyan/10 flex items-center justify-center mb-4 group-hover:bg-rc-cyan/20 transition-colors">
+                <f.icon size={20} className="text-rc-cyan" stroke={1.5} />
+              </div>
+              <h3 className="font-grotesk font-semibold text-rc-text text-base mb-2">{f.title}</h3>
+              <p className="text-rc-text-dim text-sm leading-relaxed">{f.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── How It Works ──────────────────────────────────────────
+
+function HowItWorks() {
+  const steps = [
+    {
+      num: '01',
+      title: 'Install',
+      desc: 'One command. OpenClaw installs as a system daemon on macOS, Linux, or any machine with Node.js. Takes about two minutes.',
+      code: 'npm install -g openclaw && openclaw init',
+    },
+    {
+      num: '02',
+      title: 'Configure',
+      desc: 'Pick your model (Claude, GPT, Llama, Qwen — or mix them). Connect your channels. Add integrations. Write a personality file or start from a community loadout.',
+      code: 'openclaw config # interactive setup',
+    },
+    {
+      num: '03',
+      title: 'Run',
+      desc: 'Start the gateway. Your agent comes online across all connected channels. It learns your patterns, handles your tasks, and runs 24/7.',
+      code: 'openclaw gateway start',
+    },
+  ]
+
+  return (
+    <section className="py-24 px-6 relative">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-rc-cyan/3 rounded-full blur-[150px] pointer-events-none" />
+      <div className="max-w-4xl mx-auto relative z-10">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
+            Up and running in minutes
+          </h2>
+          <p className="text-rc-text-dim text-lg max-w-xl mx-auto">
+            No cloud accounts. No API dashboards. Just your machine and a terminal.
+          </p>
+        </div>
+
+        <div className="space-y-8">
+          {steps.map((step, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ delay: i * 0.15, duration: 0.5 }}
+              className="flex gap-6 items-start"
+            >
+              <div className="shrink-0 w-12 h-12 rounded-2xl bg-rc-cyan/10 border border-rc-cyan/20 flex items-center justify-center">
+                <span className="text-rc-cyan font-mono font-bold text-sm">{step.num}</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-grotesk font-bold text-rc-text text-xl mb-2">{step.title}</h3>
+                <p className="text-rc-text-dim text-sm leading-relaxed mb-3">{step.desc}</p>
+                <div className="inline-block px-4 py-2 bg-black/40 rounded-lg border border-rc-border">
+                  <code className="text-rc-cyan text-xs font-mono">{step.code}</code>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Download Section ──────────────────────────────────────
+
+function DownloadSection() {
+  const platforms = [
+    {
+      icon: IconBrandApple,
+      name: 'macOS',
+      desc: 'Apple Silicon & Intel',
+      primary: true,
+      links: [
+        { label: 'Download .dmg', href: '/docs/install/macos', icon: IconDownload },
+        { label: 'Homebrew', href: '/docs/install/macos#homebrew', icon: IconTerminal },
+      ],
+    },
+    {
+      icon: IconBrandDebian,
+      name: 'Linux',
+      desc: 'Debian, Ubuntu, Arch, and more',
+      primary: false,
+      links: [
+        { label: 'Install guide', href: '/docs/install/linux', icon: IconDownload },
+        { label: 'Docker', href: '/docs/install/docker', icon: IconTerminal },
+      ],
+    },
+    {
+      icon: IconTerminal,
+      name: 'npm',
+      desc: 'Any platform with Node.js',
+      primary: false,
+      links: [
+        { label: 'npm install -g openclaw', href: '/docs/install/npm', icon: IconTerminal },
+      ],
+    },
+  ]
+
+  return (
+    <section className="py-24 px-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
+            Get OpenClaw
+          </h2>
+          <p className="text-rc-text-dim text-lg max-w-xl mx-auto">
+            Free and open source. Install on your hardware, keep your data.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {platforms.map((p, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className={`p-6 rounded-2xl border transition-colors ${
+                p.primary
+                  ? 'bg-rc-cyan/5 border-rc-cyan/30'
+                  : 'bg-rc-surface border-rc-border hover:border-rc-cyan/20'
+              }`}
+            >
+              <p.icon size={28} className="text-rc-cyan mb-4" stroke={1.5} />
+              <h3 className="font-grotesk font-bold text-rc-text text-lg mb-1">{p.name}</h3>
+              <p className="text-rc-text-dim text-sm mb-5">{p.desc}</p>
+              <div className="space-y-2">
+                {p.links.map((link, li) => (
+                  <a
+                    key={li}
+                    href={link.href}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-sm text-rc-text font-medium transition-colors border border-rc-border"
+                  >
+                    <link.icon size={14} className="text-rc-cyan" />
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── FAQ ───────────────────────────────────────────────────
+
+function FAQSection() {
+  const [openIndex, setOpenIndex] = useState(null)
+
+  const faqs = [
+    {
+      q: 'What do I need to run OpenClaw?',
+      a: 'Any machine with Node.js 20+. A Mac mini, a Linux server, a Raspberry Pi, a VPS — anything that stays on. Most people run it on a dedicated Mac mini or a small home server.',
+    },
+    {
+      q: 'Which AI models does it support?',
+      a: 'Claude (Opus, Sonnet, Haiku), GPT-4o/4.5, Gemini, Llama, Qwen, Mistral, and any OpenAI-compatible API. You can use different models for different tasks — Opus for complex reasoning, a small local model for heartbeats, Whisper for voice.',
+    },
+    {
+      q: 'Is my data private?',
+      a: 'Your data never leaves your machine unless you explicitly connect an external API. There\'s no OpenClaw cloud, no telemetry, no data collection. API calls go directly from your machine to the model provider. Everything is auditable in the open source code.',
+    },
+    {
+      q: 'How is this different from ChatGPT or Claude.ai?',
+      a: 'Those are chat interfaces. OpenClaw is an agent. It runs 24/7, connects to your real tools (messages, calendar, email, smart home), executes tasks autonomously, and maintains memory across sessions. It\'s the difference between texting someone and having a full-time assistant.',
+    },
+    {
+      q: 'What are loadouts?',
+      a: 'A loadout is a complete agent configuration — the model, integrations, skills, personality, memory settings, and scheduling. Think of it like a dotfiles repo for your AI. You can share loadouts, copy from others, and remix them.',
+    },
+    {
+      q: 'What channels does it support?',
+      a: 'iMessage (via BlueBubbles), Discord, Telegram, Signal, WhatsApp, Slack, Google Chat, IRC, and LINE. Connect one or all of them. Your agent responds wherever you message it.',
+    },
+    {
+      q: 'Is it really free?',
+      a: 'OpenClaw itself is free and open source (MIT). You\'ll pay for the AI model API calls — typically $20-200/month depending on usage and which models you pick. Or run fully local models like Llama or Qwen for zero cost.',
+    },
+    {
+      q: 'Can I use it for my business?',
+      a: 'Yes. MIT license means no restrictions. People use OpenClaw for personal assistants, customer support, internal tools, smart home automation, and more.',
+    },
+  ]
+
+  return (
+    <section className="py-24 px-6">
+      <div className="max-w-3xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
+            Questions
+          </h2>
+        </div>
+
+        <div className="space-y-2">
+          {faqs.map((faq, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              className="border border-rc-border rounded-xl overflow-hidden"
+            >
+              <button
+                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                className="w-full flex items-center justify-between p-5 text-left hover:bg-white/[0.02] transition-colors"
+              >
+                <span className="font-grotesk font-medium text-rc-text text-sm pr-4">{faq.q}</span>
+                <motion.div
+                  animate={{ rotate: openIndex === i ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="shrink-0 text-rc-text-muted"
+                >
+                  <IconChevronDown size={18} />
+                </motion.div>
+              </button>
+              <AnimatePresence>
+                {openIndex === i && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <p className="px-5 pb-5 text-rc-text-dim text-sm leading-relaxed">
+                      {faq.a}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── Footer ────────────────────────────────────────────────
 
 function Footer() {
   return (
-    <footer className="py-16 px-6 text-center">
-      <div className="max-w-2xl mx-auto">
-        <h3 className="text-xl md:text-2xl font-grotesk font-bold text-rc-text mb-4">
-          Build yours.
-        </h3>
-        <p className="text-rc-text-dim text-sm mb-8 max-w-md mx-auto">
-          OpenClaw is open source. Install it, pick your models, wire up your integrations,
-          give it a personality — then share your loadout with the community.
-        </p>
-        <div className="flex items-center justify-center gap-4">
-          <a
-            href="https://github.com/openclaw/openclaw"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-rc-text rounded-xl transition-colors text-sm font-medium border border-rc-border flex items-center gap-2"
-          >
-            <IconBrandGithub size={16} />
-            GitHub
-          </a>
-          <a
-            href="https://docs.openclaw.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-rc-text rounded-xl transition-colors text-sm font-medium border border-rc-border"
-          >
-            Docs
-          </a>
-          <a
-            href="https://discord.com/invite/clawd"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-rc-text rounded-xl transition-colors text-sm font-medium border border-rc-border"
-          >
-            Discord
-          </a>
+    <footer className="border-t border-rc-border py-16 px-6">
+      <div className="max-w-6xl mx-auto">
+        {/* CTA */}
+        <div className="text-center mb-16">
+          <h3 className="text-2xl md:text-3xl font-grotesk font-bold text-rc-text mb-4">
+            Build yours.
+          </h3>
+          <p className="text-rc-text-dim text-sm mb-8 max-w-md mx-auto">
+            Install OpenClaw, configure your loadout, and start building an AI that actually knows you.
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <a
+              href="https://github.com/openclaw/openclaw"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center gap-2"
+            >
+              <IconBrandGithub size={18} />
+              Get Started
+            </a>
+            <a
+              href="/docs"
+              className="px-6 py-3 bg-white/5 hover:bg-white/10 text-rc-text font-grotesk font-semibold rounded-xl transition-colors border border-rc-border flex items-center gap-2"
+            >
+              <IconBook2 size={18} />
+              Read the Docs
+            </a>
+          </div>
         </div>
-        <p className="text-rc-text-muted text-xs mt-12 font-mono">
-          openclaw · open source ai agents
-        </p>
+
+        {/* Links grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+          <div>
+            <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Product</h4>
+            <ul className="space-y-2.5">
+              <li><a href="/docs" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Documentation</a></li>
+              <li><a href="/docs/install" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Installation</a></li>
+              <li><a href="/docs/skills" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Skills</a></li>
+              <li><a href="https://clawhub.com" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">ClawHub</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Resources</h4>
+            <ul className="space-y-2.5">
+              <li><a href="/docs/guides" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Guides</a></li>
+              <li><a href="/docs/config" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Configuration</a></li>
+              <li><a href="/docs/channels" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Channels</a></li>
+              <li><a href="/docs/models" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Models</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Community</h4>
+            <ul className="space-y-2.5">
+              <li><a href="https://discord.com/invite/clawd" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Discord</a></li>
+              <li><a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">GitHub</a></li>
+              <li><a href="https://github.com/openclaw/openclaw/issues" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Issues</a></li>
+              <li><a href="https://github.com/openclaw/openclaw/discussions" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Discussions</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Legal</h4>
+            <ul className="space-y-2.5">
+              <li><a href="/docs/license" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">MIT License</a></li>
+              <li><a href="/docs/privacy" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Privacy</a></li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="flex items-center justify-between pt-8 border-t border-rc-border">
+          <p className="text-rc-text-muted text-xs font-mono">
+            openclaw · open source ai agents
+          </p>
+          <div className="flex items-center gap-4">
+            <a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors">
+              <IconBrandGithub size={18} />
+            </a>
+            <a href="https://discord.com/invite/clawd" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors">
+              <IconBrandDiscord size={18} />
+            </a>
+          </div>
+        </div>
       </div>
     </footer>
   )
@@ -514,6 +876,10 @@ export default function App() {
     <div className="min-h-screen bg-rc-bg">
       <Hero />
       <ConveyorBelt onSelectLoadout={setSelectedLoadout} />
+      <WhatIsSection />
+      <HowItWorks />
+      <DownloadSection />
+      <FAQSection />
       <Footer />
 
       <AnimatePresence>
