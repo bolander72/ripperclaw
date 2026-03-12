@@ -88,8 +88,10 @@ export interface IntegrationItem {
   provider: string;
   /** Integrations are never auto-applied */
   autoApply: false;
-  /** Link to setup docs */
+  /** Link to setup docs (human-readable) */
   docsUrl?: string;
+  /** Machine-readable setup guide URL (fetched by applying agent) */
+  setupGuideUrl?: string;
 }
 
 export interface IntegrationsBlock {
@@ -187,6 +189,8 @@ export interface DependenciesBlock {
   platform?: string[];
   /** Minimum OpenClaw version */
   minOpenclawVersion?: string;
+  /** Setup guides keyed by provider/tool name */
+  guides?: Record<string, string>;
 }
 
 // ── Build ───────────────────────────────────────────────────────────

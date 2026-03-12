@@ -169,6 +169,72 @@ function formatDependencyReport(buildName, checks) {
   return lines.join('\n');
 }
 
+// ── Setup Guide Resolution ──
+
+const KNOWN_GUIDES = {
+  'bluebubbles': 'https://docs.openclaw.ai/guides/bluebubbles.md',
+  'telegram': 'https://docs.openclaw.ai/guides/telegram.md',
+  'discord': 'https://docs.openclaw.ai/guides/discord.md',
+  'signal': 'https://docs.openclaw.ai/guides/signal.md',
+  'whatsapp': 'https://docs.openclaw.ai/guides/whatsapp.md',
+  'caldir': 'https://docs.openclaw.ai/guides/caldir.md',
+  'himalaya': 'https://docs.openclaw.ai/guides/himalaya.md',
+  'home-assistant': 'https://docs.openclaw.ai/guides/home-assistant.md',
+  'kokoro-onnx': 'https://docs.openclaw.ai/guides/kokoro-onnx.md',
+  'whisper': 'https://docs.openclaw.ai/guides/whisper.md',
+  'peekaboo': 'https://docs.openclaw.ai/guides/peekaboo.md',
+};
+
+/**
+ * Resolve setup guide URL for a provider.
+ * Checks: explicit URL > known registry > null
+ */
+function resolveGuideUrl(provider, explicitUrl) {
+  if (explicitUrl) return explicitUrl;
+  return KNOWN_GUIDES[provider] || null;
+}
+
+/**
+ * Validate that a guide URL is reachable (HTTP HEAD, 5s timeout).
+ * Returns { url, status, ok }
+ */
+async function validateGuideUrl(url) {
+  try {
+    const response = await fetch(url, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(5000),
+    });
+    return { url, status: response.status, ok: response.ok };
+  } catch (err) {
+    return { url, status: 0, ok: false, error: err.message };
+  }
+}
+
+/**
+ * Resolve and validate all setup guides for a build's integrations.
+ * Populates setupGuideUrl on items and builds guides map for dependencies.
+ * @returns {{ guideResults: Array, guides: Record<string, string> }}
+ */
+async function resolveSetupGuides(build) {
+  const items = build.blocks?.integrations?.items || [];
+  const guideResults = [];
+  const guides = {};
+
+  for (const item of items) {
+    const url = resolveGuideUrl(item.provider, item.setupGuideUrl);
+    if (url) {
+      item.setupGuideUrl = url;
+      guides[item.provider] = url;
+      const result = await validateGuideUrl(url);
+      guideResults.push({ provider: item.provider, ...result });
+    } else {
+      guideResults.push({ provider: item.provider, url: null, ok: false, missing: true });
+    }
+  }
+
+  return { guideResults, guides };
+}
+
 // ── Security Scanning ──
 
 const DEFAULT_CLAWHUB_REGISTRY = 'https://clawhub.ai';
@@ -309,6 +375,25 @@ async function scanBuildSecurity(build, options = {}) {
     }
     if (skill.source === 'clawhub' && !skill.version) {
       findings.push({ severity: 'warn', location: `blocks.skills.items[${i}]`, message: `Skill "${skill.name}" has no version pin` });
+    }
+  }
+
+  // ── Setup guide URL safety ──
+  const integrations = build.blocks?.integrations?.items || [];
+  for (let i = 0; i < integrations.length; i++) {
+    const int = integrations[i];
+    if (int.setupGuideUrl) {
+      if (!int.setupGuideUrl.startsWith('https://')) {
+        findings.push({ severity: 'block', location: `blocks.integrations.items[${i}].setupGuideUrl`, message: `Non-HTTPS guide URL: ${int.setupGuideUrl}` });
+      } else if (!/^https:\/\/(?:docs\.openclaw\.ai|clawhub\.ai|clawhub\.com|github\.com)/.test(int.setupGuideUrl)) {
+        findings.push({ severity: 'info', location: `blocks.integrations.items[${i}].setupGuideUrl`, message: `External guide domain: ${new URL(int.setupGuideUrl).hostname}` });
+      }
+    }
+  }
+  const depGuides = build.dependencies?.guides || {};
+  for (const [provider, url] of Object.entries(depGuides)) {
+    if (typeof url === 'string' && !url.startsWith('https://')) {
+      findings.push({ severity: 'block', location: `dependencies.guides.${provider}`, message: `Non-HTTPS guide URL: ${url}` });
     }
   }
 
@@ -632,6 +717,22 @@ function exportBuild(agentId) {
     },
   };
 
+  // ── Resolve setup guides for integrations ──
+  for (const item of integrationItems) {
+    const guideUrl = resolveGuideUrl(item.provider, item.setupGuideUrl);
+    if (guideUrl) {
+      item.setupGuideUrl = guideUrl;
+    }
+  }
+
+  // Build guides map for dependencies
+  const guides = {};
+  for (const item of integrationItems) {
+    if (item.setupGuideUrl) {
+      guides[item.provider] = item.setupGuideUrl;
+    }
+  }
+
   // ── Assemble ──
   const build = {
     schema: 2,
@@ -652,6 +753,11 @@ function exportBuild(agentId) {
       automations: automationsBlock,
       memory: memoryBlock,
     },
+    ...(Object.keys(guides).length > 0 && {
+      dependencies: {
+        guides,
+      },
+    }),
   };
 
   return build;
@@ -812,7 +918,13 @@ async function applyBuild(buildPath, agentId, options = {}) {
   const intBlock = build.blocks?.integrations;
   if (intBlock?.items) {
     for (const integration of intBlock.items) {
-      warnings.push(`🔧 Integration "${integration.name}": manual setup required${integration.docsUrl ? ` (${integration.docsUrl})` : ''}`);
+      if (integration.setupGuideUrl) {
+        warnings.push(`🔧 Integration "${integration.name}": setup guide available at ${integration.setupGuideUrl}`);
+      } else if (integration.docsUrl) {
+        warnings.push(`🔧 Integration "${integration.name}": manual setup required (${integration.docsUrl})`);
+      } else {
+        warnings.push(`🔧 Integration "${integration.name}": manual setup required (no guide available)`);
+      }
     }
   }
 
@@ -1033,9 +1145,17 @@ async function previewBuild(buildPath) {
   // Integrations
   const i = build.blocks?.integrations;
   if (i?.items?.length) {
-    lines.push(`🔌 Integrations (${i.items.length}): all manual setup`);
+    const withGuide = i.items.filter(x => x.setupGuideUrl).length;
+    const label = withGuide === i.items.length
+      ? 'all have setup guides'
+      : withGuide > 0
+        ? `${withGuide}/${i.items.length} have setup guides`
+        : 'manual setup required';
+    lines.push(`🔌 Integrations (${i.items.length}): ${label}`);
     for (const int of i.items) {
-      lines.push(`  ${int.name} (${int.provider})`);
+      const icon = int.setupGuideUrl ? '📖' : '⚠️';
+      const suffix = int.setupGuideUrl ? '' : ' (no guide)';
+      lines.push(`  ${icon} ${int.name} (${int.provider})${suffix}`);
     }
     lines.push('');
   }

@@ -242,7 +242,12 @@
         "docsUrl": {
           "type": "string",
           "format": "uri",
-          "description": "Link to setup docs"
+          "description": "Link to setup docs (human-readable)"
+        },
+        "setupGuideUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Machine-readable setup guide URL (fetched by applying agent)"
         }
       }
     },
@@ -408,6 +413,11 @@
         "minOpenclawVersion": {
           "type": "string",
           "description": "Minimum OpenClaw version"
+        },
+        "guides": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "format": "uri" },
+          "description": "Setup guides keyed by provider/tool name (URLs to fetchable markdown)"
         }
       }
     }
