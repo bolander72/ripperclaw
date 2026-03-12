@@ -50,7 +50,7 @@ function formatDate(dateStr) {
 // ─── Download Dropdown ─────────────────────────────────────
 
 const RELEASE_BASE = 'https://github.com/bolander72/clawclawgo/releases'
-const RELEASE_TAG = 'v0.1.0'
+const RELEASE_TAG = 'v0.2.0'
 
 function DownloadDropdown({ className = '' }) {
   const [open, setOpen] = useState(false)

@@ -7,6 +7,34 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
+// Build schema embedded at compile time
+const BUILD_SCHEMA_JSON: &str = include_str!("../../../specs/build.schema.json");
+
+fn validate_build_schema(build: &Value) -> Result<(), Vec<String>> {
+    let schema: Value = serde_json::from_str(BUILD_SCHEMA_JSON)
+        .expect("embedded build schema is invalid JSON");
+    let validator = jsonschema::validator_for(&schema)
+        .map_err(|e| vec![format!("Failed to compile schema: {}", e)])?;
+
+    let errors: Vec<String> = validator
+        .iter_errors(build)
+        .map(|e| {
+            let path = e.instance_path.to_string();
+            if path.is_empty() {
+                format!("{}", e)
+            } else {
+                format!("{}: {}", path, e)
+            }
+        })
+        .collect();
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors)
+    }
+}
+
 fn home_dir() -> PathBuf {
     dirs::home_dir().unwrap_or_else(|| PathBuf::from("/tmp"))
 }
@@ -853,8 +881,17 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
 fn import_build(path: String) -> Result<Value, String> {
     let content = fs::read_to_string(&path)
         .map_err(|e| format!("Failed to read build_cfg: {}", e))?;
-    serde_json::from_str(&content)
-        .map_err(|e| format!("Failed to parse build_cfg: {}", e))
+    let build: Value = serde_json::from_str(&content)
+        .map_err(|e| format!("Failed to parse build_cfg: {}", e))?;
+
+    // Schema v2 builds get full validation; legacy builds skip it
+    if build.get("schema").and_then(|s| s.as_u64()) == Some(2) {
+        if let Err(errors) = validate_build_schema(&build) {
+            return Err(format!("Schema validation failed:\n- {}", errors.join("\n- ")));
+        }
+    }
+
+    Ok(build)
 }
 
 #[tauri::command]
@@ -1514,9 +1551,16 @@ fn import_build_file(path: String) -> Result<Value, String> {
     let build_cfg: Value = serde_json::from_str(&content)
         .map_err(|e| format!("Invalid JSON: {}", e))?;
 
-    // Validate it looks like a build_cfg
+    // Validate it looks like a build
     if build_cfg.get("blocks").is_none() && build_cfg.get("mods").is_none() {
         return Err("File doesn't look like a valid build (missing blocks)".to_string());
+    }
+
+    // Schema v2 builds get full JSON Schema validation
+    if build_cfg.get("schema").and_then(|s| s.as_u64()) == Some(2) {
+        if let Err(errors) = validate_build_schema(&build_cfg) {
+            return Err(format!("Schema validation failed:\n- {}", errors.join("\n- ")));
+        }
     }
 
     // Save to builds directory
@@ -1541,6 +1585,33 @@ fn import_build_file(path: String) -> Result<Value, String> {
         "name": name,
         "path": dest.to_string_lossy(),
     }))
+}
+
+#[tauri::command]
+fn validate_build(build_json: String) -> Result<Value, String> {
+    let build: Value = serde_json::from_str(&build_json)
+        .map_err(|e| format!("Invalid JSON: {}", e))?;
+
+    if build.get("schema").and_then(|s| s.as_u64()) != Some(2) {
+        return Ok(serde_json::json!({
+            "valid": true,
+            "schema": build.get("schema").and_then(|s| s.as_u64()).unwrap_or(1),
+            "note": "Legacy build, schema validation skipped"
+        }));
+    }
+
+    match validate_build_schema(&build) {
+        Ok(()) => Ok(serde_json::json!({
+            "valid": true,
+            "schema": 2,
+            "errors": []
+        })),
+        Err(errors) => Ok(serde_json::json!({
+            "valid": false,
+            "schema": 2,
+            "errors": errors
+        }))
+    }
 }
 
 #[tauri::command]
@@ -1579,6 +1650,7 @@ pub fn run() {
             clone_build,
             apply_build,
             list_builds,
+            validate_build,
             read_file_absolute,
             nostr::nostr_get_keys,
             nostr::nostr_generate_keys,

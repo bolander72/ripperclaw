@@ -26,6 +26,7 @@ dirs = "5"
 nostr-sdk = "0.39"
 tokio = { version = "1", features = ["full"] }
 regex = "1"
+jsonschema = "0.29"
 
 
 [[bin]]
