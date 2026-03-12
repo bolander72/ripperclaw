@@ -4,7 +4,7 @@ Apply a build to create a new agent or update an existing one.
 
 ## Safety Rules
 
-RipperClaw follows strict safety rules when applying:
+ClawClawGo follows strict safety rules when applying:
 
 1. **Never overwrites existing agent workspaces**: if `~/.openclaw/agents/<id>/` exists, the apply is blocked. You must choose a unique ID or delete the existing agent first.
 2. **Mandatory backup before changes**: `openclaw.json` is automatically copied to `openclaw.backup-<timestamp>.json` before any modifications.
@@ -59,16 +59,16 @@ This is useful when a build uses paid models you don't have access to, or when y
 
 ```bash
 # Preview what would happen (dry run)
-node ripperclaw.mjs apply build.json --agent my-bot --dry-run
+node clawclawgo.mjs apply build.json --agent my-bot --dry-run
 
 # Apply for real
-node ripperclaw.mjs apply build.json --agent my-bot
+node clawclawgo.mjs apply build.json --agent my-bot
 
 # Use your own models instead of the build's
-node ripperclaw.mjs apply build.json --agent my-bot --use-my-models
+node clawclawgo.mjs apply build.json --agent my-bot --use-my-models
 
 # Combine dry run with model remapping
-node ripperclaw.mjs apply build.json --agent my-bot --dry-run --use-my-models
+node clawclawgo.mjs apply build.json --agent my-bot --dry-run --use-my-models
 ```
 
 ### Dry Run Mode
@@ -89,4 +89,4 @@ The new agent gets its own:
 - Entry in `openclaw.json` under `agents.list`
 - Independent model, skills, and persona config
 
-Restart OpenClaw for the new agent to become available. Multi-agent setups let you switch between agents in the RipperClaw app's sidebar.
+Restart OpenClaw for the new agent to become available. Multi-agent setups let you switch between agents in the ClawClawGo app's sidebar.

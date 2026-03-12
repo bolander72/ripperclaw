@@ -1,16 +1,16 @@
 ---
 layout: home
 hero:
-  name: RipperClaw
+  name: ClawClawGo
   text: Your AI. Your build.
   tagline: Build, share, and remix modular AI agent configurations.
   actions:
     - theme: brand
       text: Get Started
-      link: /guide/what-is-ripperclaw
+      link: /guide/what-is-clawclawgo
     - theme: alt
       text: View on GitHub
-      link: https://github.com/bolander72/ripperclaw
+      link: https://github.com/bolander72/clawclawgo
 
 features:
   - icon: 🔧

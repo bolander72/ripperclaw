@@ -1,6 +1,6 @@
 # Nostr Protocol
 
-RipperClaw uses the [Nostr](https://nostr.com) protocol for decentralized build sharing. No accounts. No servers to manage. No platform lock-in.
+ClawClawGo uses the [Nostr](https://nostr.com) protocol for decentralized build sharing. No accounts. No servers to manage. No platform lock-in.
 
 ## Event Kind
 
@@ -23,7 +23,7 @@ Builds use **kind `38333`**, a NIP-33 parameterized replaceable event. This mean
     ["t", "personal"],
     ["t", "voice"],
     ["t", "smart-home"],
-    ["ripperclaw", "0.1.0"],
+    ["clawclawgo", "0.1.0"],
     ["e", "<parent_event_id>", "", "fork"],
     ["p", "<original_author_npub>"]
   ],
@@ -38,7 +38,7 @@ Builds use **kind `38333`**, a NIP-33 parameterized replaceable event. This mean
 |-----|---------|----------|
 | `d` | Build name (NIP-33 identifier) | Yes |
 | `t` | Hashtag for categorization | No |
-| `ripperclaw` | App version that created the event | Yes |
+| `clawclawgo` | App version that created the event | Yes |
 | `e` | Fork reference to parent build event | Only if forked |
 | `p` | Credit to original author pubkey | Only if forked |
 
@@ -59,7 +59,7 @@ Multiple `e` tags may exist if a build merges ideas from multiple parents (futur
 
 ## Key Management
 
-Keys are stored at `~/.ripperclaw/keys.json`:
+Keys are stored at `~/.clawclawgo/keys.json`:
 
 ```json
 {
@@ -89,8 +89,8 @@ Optional kind 0 metadata published alongside builds:
   "display_name": "Mike",
   "about": "Building AI agents",
   "picture": "https://...",
-  "website": "https://ripperclaw.com",
-  "nip05": "mike@ripperclaw.com"
+  "website": "https://clawclawgo.com",
+  "nip05": "mike@clawclawgo.com"
 }
 ```
 
@@ -102,7 +102,7 @@ wss://nos.lol
 wss://relay.nostr.band
 ```
 
-Custom relays are persisted to `~/.ripperclaw/relays.json`.
+Custom relays are persisted to `~/.clawclawgo/relays.json`.
 
 ## Feed Queries
 
@@ -126,6 +126,6 @@ Results are sorted by `created_at` descending.
 
 ## Future
 
-- **NIP-05** verification via `ripperclaw.com` (planned)
+- **NIP-05** verification via `clawclawgo.com` (planned)
 - **Zaps** (Lightning payments) for premium builds (exploratory)
 - **NIP-51** lists for curated build collections

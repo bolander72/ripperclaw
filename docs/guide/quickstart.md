@@ -1,15 +1,15 @@
 # Quick Start
 
-Get RipperClaw running and apply your first build in under 5 minutes.
+Get ClawClawGo running and apply your first build in under 5 minutes.
 
 ## Prerequisites
 
 - [OpenClaw](https://github.com/openclaw/openclaw) installed and running
 - macOS, Windows, or Linux
 
-## 1. Install RipperClaw
+## 1. Install ClawClawGo
 
-Download the latest release for your platform from the [releases page](https://github.com/bolander72/ripperclaw/releases/latest).
+Download the latest release for your platform from the [releases page](https://github.com/bolander72/clawclawgo/releases/latest).
 
 | Platform | Download |
 |----------|----------|
@@ -20,9 +20,9 @@ Download the latest release for your platform from the [releases page](https://g
 
 ## 2. Launch & Connect
 
-Open RipperClaw. If OpenClaw's gateway is running, you'll see **LIVE** in the status bar. The app automatically detects your config at `~/.openclaw/openclaw.json`.
+Open ClawClawGo. If OpenClaw's gateway is running, you'll see **LIVE** in the status bar. The app automatically detects your config at `~/.openclaw/openclaw.json`.
 
-If you see **MOCK**, the gateway isn't reachable. RipperClaw will show sample data so you can still explore the UI.
+If you see **MOCK**, the gateway isn't reachable. ClawClawGo will show sample data so you can still explore the UI.
 
 ## 3. View Your Build
 
@@ -47,17 +47,17 @@ Your new agent gets its own workspace at `~/.openclaw/agents/<name>/`. Restart O
 
 ## Using the CLI
 
-Prefer the terminal? The `ripperclaw` CLI does the same thing:
+Prefer the terminal? The `clawclawgo` CLI does the same thing:
 
 ```bash
 # Export your current agent
-node ripperclaw.mjs export
+node clawclawgo.mjs export
 
 # Preview what an apply would do
-node ripperclaw.mjs apply build.json --agent my-bot --dry-run
+node clawclawgo.mjs apply build.json --agent my-bot --dry-run
 
 # Apply for real
-node ripperclaw.mjs apply build.json --agent my-bot
+node clawclawgo.mjs apply build.json --agent my-bot
 ```
 
 ## Next Steps

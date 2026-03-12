@@ -4,7 +4,7 @@ use std::borrow::Cow;
 use std::fs;
 use std::path::PathBuf;
 
-/// RipperClaw build_cfg event kind (NIP-33 parameterized replaceable)
+/// ClawClawGo build_cfg event kind (NIP-33 parameterized replaceable)
 const LOADOUT_KIND: u16 = 38333;
 
 /// Default relays
@@ -17,7 +17,7 @@ const DEFAULT_RELAYS: &[&str] = &[
 fn data_dir() -> PathBuf {
     dirs::home_dir()
         .unwrap_or_else(|| PathBuf::from("/tmp"))
-        .join(".ripperclaw")
+        .join(".clawclawgo")
 }
 
 fn keys_path() -> PathBuf {
@@ -255,7 +255,7 @@ pub async fn nostr_publish_build_cfg(
     }
 
     builder = builder.tag(Tag::custom(
-        TagKind::Custom(Cow::Borrowed("ripperclaw")),
+        TagKind::Custom(Cow::Borrowed("clawclawgo")),
         vec!["0.1.0"],
     ));
 

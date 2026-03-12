@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * ripperclaw — Cyberware manager for AI agents
+ * clawclawgo — Cyberware manager for AI agents
  *
  * Commands:
  *   export   Export your current rig as a loadout
@@ -60,7 +60,7 @@ async function cmdExport() {
 async function cmdDiff() {
   const theirFile = args[1];
   if (!theirFile) {
-    console.error("Usage: ripperclaw diff <loadout.json>");
+    console.error("Usage: clawclawgo diff <loadout.json>");
     process.exit(1);
   }
 
@@ -74,7 +74,7 @@ async function cmdDiff() {
 async function cmdInspect() {
   const file = args[1];
   if (!file) {
-    console.error("Usage: ripperclaw inspect <loadout.json>");
+    console.error("Usage: clawclawgo inspect <loadout.json>");
     process.exit(1);
   }
 
@@ -84,7 +84,7 @@ async function cmdInspect() {
 
 async function cmdHelp() {
   console.log(`
-  ${"\x1b[1m"}ripperclaw${"\x1b[0m"} — Cyberware manager for AI agents
+  ${"\x1b[1m"}clawclawgo${"\x1b[0m"} — Cyberware manager for AI agents
 
   Commands:
     export [file]     Export your current rig as a loadout

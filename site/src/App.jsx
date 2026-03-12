@@ -49,7 +49,7 @@ function formatDate(dateStr) {
 
 // ─── Download Dropdown ─────────────────────────────────────
 
-const RELEASE_BASE = 'https://github.com/bolander72/ripperclaw/releases'
+const RELEASE_BASE = 'https://github.com/bolander72/clawclawgo/releases'
 const RELEASE_TAG = 'v0.1.0'
 
 function DownloadDropdown({ className = '' }) {
@@ -63,11 +63,11 @@ function DownloadDropdown({ className = '' }) {
   }, [])
 
   const platforms = [
-    { label: 'macOS (Apple Silicon)', icon: IconBrandApple, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/RipperClaw_${RELEASE_TAG.slice(1)}_aarch64.dmg` },
-    { label: 'macOS (Intel)', icon: IconBrandApple, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/RipperClaw_${RELEASE_TAG.slice(1)}_x64.dmg` },
-    { label: 'Windows', icon: IconBrandWindows, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/RipperClaw_${RELEASE_TAG.slice(1)}_x64-setup.exe` },
-    { label: 'Linux (.deb)', icon: IconBrandDebian, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/RipperClaw_${RELEASE_TAG.slice(1)}_amd64.deb` },
-    { label: 'Linux (.AppImage)', icon: IconBrandDebian, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/RipperClaw_${RELEASE_TAG.slice(1)}_amd64.AppImage` },
+    { label: 'macOS (Apple Silicon)', icon: IconBrandApple, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/ClawClawGo_${RELEASE_TAG.slice(1)}_aarch64.dmg` },
+    { label: 'macOS (Intel)', icon: IconBrandApple, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/ClawClawGo_${RELEASE_TAG.slice(1)}_x64.dmg` },
+    { label: 'Windows', icon: IconBrandWindows, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/ClawClawGo_${RELEASE_TAG.slice(1)}_x64-setup.exe` },
+    { label: 'Linux (.deb)', icon: IconBrandDebian, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/ClawClawGo_${RELEASE_TAG.slice(1)}_amd64.deb` },
+    { label: 'Linux (.AppImage)', icon: IconBrandDebian, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/ClawClawGo_${RELEASE_TAG.slice(1)}_amd64.AppImage` },
   ]
 
   return (
@@ -76,7 +76,7 @@ function DownloadDropdown({ className = '' }) {
         onClick={() => setOpen(!open)}
         className="w-full px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center justify-center gap-2"
       >
-        Get RipperClaw
+        Get ClawClawGo
         <IconChevronDown size={16} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       <AnimatePresence>
@@ -508,7 +508,7 @@ function BuildDetail({ build, onClose }) {
   )
 }
 
-// ─── What Is RipperClaw ────────────────────────────────────
+// ─── What Is ClawClawGo ────────────────────────────────────
 
 function WhatIsSection() {
   const features = [
@@ -549,7 +549,7 @@ function WhatIsSection() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
-            What is RipperClaw?
+            What is ClawClawGo?
           </h2>
           <p className="text-rc-text-dim text-lg max-w-2xl mx-auto">
             A place to build, share, and discover AI agent builds.
@@ -714,11 +714,11 @@ function FAQSection() {
     },
     {
       q: 'Is this free?',
-      a: 'RipperClaw is free. OpenClaw is free and open source. You\'ll pay for AI model API calls depending on which providers you use, or run fully local models for zero cost.',
+      a: 'ClawClawGo is free. OpenClaw is free and open source. You\'ll pay for AI model API calls depending on which providers you use, or run fully local models for zero cost.',
     },
     {
       q: 'What is OpenClaw?',
-      a: 'An open source AI agent framework. It runs on your hardware, connects to your real tools (messages, calendar, email, smart home), and operates 24/7. RipperClaw is where the community shares their OpenClaw configurations.',
+      a: 'An open source AI agent framework. It runs on your hardware, connects to your real tools (messages, calendar, email, smart home), and operates 24/7. ClawClawGo is where the community shares their OpenClaw configurations.',
     },
     {
       q: 'How do I get started?',
@@ -810,7 +810,7 @@ function Footer() {
         {/* Links grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div>
-            <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">RipperClaw</h4>
+            <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">ClawClawGo</h4>
             <ul className="space-y-2.5">
               <li><Link to="/explore" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Explore Builds</Link></li>
               <li><a href="/docs/" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Documentation</a></li>
@@ -829,13 +829,13 @@ function Footer() {
             <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Community</h4>
             <ul className="space-y-2.5">
               <li><a href="https://discord.com/invite/clawd" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Discord</a></li>
-              <li><a href="https://github.com/bolander72/ripperclaw/discussions" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Discussions</a></li>
+              <li><a href="https://github.com/bolander72/clawclawgo/discussions" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Discussions</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Legal</h4>
             <ul className="space-y-2.5">
-              <li><a href="https://github.com/bolander72/ripperclaw/blob/main/LICENSE" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">MIT License</a></li>
+              <li><a href="https://github.com/bolander72/clawclawgo/blob/main/LICENSE" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">MIT License</a></li>
             </ul>
           </div>
         </div>
@@ -843,10 +843,10 @@ function Footer() {
         {/* Bottom bar */}
         <div className="flex items-center justify-between pt-8 border-t border-rc-border">
           <p className="text-rc-text-muted text-xs font-mono">
-            ripperclaw · agent builds for openclaw
+            clawclawgo · agent builds for openclaw
           </p>
           <div className="flex items-center gap-4">
-            <a href="https://github.com/bolander72/ripperclaw" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors">
+            <a href="https://github.com/bolander72/clawclawgo" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors">
               <IconBrandGithub size={18} />
             </a>
             <a href="https://discord.com/invite/clawd" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors">

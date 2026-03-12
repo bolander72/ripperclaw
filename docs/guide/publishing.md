@@ -11,14 +11,14 @@ Share your build with the community by publishing it to the decentralized [Nostr
 
 ## First-Time Setup
 
-The first time you publish, RipperClaw generates a Nostr key pair:
+The first time you publish, ClawClawGo generates a Nostr key pair:
 
 1. Click **Publish** (▲ button in the sidebar)
 2. An identity screen shows your generated `npub` (public key)
 3. Optionally import an existing key if you already use Nostr
 4. Continue to configure your build for publishing
 
-Keys are stored locally at `~/.ripperclaw/keys.json` with restricted permissions (0600).
+Keys are stored locally at `~/.clawclawgo/keys.json` with restricted permissions (0600).
 
 ## Publishing Flow
 
@@ -31,7 +31,7 @@ Published builds use **NIP-33** (parameterized replaceable events) with kind `38
 
 ### PII Scrubbing
 
-Before publishing, RipperClaw automatically removes personally identifiable information:
+Before publishing, ClawClawGo automatically removes personally identifiable information:
 
 **Removed from persona files:**
 - Phone numbers
@@ -74,13 +74,13 @@ This info is published to relays and shown alongside your builds.
 
 ## Relay Configuration
 
-By default, RipperClaw publishes to:
+By default, ClawClawGo publishes to:
 
 - `wss://relay.damus.io`
 - `wss://nos.lol`
 - `wss://relay.nostr.band`
 
-Add or remove relays in **Settings → Relays**. Custom relays are saved to `~/.ripperclaw/relays.json`.
+Add or remove relays in **Settings → Relays**. Custom relays are saved to `~/.clawclawgo/relays.json`.
 
 ## Event Format
 
@@ -92,7 +92,7 @@ Add or remove relays in **Settings → Relays**. Custom relays are saved to `~/.
     ["d", "<build-name>"],
     ["t", "<tag1>"],
     ["t", "<tag2>"],
-    ["ripperclaw", "0.1.0"]
+    ["clawclawgo", "0.1.0"]
   ]
 }
 ```

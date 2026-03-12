@@ -1,6 +1,6 @@
-# RipperClaw Landing Page
+# ClawClawGo Landing Page
 
-Cyberpunk-themed landing page for RipperClaw — AI agent config management for OpenClaw.
+Cyberpunk-themed landing page for ClawClawGo — AI agent config management for OpenClaw.
 
 ## Features
 
@@ -60,7 +60,7 @@ The `dist/` folder contains the production-ready static site. Deploy to:
 - **GitHub Pages** — Push `dist/` contents to `gh-pages` branch
 - **Any static host** — Upload `dist/` contents
 
-### Domain: ripperclaw.com
+### Domain: clawclawgo.com
 
 Point DNS to your hosting provider and deploy the `dist/` folder.
 

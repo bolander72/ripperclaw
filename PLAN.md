@@ -1,4 +1,4 @@
-# RipperClaw — Phase 2-3 Plan
+# ClawClawGo — Phase 2-3 Plan
 
 ## 1. Slot Mapping (Real Data)
 
@@ -92,7 +92,7 @@ Already works via CLI (`src/export.ts`). Produces a `Loadout` JSON.
 **Pros:** Content-addressed, permanent, dedup
 **Cons:** No discovery mechanism (need separate index), pinning costs, overkill for small JSON
 
-#### C. Centralized API (ripperclaw.com)
+#### C. Centralized API (clawclawgo.com)
 **Pros:** Simple, fast, full control, easy search/discovery
 **Cons:** Single point of failure, hosting costs, goes against the vibe
 
@@ -115,7 +115,7 @@ tags:
   - ["t", "netrunner"]             # template tag
   - ["t", "voice"]                 # feature tags
   - ["version", "3"]               # loadout version
-  - ["ripperclaw", "0.1.0"]        # client version
+  - ["clawclawgo", "0.1.0"]        # client version
 content: <loadout JSON string>
 ```
 

@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: 'RipperClaw',
+  title: 'ClawClawGo',
   description: 'Build, share, and remix AI agent builds',
   base: '/docs/',
   head: [
@@ -14,17 +14,17 @@ export default defineConfig({
   themeConfig: {
     logo: '/logo.svg',
     nav: [
-      { text: 'Guide', link: '/guide/what-is-ripperclaw' },
+      { text: 'Guide', link: '/guide/what-is-clawclawgo' },
       { text: 'Builds', link: '/builds/overview' },
       { text: 'Reference', link: '/reference/schema' },
-      { text: 'App', link: 'https://ripperclaw.com' },
+      { text: 'App', link: 'https://clawclawgo.com' },
     ],
     sidebar: {
       '/guide/': [
         {
           text: 'Introduction',
           items: [
-            { text: 'What is RipperClaw?', link: '/guide/what-is-ripperclaw' },
+            { text: 'What is ClawClawGo?', link: '/guide/what-is-clawclawgo' },
             { text: 'Quick Start', link: '/guide/quickstart' },
             { text: 'Installation', link: '/guide/installation' },
           ],
@@ -64,18 +64,18 @@ export default defineConfig({
       ],
     },
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/bolander72/ripperclaw' },
+      { icon: 'github', link: 'https://github.com/bolander72/clawclawgo' },
       { icon: 'discord', link: 'https://discord.com/invite/clawd' },
     ],
     footer: {
       message: 'MIT Licensed',
-      copyright: '© 2026 RipperClaw',
+      copyright: '© 2026 ClawClawGo',
     },
     search: {
       provider: 'local',
     },
     editLink: {
-      pattern: 'https://github.com/bolander72/ripperclaw/edit/main/docs/:path',
+      pattern: 'https://github.com/bolander72/clawclawgo/edit/main/docs/:path',
     },
   },
 })

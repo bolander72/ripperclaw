@@ -1,10 +1,10 @@
 {
-  "name": "ripperclaw",
+  "name": "clawclawgo",
   "version": "0.1.0",
   "description": "Cyberware manager for AI agents — loadout export, import, diff, and discovery",
   "type": "module",
   "bin": {
-    "ripperclaw": "./dist/cli.js"
+    "clawclawgo": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc",

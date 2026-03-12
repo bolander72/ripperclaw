@@ -140,7 +140,7 @@ function parseFeedBuild(entry: FeedBuild, allEntries: FeedBuild[]): DisplayBuild
     author: entry.author,
     authorHex: entry.author_hex,
     template,
-    description: (meta.description as string) || `${entry.tags.length} tags · Published via RipperClaw`,
+    description: (meta.description as string) || `${entry.tags.length} tags · Published via ClawClawGo`,
     tags: entry.tags,
     publishedAt: entry.published_at,
     model: ((parsed.slots as Record<string, unknown>)?.model as Record<string, unknown>)?.component as string | undefined,

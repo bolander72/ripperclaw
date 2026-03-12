@@ -1,8 +1,8 @@
 {
-  "id": "ripperclaw-relay",
+  "id": "clawclawgo-relay",
   "kind": "service",
-  "name": "RipperClaw Relay",
-  "description": "Self-hosted Nostr relay for RipperClaw loadout sharing (kind 38333)",
+  "name": "ClawClawGo Relay",
+  "description": "Self-hosted Nostr relay for ClawClawGo loadout sharing (kind 38333)",
   "version": "0.1.0",
   "configSchema": {
     "type": "object",
@@ -20,7 +20,7 @@
       },
       "dbPath": {
         "type": "string",
-        "description": "SQLite database path (default: ~/.openclaw/ripperclaw-relay.db)"
+        "description": "SQLite database path (default: ~/.openclaw/clawclawgo-relay.db)"
       },
       "maxEvents": {
         "type": "number",

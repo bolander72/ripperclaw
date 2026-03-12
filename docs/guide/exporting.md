@@ -35,15 +35,15 @@ You can review what was scrubbed in the export report.
 
 ```bash
 # Export to stdout
-node ripperclaw.mjs export
+node clawclawgo.mjs export
 
 # Export to file
-node ripperclaw.mjs export > my-build.json
+node clawclawgo.mjs export > my-build.json
 ```
 
 ## Safe Export for Publishing
 
-When publishing to Nostr, RipperClaw uses `export_build_safe` which applies stricter scrubbing and returns a report of what was redacted:
+When publishing to Nostr, ClawClawGo uses `export_build_safe` which applies stricter scrubbing and returns a report of what was redacted:
 
 ```json
 {

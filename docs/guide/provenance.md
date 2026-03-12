@@ -1,10 +1,10 @@
 # Provenance & Remix System
 
-RipperClaw tracks the lineage of every build. When you fork or remix someone else's work, the ancestry chain is preserved and displayed.
+ClawClawGo tracks the lineage of every build. When you fork or remix someone else's work, the ancestry chain is preserved and displayed.
 
 ## How It Works
 
-When you apply a published build and later publish your modified version, RipperClaw automatically:
+When you apply a published build and later publish your modified version, ClawClawGo automatically:
 
 1. Records the parent build's event ID
 2. Adds fork tags to your published event
@@ -78,7 +78,7 @@ You don't need to do anything special. The app automatically detects when you're
 1. Apply a build from the feed
 2. Make changes to the agent
 3. Export and publish
-4. RipperClaw adds the fork tags automatically
+4. ClawClawGo adds the fork tags automatically
 
 ## Ethics
 

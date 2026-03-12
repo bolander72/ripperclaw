@@ -2,35 +2,35 @@
 
 ## Desktop App
 
-Download the latest release from [GitHub Releases](https://github.com/bolander72/ripperclaw/releases/latest).
+Download the latest release from [GitHub Releases](https://github.com/bolander72/clawclawgo/releases/latest).
 
 ### macOS
 
 1. Download the `.dmg` for your architecture (Apple Silicon or Intel)
-2. Open the DMG and drag RipperClaw to Applications
+2. Open the DMG and drag ClawClawGo to Applications
 3. On first launch, right-click → Open (macOS may block unsigned apps)
 
 ::: tip
-RipperClaw requires OpenClaw installed and running. The app reads your config from `~/.openclaw/openclaw.json`.
+ClawClawGo requires OpenClaw installed and running. The app reads your config from `~/.openclaw/openclaw.json`.
 :::
 
 ### Windows
 
 1. Download the `.exe` installer
 2. Run the installer
-3. Launch RipperClaw from the Start menu
+3. Launch ClawClawGo from the Start menu
 
 ### Linux
 
 **Debian/Ubuntu:**
 ```bash
-sudo dpkg -i ripperclaw_*.deb
+sudo dpkg -i clawclawgo_*.deb
 ```
 
 **AppImage:**
 ```bash
-chmod +x RipperClaw_*.AppImage
-./RipperClaw_*.AppImage
+chmod +x ClawClawGo_*.AppImage
+./ClawClawGo_*.AppImage
 ```
 
 ## CLI
@@ -38,9 +38,9 @@ chmod +x RipperClaw_*.AppImage
 The CLI is a standalone Node.js script. No install needed beyond cloning the repo:
 
 ```bash
-git clone https://github.com/bolander72/ripperclaw.git
-cd ripperclaw/cli
-node ripperclaw.mjs --help
+git clone https://github.com/bolander72/clawclawgo.git
+cd clawclawgo/cli
+node clawclawgo.mjs --help
 ```
 
 ### Requirements
@@ -52,8 +52,8 @@ node ripperclaw.mjs --help
 ## Building from Source
 
 ```bash
-git clone https://github.com/bolander72/ripperclaw.git
-cd ripperclaw/app
+git clone https://github.com/bolander72/clawclawgo.git
+cd clawclawgo/app
 
 # Install frontend deps
 npm install

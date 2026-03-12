@@ -1,8 +1,8 @@
-# What is RipperClaw?
+# What is ClawClawGo?
 
-RipperClaw is a desktop app and CLI for building, sharing, and remixing AI agent configurations called **builds**.
+ClawClawGo is a desktop app and CLI for building, sharing, and remixing AI agent configurations called **builds**.
 
-Think of it like dotfiles for AI agents. Your agent has a model, a persona, skills, integrations, automations, and memory. RipperClaw packages all of that into a portable format that anyone can browse, copy, and apply to their own setup.
+Think of it like dotfiles for AI agents. Your agent has a model, a persona, skills, integrations, automations, and memory. ClawClawGo packages all of that into a portable format that anyone can browse, copy, and apply to their own setup.
 
 ## The Problem
 
@@ -10,7 +10,7 @@ Setting up a useful AI agent takes time. You pick a model, write personality fil
 
 ## The Solution
 
-RipperClaw gives you:
+ClawClawGo gives you:
 
 - **Export** your working agent config as a build
 - **Share** it on Nostr (decentralized, no accounts needed)
@@ -32,11 +32,11 @@ Every AI agent (specifically [OpenClaw](https://github.com/openclaw/openclaw) ag
 
 A build captures the state of all blocks, scrubs sensitive data, and produces a JSON file that's portable across machines.
 
-## What RipperClaw Is Not
+## What ClawClawGo Is Not
 
-- **Not a hosting platform.** Your agent runs on your machine. RipperClaw just helps you configure it.
+- **Not a hosting platform.** Your agent runs on your machine. ClawClawGo just helps you configure it.
 - **Not a marketplace.** Builds are shared freely via Nostr. No payments (yet: zaps are on the roadmap).
-- **Not an agent framework.** RipperClaw works with [OpenClaw](https://openclaw.ai). It's the config layer, not the runtime.
+- **Not an agent framework.** ClawClawGo works with [OpenClaw](https://openclaw.ai). It's the config layer, not the runtime.
 
 ## Next Steps
 

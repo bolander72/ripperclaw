@@ -439,7 +439,7 @@ export default function Explore() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <a href="/" className="font-grotesk font-bold text-rc-text text-xl hover:text-rc-cyan transition-colors">
-                ← RipperClaw
+                ← ClawClawGo
               </a>
               <div className="h-6 w-px bg-rc-border" />
               <h1 className="font-grotesk font-semibold text-rc-text text-lg">Explore</h1>

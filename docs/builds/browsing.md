@@ -2,7 +2,7 @@
 
 ## The Feed
 
-The **Feed** view in RipperClaw shows builds published by other users on Nostr. It queries your configured relays for events with kind `38333`.
+The **Feed** view in ClawClawGo shows builds published by other users on Nostr. It queries your configured relays for events with kind `38333`.
 
 Each card shows:
 - Build name

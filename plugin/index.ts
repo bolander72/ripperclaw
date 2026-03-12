@@ -1,20 +1,20 @@
-import { RipperClawRelay } from "./src/relay.js";
+import { ClawClawGoRelay } from "./src/relay.js";
 import type { RelayConfig } from "./src/types.js";
 import { homedir } from "os";
 import { join } from "path";
 
-let relay: RipperClawRelay | null = null;
+let relay: ClawClawGoRelay | null = null;
 
 export default function register(api: any) {
   const logger = api.logger ?? {
-    info: (...args: unknown[]) => console.log("[ripperclaw-relay]", ...args),
-    error: (...args: unknown[]) => console.error("[ripperclaw-relay]", ...args),
+    info: (...args: unknown[]) => console.log("[clawclawgo-relay]", ...args),
+    error: (...args: unknown[]) => console.error("[clawclawgo-relay]", ...args),
   };
 
   // Resolve config with defaults
   function getConfig(): RelayConfig {
     const pluginConfig =
-      api.config?.loadConfig?.()?.plugins?.entries?.["ripperclaw-relay"]
+      api.config?.loadConfig?.()?.plugins?.entries?.["clawclawgo-relay"]
         ?.config ?? {};
 
     return {
@@ -22,7 +22,7 @@ export default function register(api: any) {
       host: pluginConfig.host ?? "0.0.0.0",
       dbPath:
         pluginConfig.dbPath ??
-        join(homedir(), ".openclaw", "ripperclaw-relay.db"),
+        join(homedir(), ".openclaw", "clawclawgo-relay.db"),
       maxEvents: pluginConfig.maxEvents ?? 10000,
       allowedKinds: pluginConfig.allowedKinds ?? [38333],
       publicRelays: pluginConfig.publicRelays ?? [],
@@ -31,10 +31,10 @@ export default function register(api: any) {
 
   // Background service: starts relay on gateway start, stops on shutdown
   api.registerService({
-    id: "ripperclaw-relay",
+    id: "clawclawgo-relay",
     async start() {
       const config = getConfig();
-      relay = new RipperClawRelay(config, logger);
+      relay = new ClawClawGoRelay(config, logger);
       await relay.start();
       logger.info(
         `Relay service started on ws://${config.host}:${config.port}`,
@@ -51,7 +51,7 @@ export default function register(api: any) {
 
   // Gateway RPC: status
   api.registerGatewayMethod(
-    "ripperclaw-relay.status",
+    "clawclawgo-relay.status",
     ({ respond }: { respond: (ok: boolean, data: unknown) => void }) => {
       if (!relay) {
         respond(true, { running: false });
@@ -64,7 +64,7 @@ export default function register(api: any) {
 
   // Gateway RPC: relay info (NIP-11)
   api.registerGatewayMethod(
-    "ripperclaw-relay.info",
+    "clawclawgo-relay.info",
     ({ respond }: { respond: (ok: boolean, data: unknown) => void }) => {
       if (!relay) {
         respond(false, { error: "Relay not running" });
@@ -76,7 +76,7 @@ export default function register(api: any) {
 
   // HTTP route: NIP-11 relay information document
   api.registerHttpRoute({
-    path: "/ripperclaw/relay",
+    path: "/clawclawgo/relay",
     auth: "plugin",
     match: "exact",
     handler: async (
@@ -103,7 +103,7 @@ export default function register(api: any) {
 
   // HTTP route: relay stats
   api.registerHttpRoute({
-    path: "/ripperclaw/stats",
+    path: "/clawclawgo/stats",
     auth: "plugin",
     match: "exact",
     handler: async (
@@ -129,12 +129,12 @@ export default function register(api: any) {
     },
   });
 
-  // CLI command: ripperclaw-relay status
+  // CLI command: clawclawgo-relay status
   api.registerCli(
     ({ program }: { program: any }) => {
       const cmd = program
-        .command("ripperclaw-relay")
-        .description("RipperClaw Nostr relay management");
+        .command("clawclawgo-relay")
+        .description("ClawClawGo Nostr relay management");
 
       cmd
         .command("status")
@@ -155,6 +155,6 @@ export default function register(api: any) {
           console.log(`Accepted kinds: ${getConfig().allowedKinds.join(", ")}`);
         });
     },
-    { commands: ["ripperclaw-relay"] },
+    { commands: ["clawclawgo-relay"] },
   );
 }

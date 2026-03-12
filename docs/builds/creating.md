@@ -2,7 +2,7 @@
 
 ## From the App
 
-1. Open RipperClaw
+1. Open ClawClawGo
 2. Navigate to **Builds** in the sidebar
 3. Click **Save Current Build**
 4. Enter a name (e.g., "Production Setup", "Lean Ops", "Dev Mode")
@@ -12,10 +12,10 @@
 
 ```bash
 # Export to stdout (pipe-friendly)
-node ripperclaw.mjs export
+node clawclawgo.mjs export
 
 # Save to a specific file
-node ripperclaw.mjs export > my-agent.build.json
+node clawclawgo.mjs export > my-agent.build.json
 ```
 
 ## From the Feed

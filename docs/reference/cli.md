@@ -1,6 +1,6 @@
 # CLI Reference
 
-The RipperClaw CLI is a standalone Node.js script at `cli/ripperclaw.mjs`.
+The ClawClawGo CLI is a standalone Node.js script at `cli/clawclawgo.mjs`.
 
 ## Commands
 
@@ -9,13 +9,13 @@ The RipperClaw CLI is a standalone Node.js script at `cli/ripperclaw.mjs`.
 Export the current agent's configuration as a build JSON document.
 
 ```bash
-node ripperclaw.mjs export
+node clawclawgo.mjs export
 ```
 
 Outputs to stdout. Pipe to a file to save:
 
 ```bash
-node ripperclaw.mjs export > my-build.json
+node clawclawgo.mjs export > my-build.json
 ```
 
 **What it captures:**
@@ -31,7 +31,7 @@ node ripperclaw.mjs export > my-build.json
 Apply a build file to create a new agent.
 
 ```bash
-node ripperclaw.mjs apply <build.json> --agent <agent-id> [options]
+node clawclawgo.mjs apply <build.json> --agent <agent-id> [options]
 ```
 
 **Options:**
@@ -46,13 +46,13 @@ node ripperclaw.mjs apply <build.json> --agent <agent-id> [options]
 
 ```bash
 # Preview
-node ripperclaw.mjs apply quinn-build.json --agent test-bot --dry-run
+node clawclawgo.mjs apply quinn-build.json --agent test-bot --dry-run
 
 # Apply
-node ripperclaw.mjs apply quinn-build.json --agent test-bot
+node clawclawgo.mjs apply quinn-build.json --agent test-bot
 
 # Apply with your own models
-node ripperclaw.mjs apply quinn-build.json --agent test-bot --use-my-models
+node clawclawgo.mjs apply quinn-build.json --agent test-bot --use-my-models
 ```
 
 **Safety:**

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://ripperclaw.com/schemas/build-v2.json",
-  "title": "Ripperclaw Build v2",
+  "$id": "https://clawclawgo.com/schemas/build-v2.json",
+  "title": "Clawclawgo Build v2",
   "description": "Canonical format for OpenClaw agent builds: export, share, and apply.",
   "type": "object",
   "required": ["schema", "meta", "blocks"],

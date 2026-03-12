@@ -58,9 +58,9 @@ jobs:
         with:
           projectPath: app
           tagName: ${{ github.ref_name }}
-          releaseName: 'RipperClaw ${{ github.ref_name }}'
+          releaseName: 'ClawClawGo ${{ github.ref_name }}'
           releaseBody: |
-            Download RipperClaw for your platform:
+            Download ClawClawGo for your platform:
             - **macOS (Apple Silicon):** `.dmg` (aarch64)
             - **macOS (Intel):** `.dmg` (x86_64)
             - **Windows:** `.msi` or `.exe`

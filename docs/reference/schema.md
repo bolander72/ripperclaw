@@ -238,4 +238,4 @@ New exports use `blocks.skills.items` instead.
 
 ## Validation
 
-The formal JSON Schema is at [`specs/build-v2.schema.json`](https://github.com/bolander72/ripperclaw/blob/main/specs/build-v2.schema.json) in the repo.
+The formal JSON Schema is at [`specs/build-v2.schema.json`](https://github.com/bolander72/clawclawgo/blob/main/specs/build-v2.schema.json) in the repo.

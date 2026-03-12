@@ -15,7 +15,7 @@ interface Subscription {
   ws: WebSocket;
 }
 
-export class RipperClawRelay {
+export class ClawClawGoRelay {
   private wss: WebSocketServer | null = null;
   private db: RelayDB;
   private config: RelayConfig;
@@ -29,8 +29,8 @@ export class RipperClawRelay {
     this.config = config;
     this.db = new RelayDB(config.dbPath);
     this.logger = logger ?? {
-      info: (...args: unknown[]) => console.log("[ripperclaw-relay]", ...args),
-      error: (...args: unknown[]) => console.error("[ripperclaw-relay]", ...args),
+      info: (...args: unknown[]) => console.log("[clawclawgo-relay]", ...args),
+      error: (...args: unknown[]) => console.error("[clawclawgo-relay]", ...args),
     };
   }
 
@@ -80,7 +80,7 @@ export class RipperClawRelay {
 
       this.wss.on("listening", () => {
         this.logger.info(
-          `RipperClaw relay listening on ws://${this.config.host}:${this.config.port}`,
+          `ClawClawGo relay listening on ws://${this.config.host}:${this.config.port}`,
         );
         resolve();
       });
@@ -280,10 +280,10 @@ export class RipperClawRelay {
 
   getRelayInfo() {
     return {
-      name: "RipperClaw Relay",
+      name: "ClawClawGo Relay",
       description: "Self-hosted Nostr relay for AI agent loadout sharing",
       supported_nips: [1, 11, 33],
-      software: "ripperclaw-relay",
+      software: "clawclawgo-relay",
       version: "0.1.0",
       limitation: {
         max_message_length: 65536,

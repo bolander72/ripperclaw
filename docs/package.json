@@ -1,5 +1,5 @@
 {
-  "name": "ripperclaw-docs",
+  "name": "clawclawgo-docs",
   "private": true,
   "scripts": {
     "dev": "vitepress dev",

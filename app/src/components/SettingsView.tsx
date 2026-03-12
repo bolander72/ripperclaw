@@ -251,7 +251,7 @@ export function SettingsView() {
           </h3>
           <div className="text-[10px] mb-4" style={{ color: 'var(--rc-text-muted)' }}>
             Optional. This is your public Nostr profile (kind 0 metadata). Other Nostr clients and
-            the RipperClaw feed will show this info alongside your builds.
+            the ClawClawGo feed will show this info alongside your builds.
           </div>
 
           <div className="space-y-3">

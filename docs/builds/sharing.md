@@ -10,7 +10,7 @@ You → Export (safe) → Nostr relays → Anyone's Feed
 
 ## Fork Attribution
 
-When you apply a build from the feed, modify it, and republish, RipperClaw automatically preserves the lineage.
+When you apply a build from the feed, modify it, and republish, ClawClawGo automatically preserves the lineage.
 
 **Published events include:**
 - Fork tags linking to the parent build
@@ -43,7 +43,7 @@ Builds are JSON files. Share them however you want:
 - Commit to a Git repo
 - Paste in Discord/Slack
 
-The recipient can import the file in RipperClaw via drag-and-drop or the **Import File** button in the Builds view.
+The recipient can import the file in ClawClawGo via drag-and-drop or the **Import File** button in the Builds view.
 
 ::: info
 Builds shared as files retain fork metadata if they were originally published to Nostr. The event tags are embedded in the JSON.
@@ -70,7 +70,7 @@ Everything in the build is designed to be safe to share.
 
 ## Attribution Ethics
 
-Forking is encouraged. Remixing is the point of RipperClaw.
+Forking is encouraged. Remixing is the point of ClawClawGo.
 
 But:
 - Fork tags are added automatically by the app

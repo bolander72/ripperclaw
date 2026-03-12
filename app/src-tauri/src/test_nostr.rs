@@ -5,7 +5,7 @@ const LOADOUT_KIND: u16 = 38333;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("=== RipperClaw Nostr Round-Trip Test ===\n");
+    println!("=== ClawClawGo Nostr Round-Trip Test ===\n");
 
     // 1. Generate ephemeral keys
     let keys = Keys::generate();
@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 3. Build test loadout
     let test_loadout = serde_json::json!({
         "meta": {
-            "name": "RipperClaw Test Loadout",
+            "name": "ClawClawGo Test Loadout",
             "version": "0.1.0",
             "exportedAt": "2026-03-11T02:00:00Z"
         },
@@ -40,14 +40,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let loadout_json = serde_json::to_string(&test_loadout)?;
     let kind = Kind::from(LOADOUT_KIND);
-    let loadout_name = "ripperclaw-test-roundtrip";
+    let loadout_name = "clawclawgo-test-roundtrip";
 
     let builder = EventBuilder::new(kind, &loadout_json)
         .tag(Tag::identifier(loadout_name))
         .tag(Tag::hashtag("test"))
         .tag(Tag::hashtag("homelab"))
         .tag(Tag::custom(
-            TagKind::Custom(Cow::Borrowed("ripperclaw")),
+            TagKind::Custom(Cow::Borrowed("clawclawgo")),
             vec!["0.1.0"],
         ));
 

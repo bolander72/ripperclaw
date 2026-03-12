@@ -1,6 +1,6 @@
 # Settings
 
-Configure your RipperClaw identity, profile, and relays.
+Configure your ClawClawGo identity, profile, and relays.
 
 ## Identity Management
 
@@ -30,7 +30,7 @@ If you already have a Nostr identity, import your existing `nsec`:
 2. Paste your `nsec1...` string
 3. Confirm the import
 
-This replaces your current key. Your old identity is no longer usable in RipperClaw.
+This replaces your current key. Your old identity is no longer usable in ClawClawGo.
 
 ### Regenerate Keys
 
@@ -65,7 +65,7 @@ Profile metadata is optional. If you skip it, your builds will show your truncat
 
 ## Relay Management
 
-Relays are Nostr servers that store and distribute events. RipperClaw uses a default set but you can customize the list.
+Relays are Nostr servers that store and distribute events. ClawClawGo uses a default set but you can customize the list.
 
 ### Default Relays
 
@@ -86,12 +86,12 @@ Your builds will be published to all configured relays.
 Click the **×** button next to any relay to remove it.
 
 ::: warning
-Removing a relay doesn't delete events already stored there. It only stops RipperClaw from publishing future events to that relay.
+Removing a relay doesn't delete events already stored there. It only stops ClawClawGo from publishing future events to that relay.
 :::
 
 ### Custom Relay Storage
 
-Custom relays are saved to `~/.ripperclaw/relays.json`:
+Custom relays are saved to `~/.clawclawgo/relays.json`:
 
 ```json
 {
@@ -108,8 +108,8 @@ Custom relays are saved to `~/.ripperclaw/relays.json`:
 
 | File | Purpose | Permissions |
 |------|---------|-------------|
-| `~/.ripperclaw/keys.json` | Your `nsec` and `npub` | `0600` (owner only) |
-| `~/.ripperclaw/relays.json` | Custom relay list | `0644` (default) |
+| `~/.clawclawgo/keys.json` | Your `nsec` and `npub` | `0600` (owner only) |
+| `~/.clawclawgo/relays.json` | Custom relay list | `0644` (default) |
 
 ## Backup Recommendations
 

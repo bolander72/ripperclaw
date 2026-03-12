@@ -88,7 +88,7 @@ Memory exports structure only, never actual content. Your agent's memories, conv
 
 The six blocks above are the defaults, but the system is extensible. Custom block types can use any string key in the build JSON. The schema accepts arbitrary block keys alongside the known ones.
 
-When a build contains a custom block, RipperClaw renders it with a generic icon and auto-generated label. Custom blocks follow the same publish, apply, and remix rules as built-in ones.
+When a build contains a custom block, ClawClawGo renders it with a generic icon and auto-generated label. Custom blocks follow the same publish, apply, and remix rules as built-in ones.
 
 ::: tip
 Custom blocks are fully supported in the schema and Nostr events today. User-facing creation tools are coming in a future release.

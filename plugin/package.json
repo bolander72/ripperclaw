@@ -1,7 +1,7 @@
 {
-  "name": "ripperclaw-relay",
+  "name": "clawclawgo-relay",
   "version": "0.1.0",
-  "description": "Self-hosted Nostr relay for RipperClaw loadout sharing",
+  "description": "Self-hosted Nostr relay for ClawClawGo loadout sharing",
   "openclaw": {
     "extensions": ["./index.ts"]
   },

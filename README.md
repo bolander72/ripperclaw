@@ -1,8 +1,8 @@
-# RipperClaw
+# ClawClawGo
 
 Modular builds for AI agents. Build, share, and remix how your agent is configured.
 
-**[ripperclaw.com](https://ripperclaw.com)**
+**[clawclawgo.com](https://clawclawgo.com)**
 
 ![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Tauri v2](https://img.shields.io/badge/tauri-v2-orange.svg)
@@ -10,7 +10,7 @@ Modular builds for AI agents. Build, share, and remix how your agent is configur
 
 ## What is it?
 
-Your AI agent is more than config files. It's a combination of models, skills, integrations, personality, memory, and automations that work together. RipperClaw lets you package all of that as a **build**. Then export it, share it, or apply someone else's to a new agent.
+Your AI agent is more than config files. It's a combination of models, skills, integrations, personality, memory, and automations that work together. ClawClawGo lets you package all of that as a **build**. Then export it, share it, or apply someone else's to a new agent.
 
 ### The 6 Blocks
 
@@ -63,16 +63,16 @@ Safety rules:
 
 ```bash
 # Export your current build
-node cli/ripperclaw.mjs export
+node cli/clawclawgo.mjs export
 
 # Preview what applying would do
-node cli/ripperclaw.mjs apply build.json --agent my-bot --dry-run
+node cli/clawclawgo.mjs apply build.json --agent my-bot --dry-run
 
 # Apply a build to create a new agent
-node cli/ripperclaw.mjs apply build.json --agent my-bot --name "My Bot"
+node cli/clawclawgo.mjs apply build.json --agent my-bot --name "My Bot"
 
 # Use your own models instead of the build's
-node cli/ripperclaw.mjs apply build.json --agent my-bot --use-my-models
+node cli/clawclawgo.mjs apply build.json --agent my-bot --use-my-models
 ```
 
 ## The Feed
@@ -87,7 +87,7 @@ Share your build on [Nostr](https://nostr.com/) using kind 38333. Your build is 
 
 ## Landing Page
 
-The site at [ripperclaw.com](https://ripperclaw.com) is built with Vite + React and deployed via GitHub Pages. Source is in `site/`.
+The site at [clawclawgo.com](https://clawclawgo.com) is built with Vite + React and deployed via GitHub Pages. Source is in `site/`.
 
 ## Privacy & Security
 
@@ -104,8 +104,8 @@ You review the scrubbed output in a diff view before publishing.
 ## Architecture
 
 ```
-ripperclaw/
-├── cli/              # CLI tool (ripperclaw.mjs)
+clawclawgo/
+├── cli/              # CLI tool (clawclawgo.mjs)
 ├── app/              # Desktop app (Tauri v2 + React)
 │   ├── src/          # React frontend
 │   │   ├── components/   # BlockCard, FeedView, CompareView, ApplyWizard
@@ -115,9 +115,9 @@ ripperclaw/
 │           ├── lib.rs    # OpenClaw data reading, block detection, apply
 │           ├── nostr.rs  # Nostr protocol (keys, publish, subscribe)
 │           └── scrub.rs  # PII scrubber
-├── site/             # Landing page (ripperclaw.com)
+├── site/             # Landing page (clawclawgo.com)
 ├── specs/            # Build schema and spec
-├── plugin/           # OpenClaw relay plugin (ripperclaw-relay)
+├── plugin/           # OpenClaw relay plugin (clawclawgo-relay)
 └── PLAN.md           # Roadmap
 ```
 
