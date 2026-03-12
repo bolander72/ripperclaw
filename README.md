@@ -6,6 +6,7 @@ Privacy-first. Decentralized. Open source. Think DuckDuckGo for OpenClaw configu
 
 **[clawclawgo.com](https://clawclawgo.com)**
 
+![v0.2.0](https://img.shields.io/badge/version-0.2.0-green.svg)
 ![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Tauri v2](https://img.shields.io/badge/tauri-v2-orange.svg)
 ![Nostr](https://img.shields.io/badge/nostr-kind_38333-purple.svg)
@@ -16,16 +17,42 @@ ClawClawGo is a search engine and marketplace for complete AI agent configuratio
 
 Your AI agent is more than config files. It's a combination of models, skills, integrations, personality, memory, and automations that work together. ClawClawGo lets you search for existing builds, explore how they're configured, copy what works, and publish your own.
 
-### The 6 Blocks
+### The 6 Blocks (Schema v2)
+
+Every build is made of 6 blocks. The schema is defined in `specs/build.schema.json` with Ajv validation on import.
 
 | Block | What It Maps To |
 |---|---|
-| **Model** | LLM routing: primary, sub-agent, local (Ollama), image models |
+| **Model** | LLM routing: primary, sub-agent, local (Ollama), image models with tier support |
 | **Persona** | Personality, identity, behavioral rules (SOUL.md, IDENTITY.md, USER.md) |
-| **Skills** | Installed skill packages: voice, vision, tools, workflows |
-| **Integrations** | Channels, calendar, email, smart home, cameras, GitHub |
+| **Skills** | Installed skill packages from ClawHub, local, bundled, or custom sources |
+| **Integrations** | Channels, calendar, email, smart home, cameras, GitHub, with setup guide URLs |
 | **Automations** | Heartbeat tasks, cron jobs, scheduled routines |
-| **Memory** | Context engine, LCM, memory files, daily notes |
+| **Memory** | Context engine, LCM config, memory files, daily notes |
+
+## Security Scanner
+
+Every build gets scanned before apply. Five passes:
+
+1. **PII detection** - phone numbers, emails, API keys, addresses, paths
+2. **Prompt injection** - system prompt overrides, jailbreak patterns in persona files
+3. **Automation safety** - destructive shell commands, credential access in heartbeats/crons
+4. **Skill verification** - ClawHub moderation status via VirusTotal Code Insight (queries isMalwareBlocked / isSuspicious per skill)
+5. **Network/exfiltration** - curl/wget in personas, hardcoded IPs, data piping patterns
+
+Each build gets a trust score (0-100) and a badge: Verified (80+), Community (50+), Unreviewed (20+), Suspicious (<20).
+
+## Dependency Resolution
+
+Builds declare what they need. On apply, ClawClawGo checks your system and reports what's missing:
+
+- **System binaries** (brew, pip, npm packages)
+- **Models** (Ollama, provider-hosted)
+- **Config requirements** (API keys, env vars)
+- **Platform** (macOS, Linux) and minimum OpenClaw version
+- **Setup guides** - integrations link to external setup docs; URLs validated at publish, fetched at apply
+
+Skip checks with `--skip-deps`. See `specs/dependencies.md` for the full spec.
 
 ## Desktop App
 
@@ -43,7 +70,8 @@ npm run tauri dev
 - **Multi-agent support**: switch between agents if you run more than one
 - **The Feed**: browse and clone builds published on Nostr
 - **Compare view**: side-by-side diff of any build against yours
-- **Apply wizard**: block-by-block review with safety guards, model remapping, and skill installs
+- **Apply wizard**: block-by-block review with security scan, dependency check, and setup guides
+- **Security scanning**: trust score and badge shown before you apply anything
 - **PII scrubber**: strips 12+ pattern types before publishing
 - **Publish flow**: review scrubbed output, sign with Nostr keys, push to relays
 
@@ -69,14 +97,23 @@ Safety rules:
 # Export your current build
 node cli/clawclawgo.mjs export
 
-# Preview what applying would do
-node cli/clawclawgo.mjs apply build.json --agent my-bot --dry-run
+# Preview a build (shows security scan + dependency report)
+node cli/clawclawgo.mjs preview build.json
+
+# Scan a build for security issues
+node cli/clawclawgo.mjs scan build.json
 
 # Apply a build to create a new agent
 node cli/clawclawgo.mjs apply build.json --agent my-bot --name "My Bot"
 
+# Dry run (no changes)
+node cli/clawclawgo.mjs apply build.json --agent my-bot --dry-run
+
 # Use your own models instead of the build's
 node cli/clawclawgo.mjs apply build.json --agent my-bot --use-my-models
+
+# Skip dependency checks or security scanning
+node cli/clawclawgo.mjs apply build.json --agent my-bot --skip-deps --skip-security
 ```
 
 ## The Feed
@@ -95,21 +132,36 @@ The site at [clawclawgo.com](https://clawclawgo.com) is built with Vite + React 
 
 ## Privacy & Security
 
-The PII scrubber runs locally before any data leaves your machine:
+Two layers: the PII scrubber protects publishers, and the security scanner protects consumers.
 
+**PII scrubber** (runs locally before any data leaves your machine):
 - Phone numbers, email addresses, SSNs
-- IP addresses, API keys, bearer tokens, nostr secret keys
+- IP addresses, API keys, bearer tokens, Nostr secret keys
 - Home directory paths, street addresses
 - MAC addresses, hex private keys
 - Sensitive config fields (channels, HA config, agent names)
 
 You review the scrubbed output in a diff view before publishing.
 
+**Security scanner** (runs on every import/apply):
+- 5-pass analysis covering PII leaks, prompt injection, automation safety, skill provenance, and network exfiltration
+- ClawHub skills are checked against VirusTotal Code Insight moderation (isMalwareBlocked / isSuspicious)
+- Trust score 0-100 with badges (Verified, Community, Unreviewed, Suspicious)
+- Blocks malware-flagged skills automatically; warns on suspicious ones
+
 ## Architecture
 
 ```
 clawclawgo/
 ├── cli/              # CLI tool (clawclawgo.mjs)
+├── src/
+│   ├── schema/       # Build type definitions (build.ts)
+│   ├── security.ts   # 5-pass security scanner + ClawHub integration
+│   ├── dependencies.ts # Dependency resolution engine
+│   ├── export.ts     # Build export with dep detection
+│   ├── validate.ts   # Ajv schema validation
+│   ├── diff.ts       # Build comparison
+│   └── display.ts    # Terminal formatting
 ├── app/              # Desktop app (Tauri v2 + React)
 │   ├── src/          # React frontend
 │   │   ├── components/   # BlockCard, FeedView, CompareView, ApplyWizard
@@ -119,8 +171,9 @@ clawclawgo/
 │           ├── lib.rs    # OpenClaw data reading, block detection, apply
 │           ├── nostr.rs  # Nostr protocol (keys, publish, subscribe)
 │           └── scrub.rs  # PII scrubber
+├── specs/            # Schema (build.schema.json), security, dependencies, setup guides
 ├── site/             # Landing page (clawclawgo.com)
-├── specs/            # Build schema and spec
+├── docs/             # Full documentation (VitePress, served at /docs)
 ├── plugin/           # OpenClaw relay plugin (clawclawgo-relay)
 └── PLAN.md           # Roadmap
 ```
