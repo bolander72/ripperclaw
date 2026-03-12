@@ -232,6 +232,8 @@ pub async fn nostr_publish_loadout(
     loadout_json: String,
     loadout_name: String,
     tags: Vec<String>,
+    #[allow(unused_variables)] fork_of: Option<String>,
+    #[allow(unused_variables)] fork_author: Option<String>,
 ) -> Result<PublishResult, String> {
     let keys = load_keys().ok_or("No keys found. Generate or import keys first.")?;
     let client = Client::new(keys);
@@ -255,6 +257,21 @@ pub async fn nostr_publish_loadout(
         vec!["0.1.0"],
     ));
 
+    // Provenance: tag the parent event and author if this is a fork/remix
+    if let Some(parent_id) = fork_of {
+        builder = builder.tag(Tag::custom(
+            TagKind::e(),
+            vec![&parent_id, "", "fork"],
+        ));
+    }
+    if let Some(parent_author) = fork_author {
+        builder = builder.tag(Tag::public_key(
+            PublicKey::from_hex(&parent_author)
+                .or_else(|_| PublicKey::from_bech32(&parent_author))
+                .map_err(|e| format!("Invalid fork author pubkey: {}", e))?,
+        ));
+    }
+
     let output = client.send_event_builder(builder).await.map_err(|e| e.to_string())?;
 
     let event_id = output.id().to_hex();
@@ -277,10 +294,13 @@ pub struct FeedLoadout {
     pub id: String,
     pub name: String,
     pub author: String,
+    pub author_hex: String,
     pub content: String,
     pub tags: Vec<String>,
     pub published_at: u64,
     pub template: Option<String>,
+    pub fork_of: Option<String>,
+    pub fork_author: Option<String>,
 }
 
 #[tauri::command]
@@ -338,15 +358,44 @@ pub async fn nostr_fetch_feed(
             .pubkey
             .to_bech32()
             .unwrap_or_else(|_| "unknown".to_string());
+        let author_hex = event.pubkey.to_hex();
+
+        // Extract fork provenance from "e" tags with "fork" marker
+        let fork_of = event
+            .tags
+            .iter()
+            .filter(|t| t.kind() == TagKind::e())
+            .find_map(|t| {
+                let vals: Vec<&str> = t.as_slice().iter().skip(1).map(|s| s.as_str()).collect();
+                // ["e", event_id, relay_hint, "fork"]
+                if vals.len() >= 3 && vals[2] == "fork" {
+                    Some(vals[0].to_string())
+                } else {
+                    None
+                }
+            });
+
+        // Extract fork author from "p" tags (the parent's pubkey)
+        let fork_author = if fork_of.is_some() {
+            event
+                .tags
+                .find(TagKind::p())
+                .and_then(|t| t.content().map(|s| s.to_string()))
+        } else {
+            None
+        };
 
         feed.push(FeedLoadout {
             id: event.id.to_hex(),
             name,
             author: npub_short(&author_npub),
+            author_hex,
             content: event.content.clone(),
             tags: hashtags,
             published_at: event.created_at.as_u64(),
             template,
+            fork_of,
+            fork_author,
         });
     }
 

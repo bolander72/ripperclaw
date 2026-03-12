@@ -32,10 +32,13 @@ export interface FeedLoadout {
   id: string;
   name: string;
   author: string;
+  author_hex: string;
   content: string;
   tags: string[];
   published_at: number;
   template: string | null;
+  fork_of: string | null;
+  fork_author: string | null;
 }
 
 export interface RelayInfo {
@@ -142,13 +145,21 @@ export function useNostrFeed() {
 export function useNostrPublish() {
   const [publishing, setPublishing] = useState(false);
 
-  const publish = async (loadoutJson: string, loadoutName: string, tags: string[]) => {
+  const publish = async (
+    loadoutJson: string,
+    loadoutName: string,
+    tags: string[],
+    forkOf?: string,
+    forkAuthor?: string,
+  ) => {
     setPublishing(true);
     try {
       const result = await invoke<PublishResult>('nostr_publish_loadout', {
         loadoutJson,
         loadoutName,
         tags,
+        forkOf: forkOf || null,
+        forkAuthor: forkAuthor || null,
       });
       return result;
     } catch (err) {

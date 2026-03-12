@@ -7,67 +7,83 @@ const mockLoadouts: DisplayLoadout[] = [
     id: 'mock-1',
     name: 'Nighthawk',
     author: 'npub1cyb3r...punk',
+    authorHex: 'abc123',
     template: 'homelab',
     description: 'Full surveillance loadout with local LLMs, multi-camera vision, and voice control. Zero cloud dependency.',
     tags: ['privacy', 'local-first', 'voice', 'cameras'],
     publishedAt: Date.now() / 1000 - 3600,
     model: 'llama-3.3-70b (local)',
     isMock: true,
+    remixCount: 23,
   },
   {
     id: 'mock-2',
     name: 'Mercury',
     author: 'npub1fast...ship',
+    authorHex: 'def456',
     template: 'ops',
     description: 'Lean and fast. Sonnet backbone, minimal skills, pure productivity. Sub-2s response times.',
     tags: ['minimal', 'fast', 'productivity'],
     publishedAt: Date.now() / 1000 - 7200,
     model: 'claude-sonnet-4-5',
     isMock: true,
+    forkOf: 'mock-1',
+    forkAuthor: 'npub1cyb3r...punk',
+    remixCount: 8,
   },
   {
     id: 'mock-3',
     name: 'Athena',
     author: 'npub1wiz...ard',
+    authorHex: 'ghi789',
     template: 'researcher',
     description: 'Research-focused loadout with deep web search, PDF analysis, and academic citation tracking. 40+ custom skills.',
     tags: ['research', 'academic', 'deep-web'],
     publishedAt: Date.now() / 1000 - 14400,
     model: 'claude-opus-4-6',
     isMock: true,
+    remixCount: 47,
   },
   {
     id: 'mock-4',
     name: 'Patchwork',
     author: 'npub1home...base',
+    authorHex: 'jkl012',
     template: 'smart-home',
     description: 'Smart home beast. 47 HA entities, automated routines, energy monitoring, security cams with person detection.',
     tags: ['smart-home', 'automation', 'security'],
     publishedAt: Date.now() / 1000 - 86400,
     model: 'gpt-5.2',
     isMock: true,
+    remixCount: 12,
   },
   {
     id: 'mock-5',
     name: 'Ghostwriter',
     author: 'npub1pen...ink',
+    authorHex: 'mno345',
     template: 'creator',
     description: 'Content creation loadout. Blog posts, social media, email sequences, SEO optimization. Writes in your voice.',
     tags: ['content', 'writing', 'seo', 'social-media'],
     publishedAt: Date.now() / 1000 - 172800,
     model: 'claude-opus-4-6',
     isMock: true,
+    forkOf: 'mock-3',
+    forkAuthor: 'npub1wiz...ard',
+    remixCount: 3,
   },
   {
     id: 'mock-6',
     name: 'Djinn',
     author: 'npub1void...abyss',
+    authorHex: 'pqr678',
     template: 'ops',
     description: 'DeFi monitoring + execution. On-chain analytics, portfolio tracking, automated rebalancing.',
     tags: ['defi', 'crypto', 'solana', 'trading'],
     publishedAt: Date.now() / 1000 - 259200,
     model: 'claude-sonnet-4-5',
     isMock: true,
+    remixCount: 0,
   },
 ];
 
@@ -75,12 +91,16 @@ interface DisplayLoadout {
   id: string;
   name: string;
   author: string;
+  authorHex: string;
   template: string;
   description: string;
   tags: string[];
   publishedAt: number;
   model?: string;
   isMock?: boolean;
+  forkOf?: string;
+  forkAuthor?: string;
+  remixCount: number;
 }
 
 const templateColors: Record<string, string> = {
@@ -100,7 +120,7 @@ function timeAgo(ts: number): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-function parseFeedLoadout(entry: FeedLoadout): DisplayLoadout {
+function parseFeedLoadout(entry: FeedLoadout, allEntries: FeedLoadout[]): DisplayLoadout {
   let parsed: Record<string, unknown> = {};
   try {
     parsed = JSON.parse(entry.content);
@@ -109,15 +129,22 @@ function parseFeedLoadout(entry: FeedLoadout): DisplayLoadout {
   const template = entry.template || entry.tags.find((t) => templates.includes(t)) || 'ops';
   const meta = (parsed.meta || {}) as Record<string, unknown>;
 
+  // Count how many other loadouts fork from this one
+  const remixCount = allEntries.filter((e) => e.fork_of === entry.id).length;
+
   return {
     id: entry.id,
     name: entry.name,
     author: entry.author,
+    authorHex: entry.author_hex,
     template,
     description: (meta.description as string) || `${entry.tags.length} tags · Published via RipperClaw`,
     tags: entry.tags,
     publishedAt: entry.published_at,
-    model: ((parsed.slots as Record<string, unknown>)?.skeleton as Record<string, unknown>)?.component as string | undefined,
+    model: ((parsed.slots as Record<string, unknown>)?.model as Record<string, unknown>)?.component as string | undefined,
+    forkOf: entry.fork_of || undefined,
+    forkAuthor: entry.fork_author || undefined,
+    remixCount,
   };
 }
 
@@ -127,6 +154,7 @@ interface FeedViewProps {
 
 export function FeedView({ onCompare }: FeedViewProps) {
   const [filter, setFilter] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'recent' | 'remixes'>('recent');
   const [selectedLoadout, setSelectedLoadout] = useState<DisplayLoadout | null>(null);
   const [showKeySetup, setShowKeySetup] = useState(false);
   const [nsecInput, setNsecInput] = useState('');
@@ -142,13 +170,21 @@ export function FeedView({ onCompare }: FeedViewProps) {
   }, [keys.has_keys]);
 
   // Convert nostr events to display loadouts, fall back to mock
-  const realLoadouts = nostrFeed.map(parseFeedLoadout);
+  const realLoadouts = nostrFeed.map((entry) => parseFeedLoadout(entry, nostrFeed));
   const displayLoadouts = realLoadouts.length > 0 ? realLoadouts : mockLoadouts;
   const isUsingMock = realLoadouts.length === 0;
 
-  const filtered = filter
+  const filtered = (filter
     ? displayLoadouts.filter((r) => r.template === filter || r.tags.includes(filter))
-    : displayLoadouts;
+    : displayLoadouts
+  ).sort((a, b) =>
+    sortBy === 'remixes'
+      ? b.remixCount - a.remixCount
+      : b.publishedAt - a.publishedAt
+  );
+
+  // Build a lookup for provenance tree in detail panel
+  const loadoutById = new Map(displayLoadouts.map((l) => [l.id, l]));
 
   return (
     <div className="flex-1 flex overflow-hidden">
@@ -299,33 +335,51 @@ export function FeedView({ onCompare }: FeedViewProps) {
             </div>
           )}
 
-          {/* Template filters */}
-          <div className="flex gap-2 mb-6 flex-wrap">
-            <button
-              onClick={() => setFilter(null)}
-              className="px-3 py-1 rounded text-[10px] font-semibold uppercase tracking-wider border transition-all"
-              style={{
-                borderColor: !filter ? 'var(--rc-cyan)' : 'var(--rc-border)',
-                color: !filter ? 'var(--rc-cyan)' : 'var(--rc-text-muted)',
-                background: !filter ? 'rgba(0,240,255,0.1)' : 'transparent',
-              }}
-            >
-              All
-            </button>
-            {templates.map((t) => (
+          {/* Template filters + sort */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex gap-2 flex-wrap">
               <button
-                key={t}
-                onClick={() => setFilter(filter === t ? null : t)}
+                onClick={() => setFilter(null)}
                 className="px-3 py-1 rounded text-[10px] font-semibold uppercase tracking-wider border transition-all"
                 style={{
-                  borderColor: filter === t ? templateColors[t] : 'var(--rc-border)',
-                  color: filter === t ? templateColors[t] : 'var(--rc-text-muted)',
-                  background: filter === t ? `${templateColors[t]}1a` : 'transparent',
+                  borderColor: !filter ? 'var(--rc-cyan)' : 'var(--rc-border)',
+                  color: !filter ? 'var(--rc-cyan)' : 'var(--rc-text-muted)',
+                  background: !filter ? 'rgba(0,240,255,0.1)' : 'transparent',
                 }}
               >
-                {t}
+                All
               </button>
-            ))}
+              {templates.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setFilter(filter === t ? null : t)}
+                  className="px-3 py-1 rounded text-[10px] font-semibold uppercase tracking-wider border transition-all"
+                  style={{
+                    borderColor: filter === t ? templateColors[t] : 'var(--rc-border)',
+                    color: filter === t ? templateColors[t] : 'var(--rc-text-muted)',
+                    background: filter === t ? `${templateColors[t]}1a` : 'transparent',
+                  }}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1">
+              {(['recent', 'remixes'] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSortBy(s)}
+                  className="px-2 py-1 rounded text-[10px] font-semibold uppercase tracking-wider border transition-all"
+                  style={{
+                    borderColor: sortBy === s ? 'var(--rc-magenta)' : 'var(--rc-border)',
+                    color: sortBy === s ? 'var(--rc-magenta)' : 'var(--rc-text-muted)',
+                    background: sortBy === s ? 'rgba(255,0,170,0.1)' : 'transparent',
+                  }}
+                >
+                  {s === 'recent' ? '🕐 Recent' : '🔀 Hot'}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Loadout cards */}
@@ -355,6 +409,18 @@ export function FeedView({ onCompare }: FeedViewProps) {
                     >
                       {entry.template}
                     </span>
+                    {entry.remixCount > 0 && (
+                      <span
+                        className="text-[9px] px-1.5 py-0.5 rounded font-semibold"
+                        style={{
+                          color: 'var(--rc-magenta)',
+                          background: 'rgba(255,0,170,0.1)',
+                          border: '1px solid rgba(255,0,170,0.2)',
+                        }}
+                      >
+                        🔀 {entry.remixCount}
+                      </span>
+                    )}
                     {entry.isMock && (
                       <span className="text-[9px] px-1 py-0.5 rounded" style={{
                         color: 'var(--rc-text-muted)',
@@ -369,9 +435,25 @@ export function FeedView({ onCompare }: FeedViewProps) {
                   </span>
                 </div>
 
-                <p className="text-xs mb-3 leading-relaxed" style={{ color: 'var(--rc-text-dim)' }}>
+                <p className="text-xs mb-2 leading-relaxed" style={{ color: 'var(--rc-text-dim)' }}>
                   {entry.description}
                 </p>
+
+                {entry.forkOf && (
+                  <div
+                    className="text-[10px] mb-2 flex items-center gap-1"
+                    style={{ color: 'var(--rc-text-muted)' }}
+                  >
+                    <span>🔀</span>
+                    <span>remixed from</span>
+                    <span className="font-mono" style={{ color: 'var(--rc-cyan)' }}>
+                      {loadoutById.get(entry.forkOf)?.name || entry.forkOf.slice(0, 12) + '...'}
+                    </span>
+                    {entry.forkAuthor && (
+                      <span className="font-mono">by {entry.forkAuthor.slice(0, 12)}...</span>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -447,13 +529,125 @@ export function FeedView({ onCompare }: FeedViewProps) {
             </p>
 
             {selectedLoadout.model && (
-              <div className="mb-6 py-2 px-3 rounded" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div className="mb-4 py-2 px-3 rounded" style={{ background: 'rgba(255,255,255,0.02)' }}>
                 <div className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--rc-text-muted)' }}>
                   Model
                 </div>
                 <div className="text-xs font-mono mt-0.5" style={{ color: 'var(--rc-text)' }}>
                   {selectedLoadout.model}
                 </div>
+              </div>
+            )}
+
+            {/* Provenance */}
+            {(selectedLoadout.forkOf || selectedLoadout.remixCount > 0) && (
+              <div
+                className="mb-6 py-3 px-3 rounded border"
+                style={{ background: 'rgba(255,0,170,0.03)', borderColor: 'rgba(255,0,170,0.15)' }}
+              >
+                <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'var(--rc-magenta)' }}>
+                  Provenance
+                </div>
+
+                {/* Ancestry chain */}
+                {selectedLoadout.forkOf && (() => {
+                  const chain: DisplayLoadout[] = [];
+                  let current: DisplayLoadout | undefined = selectedLoadout;
+                  while (current?.forkOf) {
+                    const parent = loadoutById.get(current.forkOf);
+                    if (parent) {
+                      chain.unshift(parent);
+                      current = parent;
+                    } else {
+                      // Parent not in current feed, show truncated
+                      chain.unshift({
+                        id: current.forkOf,
+                        name: current.forkOf.slice(0, 12) + '...',
+                        author: current.forkAuthor || 'unknown',
+                        authorHex: '',
+                        template: 'ops',
+                        description: '',
+                        tags: [],
+                        publishedAt: 0,
+                        remixCount: 0,
+                      });
+                      break;
+                    }
+                  }
+
+                  return (
+                    <div className="space-y-1 mb-2">
+                      {chain.map((ancestor, i) => (
+                        <div
+                          key={ancestor.id}
+                          className="flex items-center gap-2 text-[10px] cursor-pointer hover:opacity-80"
+                          style={{ paddingLeft: `${i * 12}px` }}
+                          onClick={() => {
+                            const full = displayLoadouts.find((l) => l.id === ancestor.id);
+                            if (full) setSelectedLoadout(full);
+                          }}
+                        >
+                          <span style={{ color: 'var(--rc-text-muted)' }}>
+                            {i === 0 ? '🌱' : '↳'}
+                          </span>
+                          <span className="font-semibold" style={{ color: 'var(--rc-text)' }}>
+                            {ancestor.name}
+                          </span>
+                          <span className="font-mono" style={{ color: 'var(--rc-text-muted)' }}>
+                            {ancestor.author}
+                          </span>
+                        </div>
+                      ))}
+                      <div
+                        className="flex items-center gap-2 text-[10px]"
+                        style={{ paddingLeft: `${chain.length * 12}px` }}
+                      >
+                        <span style={{ color: 'var(--rc-cyan)' }}>↳</span>
+                        <span className="font-semibold" style={{ color: 'var(--rc-cyan)' }}>
+                          {selectedLoadout.name}
+                        </span>
+                        <span className="text-[9px]" style={{ color: 'var(--rc-text-muted)' }}>(this)</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Remix count */}
+                {selectedLoadout.remixCount > 0 && (
+                  <div className="flex items-center gap-2 text-[10px]" style={{ color: 'var(--rc-text-dim)' }}>
+                    <span>🔀</span>
+                    <span>
+                      Remixed <span style={{ color: 'var(--rc-magenta)' }}>{selectedLoadout.remixCount}</span> time{selectedLoadout.remixCount !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                )}
+
+                {/* Direct forks list */}
+                {selectedLoadout.remixCount > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {displayLoadouts
+                      .filter((l) => l.forkOf === selectedLoadout.id)
+                      .map((fork) => (
+                        <div
+                          key={fork.id}
+                          className="flex items-center gap-2 text-[10px] cursor-pointer hover:opacity-80 pl-3"
+                          onClick={() => setSelectedLoadout(fork)}
+                        >
+                          <span style={{ color: 'var(--rc-text-muted)' }}>↳</span>
+                          <span className="font-semibold" style={{ color: 'var(--rc-text)' }}>
+                            {fork.name}
+                          </span>
+                          <span className="font-mono" style={{ color: 'var(--rc-text-muted)' }}>
+                            {fork.author}
+                          </span>
+                          {fork.remixCount > 0 && (
+                            <span style={{ color: 'var(--rc-magenta)' }}>🔀 {fork.remixCount}</span>
+                          )}
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
               </div>
             )}
 
