@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import type { AgentInfo } from '../hooks/useTauri';
+import type { SecurityFinding, DependenciesBlock } from '../types';
 
 // ── Types ──
 
@@ -45,6 +46,7 @@ interface Build {
     exportedAt: string;
   };
   blocks: Record<string, BuildBlock>;
+  dependencies?: DependenciesBlock;
 }
 
 interface ApplyAction {
@@ -56,7 +58,13 @@ interface ApplyAction {
   detail?: string;
 }
 
-type Step = 'target' | 'review' | 'applying' | 'done';
+interface ValidationResult {
+  valid: boolean;
+  schema: number;
+  errors?: string[];
+}
+
+type Step = 'target' | 'security' | 'dependencies' | 'review' | 'applying' | 'done';
 
 import { getBlockMeta } from '../blockMeta';
 
@@ -76,6 +84,12 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
   const [useMyModels, setUseMyModels] = useState(true);
   const [actions, setActions] = useState<ApplyAction[]>([]);
   const [applyError, setApplyError] = useState<string | null>(null);
+  
+  // Security state
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [securityFindings, setSecurityFindings] = useState<SecurityFinding[]>([]);
+  const [trustScore, setTrustScore] = useState(100);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   // Generate preview actions
   const previewActions = useMemo(() => {
@@ -187,6 +201,133 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
 
     return acts;
   }, [build, useMyModels]);
+
+  // Security scanning when entering security step
+  useEffect(() => {
+    if (step === 'security') {
+      performSecurityScan();
+    }
+  }, [step]);
+
+  const performSecurityScan = async () => {
+    const findings: SecurityFinding[] = [];
+    let score = 100;
+
+    // Validate build schema
+    try {
+      const result = await invoke<ValidationResult>('validate_build', {
+        buildJson: JSON.stringify(build),
+      });
+      setValidationResult(result);
+      
+      if (!result.valid && result.errors) {
+        for (const error of result.errors) {
+          findings.push({
+            severity: 'warn',
+            category: 'automation',
+            location: 'build schema',
+            message: error,
+          });
+          score -= 15;
+        }
+      }
+    } catch (err) {
+      setValidationResult({ valid: false, schema: build.schema, errors: [String(err)] });
+    }
+
+    // Scan automations for shell commands
+    const automations = build.blocks?.automations;
+    if (automations?.heartbeat?.content) {
+      const content = automations.heartbeat.content;
+      const shellPatterns = [
+        { pattern: /\bexec\b/gi, name: 'exec' },
+        { pattern: /\brm\s+/gi, name: 'rm' },
+        { pattern: /\bcurl\b/gi, name: 'curl' },
+        { pattern: /\bwget\b/gi, name: 'wget' },
+        { pattern: /\beval\b/gi, name: 'eval' },
+        { pattern: /\bsudo\b/gi, name: 'sudo' },
+        { pattern: /\|/g, name: 'pipe' },
+      ];
+
+      for (const { pattern, name } of shellPatterns) {
+        const matches = content.match(pattern);
+        if (matches) {
+          findings.push({
+            severity: name === 'rm' || name === 'eval' || name === 'sudo' ? 'block' : 'warn',
+            category: 'automation',
+            location: 'automations.heartbeat',
+            message: `Shell command detected: ${name}`,
+            pattern: name,
+          });
+          score -= name === 'rm' || name === 'eval' || name === 'sudo' ? 30 : 15;
+        }
+      }
+    }
+
+    // Scan persona for prompt injection patterns
+    const persona = build.blocks?.persona;
+    const promptInjectionPatterns = [
+      { pattern: /\bignore\s+(previous|all|above)\b/gi, name: 'ignore instruction' },
+      { pattern: /\bdisregard\b/gi, name: 'disregard' },
+      { pattern: /\bforget\s+(everything|all|previous)\b/gi, name: 'forget instruction' },
+      { pattern: /\boverride\s+(system|previous)\b/gi, name: 'override' },
+      { pattern: /\bsystem\s+prompt\b/gi, name: 'system prompt reference' },
+    ];
+
+    for (const field of [persona?.soul?.content, persona?.agents?.content]) {
+      if (field) {
+        for (const { pattern, name } of promptInjectionPatterns) {
+          const matches = field.match(pattern);
+          if (matches) {
+            findings.push({
+              severity: 'warn',
+              category: 'prompt-injection',
+              location: 'persona',
+              message: `Potential prompt injection: ${name}`,
+              pattern: name,
+            });
+            score -= 15;
+          }
+        }
+      }
+    }
+
+    // Scan for PII patterns in all string values
+    const piiPatterns = [
+      { pattern: /\b[\w.-]+@[\w.-]+\.\w+\b/g, name: 'email address' },
+      { pattern: /\b\d{3}-\d{3}-\d{4}\b/g, name: 'phone number' },
+      { pattern: /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g, name: 'IP address' },
+      { pattern: /\/(Users|home)\/[\w.-]+/g, name: 'file path' },
+    ];
+
+    const scanForPII = (obj: unknown, path: string) => {
+      if (typeof obj === 'string') {
+        for (const { pattern, name } of piiPatterns) {
+          const matches = obj.match(pattern);
+          if (matches) {
+            findings.push({
+              severity: 'info',
+              category: 'pii',
+              location: path,
+              message: `PII detected: ${name}`,
+              match: matches[0],
+            });
+            score -= 5;
+          }
+        }
+      } else if (typeof obj === 'object' && obj !== null) {
+        for (const [key, value] of Object.entries(obj)) {
+          scanForPII(value, `${path}.${key}`);
+        }
+      }
+    };
+
+    scanForPII(build.blocks, 'blocks');
+
+    setSecurityFindings(findings);
+    setTrustScore(Math.max(0, score));
+    setIsBlocked(findings.some(f => f.severity === 'block'));
+  };
 
   // Validate agent id
   const agentIdValid = agentId.length >= 2 && /^[a-z0-9_-]+$/.test(agentId);
@@ -375,7 +516,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
             </div>
 
             <button
-              onClick={() => setStep('review')}
+              onClick={() => setStep('security')}
               disabled={!agentIdValid || agentExists}
               className="w-full py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all hover:opacity-90 disabled:opacity-30"
               style={{
@@ -383,8 +524,488 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                 color: 'var(--rc-bg)',
               }}
             >
-              Review Changes →
+              Scan Build →
             </button>
+          </div>
+        )}
+
+        {/* Step: Security */}
+        {step === 'security' && (
+          <div className="p-6 space-y-4">
+            {/* Validation results */}
+            {validationResult && (
+              <div
+                className="p-3 rounded-lg border"
+                style={{
+                  borderColor: validationResult.valid ? 'var(--rc-cyan)' : 'var(--rc-red)',
+                  background: 'var(--rc-surface)',
+                }}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span>{validationResult.valid ? '✅' : '❌'}</span>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--rc-text)' }}>
+                    Schema Validation
+                  </span>
+                </div>
+                <p className="text-xs ml-6" style={{ color: 'var(--rc-text-muted)' }}>
+                  {validationResult.valid
+                    ? `Build schema v${validationResult.schema} is valid`
+                    : `${validationResult.errors?.length || 0} error(s) found`}
+                </p>
+                {!validationResult.valid && validationResult.errors && (
+                  <div className="ml-6 mt-2 space-y-1">
+                    {validationResult.errors.map((err, i) => (
+                      <p key={i} className="text-[10px]" style={{ color: 'var(--rc-red)' }}>
+                        {err}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Trust score badge */}
+            <div
+              className="p-4 rounded-lg border text-center"
+              style={{
+                borderColor:
+                  trustScore >= 80
+                    ? 'var(--rc-green)'
+                    : trustScore >= 50
+                    ? '#ffaa00'
+                    : trustScore >= 20
+                    ? '#ff8800'
+                    : 'var(--rc-red)',
+                background: 'var(--rc-surface)',
+              }}
+            >
+              <div className="text-2xl font-bold" style={{ color: 'var(--rc-text)' }}>
+                {trustScore}
+              </div>
+              <div
+                className="text-xs uppercase tracking-wider font-semibold mt-1"
+                style={{
+                  color:
+                    trustScore >= 80
+                      ? 'var(--rc-green)'
+                      : trustScore >= 50
+                      ? '#ffaa00'
+                      : trustScore >= 20
+                      ? '#ff8800'
+                      : 'var(--rc-red)',
+                }}
+              >
+                {trustScore >= 80
+                  ? 'Verified'
+                  : trustScore >= 50
+                  ? 'Community'
+                  : trustScore >= 20
+                  ? 'Unreviewed'
+                  : 'Suspicious'}
+              </div>
+              <p className="text-[10px] mt-1" style={{ color: 'var(--rc-text-dim)' }}>
+                {securityFindings.length} finding{securityFindings.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+
+            {/* Security findings */}
+            {securityFindings.length > 0 && (
+              <div className="space-y-2">
+                <div
+                  className="text-xs font-semibold uppercase tracking-wider"
+                  style={{ color: 'var(--rc-text-muted)' }}
+                >
+                  Security Scan
+                </div>
+                <div className="space-y-1">
+                  {securityFindings.map((finding, i) => (
+                    <div
+                      key={i}
+                      className="p-2 rounded border text-xs"
+                      style={{
+                        borderColor:
+                          finding.severity === 'block'
+                            ? 'var(--rc-red)'
+                            : finding.severity === 'warn'
+                            ? '#ffaa00'
+                            : 'var(--rc-cyan)',
+                        background: 'var(--rc-surface)',
+                      }}
+                    >
+                      <div className="flex items-start gap-2">
+                        <span>
+                          {finding.severity === 'block'
+                            ? '🛑'
+                            : finding.severity === 'warn'
+                            ? '⚠️'
+                            : 'ℹ️'}
+                        </span>
+                        <div className="flex-1">
+                          <div
+                            className="font-semibold"
+                            style={{
+                              color:
+                                finding.severity === 'block'
+                                  ? 'var(--rc-red)'
+                                  : finding.severity === 'warn'
+                                  ? '#ffaa00'
+                                  : 'var(--rc-text)',
+                            }}
+                          >
+                            {finding.message}
+                          </div>
+                          <div className="text-[10px] mt-0.5" style={{ color: 'var(--rc-text-dim)' }}>
+                            {finding.location}
+                            {finding.match && ` · ${finding.match}`}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Blocking warning */}
+            {isBlocked && (
+              <div
+                className="p-3 rounded-lg border"
+                style={{ borderColor: 'var(--rc-red)', background: 'var(--rc-surface)' }}
+              >
+                <p className="text-xs font-semibold" style={{ color: 'var(--rc-red)' }}>
+                  ⛔ Build blocked due to critical security findings
+                </p>
+                <p className="text-[10px] mt-1" style={{ color: 'var(--rc-text-dim)' }}>
+                  Review and resolve blocking issues before continuing
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setStep('target')}
+                className="flex-1 py-3 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all hover:opacity-80"
+                style={{
+                  borderColor: 'var(--rc-border)',
+                  color: 'var(--rc-text-muted)',
+                  background: 'transparent',
+                }}
+              >
+                ← Back
+              </button>
+              <button
+                onClick={() => setStep('dependencies')}
+                disabled={isBlocked}
+                className="flex-1 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all hover:opacity-90 disabled:opacity-30"
+                style={{
+                  background: 'var(--rc-cyan)',
+                  color: 'var(--rc-bg)',
+                }}
+              >
+                Continue →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step: Dependencies */}
+        {step === 'dependencies' && (
+          <div className="p-6 space-y-4">
+            {!build.dependencies || Object.keys(build.dependencies).length === 0 ? (
+              <div className="py-8 text-center">
+                <p className="text-sm" style={{ color: 'var(--rc-text-muted)' }}>
+                  No dependencies required
+                </p>
+                <p className="text-xs mt-1" style={{ color: 'var(--rc-text-dim)' }}>
+                  This build is ready to apply
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Required binaries */}
+                {build.dependencies.bins && build.dependencies.bins.length > 0 && (
+                  <div>
+                    <div
+                      className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: 'var(--rc-text-muted)' }}
+                    >
+                      Required Binaries
+                    </div>
+                    <div className="space-y-1">
+                      {build.dependencies.bins.map((bin, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded text-xs"
+                          style={{ background: 'var(--rc-surface)' }}
+                        >
+                          <span style={{ color: 'var(--rc-text-dim)' }}>?</span>
+                          <span className="font-mono" style={{ color: 'var(--rc-text)' }}>
+                            {bin}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Homebrew packages */}
+                {build.dependencies.brew && build.dependencies.brew.length > 0 && (
+                  <div>
+                    <div
+                      className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: 'var(--rc-text-muted)' }}
+                    >
+                      Homebrew Packages
+                    </div>
+                    <div className="space-y-1">
+                      {build.dependencies.brew.map((pkg, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded text-xs"
+                          style={{ background: 'var(--rc-surface)' }}
+                        >
+                          <span style={{ color: 'var(--rc-text-dim)' }}>?</span>
+                          <span className="font-mono" style={{ color: 'var(--rc-text)' }}>
+                            {pkg}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* pip packages */}
+                {build.dependencies.pip && build.dependencies.pip.length > 0 && (
+                  <div>
+                    <div
+                      className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: 'var(--rc-text-muted)' }}
+                    >
+                      Python (pip) Packages
+                    </div>
+                    <div className="space-y-1">
+                      {build.dependencies.pip.map((pkg, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded text-xs"
+                          style={{ background: 'var(--rc-surface)' }}
+                        >
+                          <span style={{ color: 'var(--rc-text-dim)' }}>?</span>
+                          <span className="font-mono" style={{ color: 'var(--rc-text)' }}>
+                            {pkg}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* npm packages */}
+                {build.dependencies.npm && build.dependencies.npm.length > 0 && (
+                  <div>
+                    <div
+                      className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: 'var(--rc-text-muted)' }}
+                    >
+                      npm Packages
+                    </div>
+                    <div className="space-y-1">
+                      {build.dependencies.npm.map((pkg, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded text-xs"
+                          style={{ background: 'var(--rc-surface)' }}
+                        >
+                          <span style={{ color: 'var(--rc-text-dim)' }}>?</span>
+                          <span className="font-mono" style={{ color: 'var(--rc-text)' }}>
+                            {pkg}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Models */}
+                {build.dependencies.models && build.dependencies.models.length > 0 && (
+                  <div>
+                    <div
+                      className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: 'var(--rc-text-muted)' }}
+                    >
+                      Model Downloads
+                    </div>
+                    <div className="space-y-1">
+                      {build.dependencies.models.map((model, i) => (
+                        <div
+                          key={i}
+                          className="px-3 py-2 rounded text-xs border"
+                          style={{ background: 'var(--rc-surface)', borderColor: 'var(--rc-border)' }}
+                        >
+                          <div className="font-mono font-semibold" style={{ color: 'var(--rc-text)' }}>
+                            {model.name}
+                          </div>
+                          {model.size && (
+                            <div className="text-[10px] mt-0.5" style={{ color: 'var(--rc-text-dim)' }}>
+                              {model.size}
+                            </div>
+                          )}
+                          {model.url && (
+                            <div
+                              className="text-[10px] mt-0.5 font-mono break-all"
+                              style={{ color: 'var(--rc-cyan)' }}
+                            >
+                              {model.url}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Config requirements */}
+                {build.dependencies.config && build.dependencies.config.length > 0 && (
+                  <div>
+                    <div
+                      className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: 'var(--rc-text-muted)' }}
+                    >
+                      Configuration
+                    </div>
+                    <div className="space-y-1">
+                      {build.dependencies.config.map((cfg, i) => (
+                        <div
+                          key={i}
+                          className="px-3 py-2 rounded text-xs border"
+                          style={{ background: 'var(--rc-surface)', borderColor: 'var(--rc-border)' }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-semibold" style={{ color: 'var(--rc-text)' }}>
+                              {cfg.key}
+                            </span>
+                            {cfg.required && (
+                              <span
+                                className="text-[10px] px-1.5 py-0.5 rounded"
+                                style={{ background: 'var(--rc-red)', color: 'var(--rc-bg)' }}
+                              >
+                                REQUIRED
+                              </span>
+                            )}
+                          </div>
+                          {cfg.description && (
+                            <div className="text-[10px] mt-0.5" style={{ color: 'var(--rc-text-dim)' }}>
+                              {cfg.description}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Platform requirements */}
+                {build.dependencies.platform && build.dependencies.platform.length > 0 && (
+                  <div>
+                    <div
+                      className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: 'var(--rc-text-muted)' }}
+                    >
+                      Platform
+                    </div>
+                    <div className="flex gap-2">
+                      {build.dependencies.platform.map((platform, i) => (
+                        <div
+                          key={i}
+                          className="px-3 py-1.5 rounded text-xs font-mono"
+                          style={{
+                            background:
+                              navigator.platform.toLowerCase().includes(platform.toLowerCase())
+                                ? 'var(--rc-green)'
+                                : 'var(--rc-surface)',
+                            color:
+                              navigator.platform.toLowerCase().includes(platform.toLowerCase())
+                                ? 'var(--rc-bg)'
+                                : 'var(--rc-text)',
+                          }}
+                        >
+                          {platform}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Min OpenClaw version */}
+                {build.dependencies.minOpenclawVersion && (
+                  <div>
+                    <div
+                      className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: 'var(--rc-text-muted)' }}
+                    >
+                      Min OpenClaw Version
+                    </div>
+                    <div
+                      className="px-3 py-1.5 rounded text-xs font-mono"
+                      style={{ background: 'var(--rc-surface)', color: 'var(--rc-text)' }}
+                    >
+                      {build.dependencies.minOpenclawVersion}
+                    </div>
+                  </div>
+                )}
+
+                {/* Setup guides */}
+                {build.dependencies.guides && Object.keys(build.dependencies.guides).length > 0 && (
+                  <div>
+                    <div
+                      className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: 'var(--rc-text-muted)' }}
+                    >
+                      Setup Guides
+                    </div>
+                    <div className="space-y-1">
+                      {Object.entries(build.dependencies.guides).map(([name, url], i) => (
+                        <a
+                          key={i}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded text-xs hover:opacity-80 transition-opacity"
+                          style={{ background: 'var(--rc-surface)', color: 'var(--rc-cyan)' }}
+                        >
+                          <span>📖</span>
+                          <span>{name}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setStep('security')}
+                className="flex-1 py-3 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all hover:opacity-80"
+                style={{
+                  borderColor: 'var(--rc-border)',
+                  color: 'var(--rc-text-muted)',
+                  background: 'transparent',
+                }}
+              >
+                ← Back
+              </button>
+              <button
+                onClick={() => setStep('review')}
+                className="flex-1 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all hover:opacity-90"
+                style={{
+                  background: 'var(--rc-cyan)',
+                  color: 'var(--rc-bg)',
+                }}
+              >
+                Review Changes →
+              </button>
+            </div>
           </div>
         )}
 
@@ -440,7 +1061,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
 
             <div className="flex gap-2 pt-2">
               <button
-                onClick={() => setStep('target')}
+                onClick={() => setStep('dependencies')}
                 className="flex-1 py-3 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all hover:opacity-80"
                 style={{
                   borderColor: 'var(--rc-border)',
