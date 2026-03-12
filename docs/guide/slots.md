@@ -4,7 +4,11 @@ Every loadout is made up of **6 slots**. Each slot is independent. You can swap,
 
 ## Model
 
-The LLMs your agent uses and how it routes between them.
+The LLMs your agent uses and how it routes between them. Three tiers:
+
+- **Main**: default for most tasks (highest quality)
+- **Fast**: when speed matters (lower latency, still capable)
+- **Free**: fallback for simple tasks (local or rate-limited models)
 
 ```json
 {
@@ -16,7 +20,11 @@ The LLMs your agent uses and how it routes between them.
 }
 ```
 
-When applying, you can choose **"Use my models"** to remap tiers to your existing models instead of adopting the loadout's choices.
+When applying, you can choose **"Use my models"** to remap tiers to your existing models instead of adopting the loadout's choices. This is useful when:
+
+- The loadout uses paid models you don't have access to
+- You prefer local models over API-based ones
+- You want to test a loadout's structure without changing your model config
 
 ## Persona
 

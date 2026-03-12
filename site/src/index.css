@@ -3,20 +3,50 @@
 @import "tailwindcss";
 
 @theme {
-  --color-rc-bg: #0a0a0f;
-  --color-rc-surface: #12121a;
-  --color-rc-border: #1e1e2e;
-  --color-rc-cyan: #00f0ff;
-  --color-rc-magenta: #ff00aa;
-  --color-rc-green: #00ff88;
-  --color-rc-yellow: #ffcc00;
-  --color-rc-red: #ff3366;
-  --color-rc-text: #e8e8f0;
-  --color-rc-text-dim: #8888a0;
-  --color-rc-text-muted: #555570;
+  --color-rc-bg: var(--rc-bg);
+  --color-rc-surface: var(--rc-surface);
+  --color-rc-border: var(--rc-border);
+  --color-rc-cyan: var(--rc-cyan);
+  --color-rc-magenta: var(--rc-magenta);
+  --color-rc-green: var(--rc-green);
+  --color-rc-yellow: var(--rc-yellow);
+  --color-rc-red: var(--rc-red);
+  --color-rc-text: var(--rc-text);
+  --color-rc-text-dim: var(--rc-text-dim);
+  --color-rc-text-muted: var(--rc-text-muted);
 
   --font-family-grotesk: 'Space Grotesk', sans-serif;
   --font-family-mono: 'JetBrains Mono', monospace;
+}
+
+:root {
+  --rc-bg: #0a0a0f;
+  --rc-surface: #12121a;
+  --rc-border: #1e1e2e;
+  --rc-cyan: #00f0ff;
+  --rc-magenta: #ff00aa;
+  --rc-green: #00ff88;
+  --rc-yellow: #ffcc00;
+  --rc-red: #ff3366;
+  --rc-text: #e8e8f0;
+  --rc-text-dim: #8888a0;
+  --rc-text-muted: #555570;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --rc-bg: #fafafa;
+    --rc-surface: #f0f0f5;
+    --rc-border: #d0d0dd;
+    --rc-cyan: #0099aa;
+    --rc-magenta: #cc0088;
+    --rc-green: #00995c;
+    --rc-yellow: #b38f00;
+    --rc-red: #cc2952;
+    --rc-text: #1a1a2e;
+    --rc-text-dim: #4a4a60;
+    --rc-text-muted: #7a7a90;
+  }
 }
 
 @keyframes scanline {
@@ -35,8 +65,8 @@
 }
 
 body {
-  background-color: #0a0a0f;
-  color: #e8e8f0;
+  background-color: var(--rc-bg);
+  color: var(--rc-text);
   font-family: 'Space Grotesk', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -93,6 +123,59 @@ body {
 ::-moz-selection {
   background: rgba(0, 240, 255, 0.3);
   color: #e8e8f0;
+}
+
+@media (prefers-color-scheme: light) {
+  ::selection {
+    background: rgba(0, 153, 170, 0.2);
+    color: #1a1a2e;
+  }
+  ::-moz-selection {
+    background: rgba(0, 153, 170, 0.2);
+    color: #1a1a2e;
+  }
+  /* Disable scanlines in light mode */
+  .scanlines::before,
+  .scanlines::after {
+    display: none;
+  }
+  /* Soften focus ring */
+  a:focus-visible,
+  button:focus-visible {
+    outline-color: #0099aa;
+  }
+  /* Soften glow effects */
+  .glow-cyan {
+    text-shadow: none;
+  }
+  .glow-magenta {
+    text-shadow: none;
+  }
+  .glow-green {
+    text-shadow: none;
+  }
+  /* Flip white overlays to black overlays for light backgrounds */
+  .bg-white\/5 {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+  }
+  .bg-white\/10,
+  .hover\:bg-white\/10:hover {
+    background-color: rgba(0, 0, 0, 0.06) !important;
+  }
+  .hover\:bg-white\/5:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+  }
+  .hover\:bg-white\/\[0\.02\]:hover {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+  }
+  /* Modal backdrop: lighter in light mode */
+  .bg-black\/70 {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+  }
+  /* Subtle borders for white-border-on-white */
+  .border-white\/10 {
+    border-color: rgba(0, 0, 0, 0.08) !important;
+  }
 }
 
 /* Focus styles */

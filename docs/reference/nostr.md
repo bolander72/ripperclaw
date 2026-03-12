@@ -23,7 +23,9 @@ Loadouts use **kind `38333`**, a NIP-33 parameterized replaceable event. This me
     ["t", "personal"],
     ["t", "voice"],
     ["t", "smart-home"],
-    ["ripperclaw", "0.1.0"]
+    ["ripperclaw", "0.1.0"],
+    ["e", "<parent_event_id>", "", "fork"],
+    ["p", "<original_author_npub>"]
   ],
   "id": "<event id>",
   "sig": "<signature>"
@@ -32,11 +34,28 @@ Loadouts use **kind `38333`**, a NIP-33 parameterized replaceable event. This me
 
 ### Tags
 
-| Tag | Purpose |
-|-----|---------|
-| `d` | Loadout name (NIP-33 identifier) |
-| `t` | Hashtag for categorization |
-| `ripperclaw` | App version that created the event |
+| Tag | Purpose | Required |
+|-----|---------|----------|
+| `d` | Loadout name (NIP-33 identifier) | Yes |
+| `t` | Hashtag for categorization | No |
+| `ripperclaw` | App version that created the event | Yes |
+| `e` | Fork reference to parent loadout event | Only if forked |
+| `p` | Credit to original author pubkey | Only if forked |
+
+### Fork Tags
+
+When a loadout is a remix or fork of another, the event includes provenance tags:
+
+```json
+["e", "<parent_event_id>", "", "fork"]
+["p", "<original_author_pubkey>"]
+```
+
+The `e` tag (event reference) points to the immediate parent. The marker `"fork"` distinguishes this from other event references (like replies or mentions).
+
+The `p` tag (pubkey reference) credits the original author. For multi-level forks, the original author is determined by traversing the fork chain.
+
+Multiple `e` tags may exist if a loadout merges ideas from multiple parents (future feature).
 
 ## Key Management
 

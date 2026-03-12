@@ -37,7 +37,11 @@ The loadout format is a JSON document with three top-level sections.
 
 ## Slots
 
+All 6 slots have typed structures. Here's the complete schema for each.
+
 ### `model`
+
+Model configuration with three tiers: main (default), fast (when speed matters), and free (fallback for simple tasks).
 
 ```json
 {
@@ -61,7 +65,15 @@ The loadout format is a JSON document with three top-level sections.
 }
 ```
 
+| Field | Type | Description |
+|-------|------|-------------|
+| `provider` | string | API provider (anthropic, openai, google, ollama, etc.) |
+| `model` | string | Model identifier |
+| `paid` | boolean | Whether this tier costs money per request |
+
 ### `persona`
+
+Who the agent is: identity, personality, working style, and user context.
 
 ```json
 {
@@ -85,7 +97,19 @@ The loadout format is a JSON document with three top-level sections.
 }
 ```
 
+| Field | Type | Description |
+|-------|------|-------------|
+| `identity` | object | IDENTITY.md parsed fields (name, creature, vibe, emoji) |
+| `soul.included` | boolean | Whether SOUL.md is included |
+| `soul.content` | string | Full SOUL.md content (PII scrubbed) |
+| `agents.included` | boolean | Whether AGENTS.md is included |
+| `agents.content` | string | Full AGENTS.md content |
+| `user.included` | boolean | Whether USER.md content is included (always false on export) |
+| `user.template` | boolean | Whether to write a USER.md template on apply |
+
 ### `skills`
+
+Installed skill packages that give the agent capabilities.
 
 ```json
 {
@@ -106,7 +130,16 @@ The loadout format is a JSON document with three top-level sections.
 }
 ```
 
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Skill identifier |
+| `version` | string | Semantic version |
+| `source` | enum | `"bundled"` (ships with OpenClaw) or `"clawhub"` (community) |
+| `requiresConfig` | boolean | Whether the skill needs manual setup after installation |
+
 ### `integrations`
+
+External services the agent connects to. Always informational: credentials never transfer.
 
 ```json
 {
@@ -121,11 +154,20 @@ The loadout format is a JSON document with three top-level sections.
 }
 ```
 
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | string | Integration category (imessage, telegram, calendar, email, etc.) |
+| `name` | string | Human-readable integration name |
+| `setupDocs` | string | URL to setup instructions |
+| `manual` | boolean | Always true (integrations require manual setup) |
+
 ::: warning
-Integration entries are informational only. They describe what the source agent had configured. They never include credentials or connection details.
+Integration entries describe what the source agent had configured. They never include credentials or connection details.
 :::
 
 ### `automations`
+
+Scheduled and recurring tasks.
 
 ```json
 {
@@ -137,13 +179,24 @@ Integration entries are informational only. They describe what the source agent 
     {
       "name": "Daily Health Check",
       "schedule": { "kind": "cron", "expr": "0 8 * * *" },
-      "dependsOn": []
+      "dependsOn": ["skills.healthcheck"]
     }
   ]
 }
 ```
 
+| Field | Type | Description |
+|-------|------|-------------|
+| `heartbeat.included` | boolean | Whether HEARTBEAT.md is included |
+| `heartbeat.content` | string | Full HEARTBEAT.md content |
+| `cronJobs` | array | List of scheduled jobs |
+| `cronJobs[].name` | string | Job display name |
+| `cronJobs[].schedule` | object | Cron expression or interval definition |
+| `cronJobs[].dependsOn` | array | Prerequisites (skills, integrations) needed for this job |
+
 ### `memory`
+
+The agent's context management system. Structure only: actual memories are never exported.
 
 ```json
 {
@@ -159,6 +212,14 @@ Integration entries are informational only. They describe what the source agent 
   }
 }
 ```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `engine` | string | Memory system identifier (e.g., `"lossless-claw"`) |
+| `structure.directories` | array | Directory paths to create |
+| `structure.templateFiles` | array | Template files to write on apply |
+| `templateFiles[].path` | string | File path relative to agent workspace |
+| `templateFiles[].content` | string | Template content |
 
 ## Mods (Legacy)
 

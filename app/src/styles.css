@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Cyberpunk palette */
+  /* Cyberpunk palette (dark default) */
   --rc-bg: #0a0a0f;
   --rc-surface: #12121a;
   --rc-surface-hover: #1a1a25;
@@ -18,6 +18,34 @@
   --rc-text: #e0e0f0;
   --rc-text-dim: #808090;
   --rc-text-muted: #505060;
+  /* Overlay helpers (dark: white overlays) */
+  --rc-overlay-subtle: rgba(255, 255, 255, 0.03);
+  --rc-overlay-light: rgba(255, 255, 255, 0.05);
+  --rc-shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --rc-bg: #fafafa;
+    --rc-surface: #f0f0f5;
+    --rc-surface-hover: #e8e8ee;
+    --rc-border: #d0d0dd;
+    --rc-border-active: #0099aa;
+    --rc-cyan: #0099aa;
+    --rc-cyan-dim: #0099aa44;
+    --rc-magenta: #cc0088;
+    --rc-magenta-dim: #cc008844;
+    --rc-yellow: #b38f00;
+    --rc-green: #00995c;
+    --rc-red: #cc2952;
+    --rc-text: #1a1a2e;
+    --rc-text-dim: #4a4a60;
+    --rc-text-muted: #7a7a90;
+    /* Overlay helpers (light: black overlays) */
+    --rc-overlay-subtle: rgba(0, 0, 0, 0.03);
+    --rc-overlay-light: rgba(0, 0, 0, 0.05);
+    --rc-shadow-color: rgba(0, 0, 0, 0.08);
+  }
 }
 
 * {
@@ -46,7 +74,23 @@ body {
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--rc-cyan-dim);
+  background: var(--rc-cyan);
+}
+
+/* Light mode glow adjustments */
+@media (prefers-color-scheme: light) {
+  .slot-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 153, 170, 0.15);
+  }
+  .slot-card.active {
+    box-shadow: 0 2px 12px rgba(0, 153, 170, 0.2);
+  }
+  .glow-cyan {
+    box-shadow: 0 2px 8px rgba(0, 153, 170, 0.2);
+  }
+  .glow-magenta {
+    box-shadow: 0 2px 8px rgba(204, 0, 136, 0.2);
+  }
 }
 
 /* Glow effects */
