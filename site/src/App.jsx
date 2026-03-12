@@ -140,26 +140,26 @@ function Hero() {
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rc-cyan/10 border border-rc-cyan/20 text-rc-cyan text-xs font-mono tracking-wider mb-8"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-rc-cyan animate-pulse" />
-          OPEN SOURCE AI AGENTS
+          SEARCH · EXPLORE · NO TRACKING
         </motion.div>
 
         {/* Headline */}
         <h1 className="text-5xl md:text-7xl font-grotesk font-bold text-rc-text mb-6 leading-[1.1] tracking-tight">
-          Your AI.{' '}
+          Search for{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-rc-cyan via-rc-green to-rc-cyan">
-            Your build.
+            AI agent builds.
           </span>
         </h1>
 
         {/* Subhead */}
         <p className="text-lg md:text-xl text-rc-text-dim max-w-2xl mx-auto mb-4 leading-relaxed">
-          OpenClaw agents are built from builds: the models, integrations, skills, and personality
-          that make each one unique. Browse what others have built. Copy what works. Make it yours.
+          Find complete OpenClaw configurations. No tracking. No accounts. Publish anonymously or with verified identity. 
+          Search, copy, remix.
         </p>
 
         <p className="text-sm text-rc-text-muted max-w-lg mx-auto mb-10">
-          Every build below is a real agent configuration. Click any card to see the full build,
-          or copy the entire build to bootstrap your own.
+          Every build is a complete agent setup: models, skills, integrations, personality, automations, memory.
+          Browse what others have built. Copy what works. Make it yours.
         </p>
 
         {/* CTA */}
@@ -169,7 +169,7 @@ function Hero() {
             to="/explore"
             className="w-full px-6 py-3 bg-white/5 text-rc-text font-grotesk font-semibold rounded-xl hover:bg-white/10 transition-colors border border-rc-border flex items-center justify-center gap-2"
           >
-            Browse Builds
+            Search Builds
             <IconArrowDown size={16} />
           </Link>
         </div>
@@ -513,9 +513,14 @@ function BuildDetail({ build, onClose }) {
 function WhatIsSection() {
   const features = [
     {
-      icon: IconPuzzle,
-      title: 'Modular builds',
-      desc: 'Every agent is built from modular blocks: model, persona, skills, integrations, automations, memory, and more. Mix and match to create something that fits exactly how you work.',
+      icon: IconWorldSearch,
+      title: 'Search and discover',
+      desc: 'Find agent builds by capability, personality, use case, or creator. Search is fast and private — no tracking, no accounts required.',
+    },
+    {
+      icon: IconFingerprint,
+      title: 'Anonymous or verified',
+      desc: 'Publish builds anonymously (no identity required) or tie them to your verified Nostr identity. Your choice. Your control.',
     },
     {
       icon: IconCopy,
@@ -523,24 +528,19 @@ function WhatIsSection() {
       desc: 'See a build you like? Copy the whole thing and bootstrap your agent in seconds. Swap out what doesn\'t fit, keep what does.',
     },
     {
-      icon: IconMessages,
-      title: 'Share your build',
-      desc: 'Publish your build for the community. Show how you\'ve wired up your agent: what model, which skills, what personality. Help others skip the setup grind.',
+      icon: IconPuzzle,
+      title: 'Complete configurations',
+      desc: 'Every build is a full agent setup: models, skills, integrations, personality, automations, memory. The 6 blocks that make an agent unique.',
     },
     {
-      icon: IconBolt,
-      title: 'Community-driven',
-      desc: 'New builds drop in as people share them. Browse what others have built, get inspired, and discover integrations and skills you didn\'t know existed.',
-    },
-    {
-      icon: IconSparkles,
-      title: 'Personality included',
-      desc: 'Builds aren\'t just technical configs. They capture the agent\'s voice, behavior, and style. The stuff that makes an AI assistant feel like yours.',
+      icon: IconUserCircle,
+      title: 'Privacy-first',
+      desc: 'PII scrubber runs locally before anything leaves your machine. No central authority. Nostr-based, decentralized, censorship-resistant.',
     },
     {
       icon: IconRefresh,
-      title: 'Always evolving',
-      desc: 'Update your build as you add skills, swap models, or change how your agent works. Your build grows with you.',
+      title: 'Remix and evolve',
+      desc: 'Fork a build, change what you want, republish. Builds evolve as people improve them. Credit is optional but tracked.',
     },
   ]
 
@@ -552,8 +552,8 @@ function WhatIsSection() {
             What is ClawClawGo?
           </h2>
           <p className="text-rc-text-dim text-lg max-w-2xl mx-auto">
-            A place to build, share, and discover AI agent builds.
-            Think dotfiles for your AI: modular, shareable, and endlessly remixable.
+            A search engine and marketplace for AI agent builds.
+            Privacy-first, decentralized, open source. Think DuckDuckGo for agent configurations.
           </p>
         </div>
 
@@ -586,18 +586,18 @@ function HowItWorks() {
   const steps = [
     {
       num: '01',
-      title: 'Build your build',
-      desc: 'Pick your model, wire up integrations, install skills, write a personality. Every piece is a block you can swap independently.',
+      title: 'Search',
+      desc: 'Find agent builds by capability, use case, or creator. No tracking. No accounts. Just search and discover what others have built.',
     },
     {
       num: '02',
-      title: 'Share it',
-      desc: 'Publish your build to the community. Others can see exactly how your agent is configured. No black boxes.',
+      title: 'Explore',
+      desc: 'See exactly how an agent is configured: which models, what skills, which integrations, what personality. Complete transparency.',
     },
     {
       num: '03',
-      title: 'Browse and remix',
-      desc: 'Find a build that fits your use case. Copy it, tweak the blocks, make it yours. Skip the blank-page problem entirely.',
+      title: 'Apply',
+      desc: 'Copy a build and bootstrap your agent in seconds. Tweak the blocks, swap models, adjust personality. Make it yours.',
     },
   ]
 
@@ -610,7 +610,7 @@ function HowItWorks() {
             How it works
           </h2>
           <p className="text-rc-text-dim text-lg max-w-xl mx-auto">
-            Create a build, share it, or start from someone else's.
+            Search for builds. Explore configurations. Apply what works.
           </p>
         </div>
 
@@ -664,7 +664,7 @@ function AnatomySection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {slots.map((block, i) => (
+          {blocks.map((block, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
@@ -697,12 +697,20 @@ function FAQSection() {
       a: 'A build is a complete agent configuration: the model, integrations, skills, personality, memory, and scheduling that define how an AI agent works. Think of it like a character build in a game, or dotfiles for your AI.',
     },
     {
-      q: 'Do I need OpenClaw to use a build?',
-      a: 'Builds are designed for OpenClaw agents, but the concepts are universal. The model choices, integration patterns, and personality approaches apply to any AI agent setup.',
+      q: 'Can I search without an account?',
+      a: 'Yes. No accounts, no tracking, no login required. Search and browse builds completely anonymously. Only create an identity if you want to publish builds.',
     },
     {
-      q: 'How do I create a build?',
-      a: 'Set up your OpenClaw agent however you want. Pick models, connect integrations, install skills, write a personality file. Then export your config as a build and publish it here.',
+      q: 'Can I publish anonymously?',
+      a: 'Yes. You can publish builds without any identity attached. Or use Nostr keys to tie builds to a verified identity if you want credit.',
+    },
+    {
+      q: 'What data is shared when I publish?',
+      a: 'Only what you approve. The PII scrubber runs locally and removes phone numbers, emails, API keys, home paths, and other sensitive data before anything leaves your machine. You review the scrubbed output before publishing.',
+    },
+    {
+      q: 'How is this decentralized?',
+      a: 'Builds are published to Nostr relays, a decentralized protocol. No central authority. No single point of failure. Censorship-resistant by design.',
     },
     {
       q: 'Can I copy someone else\'s build?',
@@ -713,16 +721,16 @@ function FAQSection() {
       a: 'Core blocks include Model (which LLMs), Persona (how it thinks and talks), Skills (what it can do), Integrations (what it connects to), Automations (what it does on its own), and Memory (how it remembers). The system is extensible, so custom block types can be added as needs evolve.',
     },
     {
+      q: 'Do I need OpenClaw to use a build?',
+      a: 'Builds are designed for OpenClaw agents, but the concepts are universal. The model choices, integration patterns, and personality approaches apply to any AI agent setup.',
+    },
+    {
       q: 'Is this free?',
       a: 'ClawClawGo is free. OpenClaw is free and open source. You\'ll pay for AI model API calls depending on which providers you use, or run fully local models for zero cost.',
     },
     {
-      q: 'What is OpenClaw?',
-      a: 'An open source AI agent framework. It runs on your hardware, connects to your real tools (messages, calendar, email, smart home), and operates 24/7. ClawClawGo is where the community shares their OpenClaw configurations.',
-    },
-    {
       q: 'How do I get started?',
-      a: 'Browse the builds above, find one that matches your use case, and copy it. Or install OpenClaw, build your own agent, and share your build with the community.',
+      a: 'Search for a build that matches your use case. Explore how it\'s configured. Copy it and apply it to your agent. Or install OpenClaw, create your own build, and publish it for others.',
     },
   ]
 
@@ -790,10 +798,10 @@ function Footer() {
         {/* CTA */}
         <div className="text-center mb-16">
           <h3 className="text-2xl md:text-3xl font-grotesk font-bold text-rc-text mb-4">
-            Build yours. Share it.
+            Search. Discover. Build.
           </h3>
           <p className="text-rc-text-dim text-sm mb-8 max-w-md mx-auto">
-            Create your agent build, publish it for the community, and discover builds you never thought of.
+            Find agent builds that match your needs. No tracking. No accounts. Publish yours anonymously or with verified identity.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm mx-auto">
             <DownloadDropdown className="w-full" />

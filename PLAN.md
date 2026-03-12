@@ -1,5 +1,22 @@
 # ClawClawGo — Phase 2-3 Plan
 
+## Vision
+
+ClawClawGo is a **search engine and marketplace for AI agent builds**. Privacy-first, decentralized, open source. Think DuckDuckGo for OpenClaw configurations.
+
+Users can:
+- **Search** for agent builds by capability, use case, personality, or creator
+- **Explore** complete configurations with full transparency
+- **Copy** builds and apply them to their own agents
+- **Publish** anonymously (no identity required) or with verified identity (Nostr keys)
+- **Remix** and evolve builds, with optional attribution
+
+Core principles:
+- **Privacy**: No tracking, no accounts required to browse, PII scrubber runs locally
+- **Decentralization**: Nostr-based, no central authority, censorship-resistant
+- **Transparency**: Every build shows exactly what's configured — no black boxes
+- **Remixability**: Fork, modify, republish. Credit is optional but tracked.
+
 ## 1. Slot Mapping (Real Data)
 
 Map actual OpenClaw subsystems to cyberware slots. Each slot should show what's actually running, not just config keys.
@@ -59,7 +76,7 @@ Already works via CLI (`src/export.ts`). Produces a `Loadout` JSON.
 - Split-pane view with slot-by-slot comparison
 - Color coding: green = you have it, magenta = they have it, yellow = different version
 
-## 3. The Feed — Network Research
+## 3. The Feed — Search & Discovery Engine
 
 ### Options Evaluated
 
@@ -120,6 +137,30 @@ content: <loadout JSON string>
 ```
 
 Parameterized replaceable means updating your rig replaces the old event (same author + same "d" tag).
+
+### Search & Privacy Features
+
+**Anonymous browsing:**
+- No accounts, no tracking, no login required to search and browse builds
+- Relay subscriptions are anonymous by default
+- Local PII scrubber runs before any data leaves your machine
+
+**Anonymous publishing:**
+- Generate ephemeral Nostr keypair for anonymous builds
+- Or use your existing Nostr identity for verified attribution
+- Choice is yours — identity is optional, not required
+
+**Search capabilities:**
+- Full-text search across build names, descriptions, tags
+- Filter by template type (netrunner, voice, home, coding, etc.)
+- Filter by creator (npub)
+- Sort by newest, most copied, most remixed
+
+**Discovery:**
+- Featured builds (curated by community)
+- Trending builds (most activity)
+- Related builds (similar configs)
+- Creator profiles (all builds from one npub)
 
 ### Phase 4: Bitcoin Permanence Layer
 

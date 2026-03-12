@@ -1,6 +1,8 @@
 # ClawClawGo
 
-Modular builds for AI agents. Build, share, and remix how your agent is configured.
+**Search engine, explorer, and marketplace for AI agent builds.**
+
+Privacy-first. Decentralized. Open source. Think DuckDuckGo for OpenClaw configurations.
 
 **[clawclawgo.com](https://clawclawgo.com)**
 
@@ -10,7 +12,9 @@ Modular builds for AI agents. Build, share, and remix how your agent is configur
 
 ## What is it?
 
-Your AI agent is more than config files. It's a combination of models, skills, integrations, personality, memory, and automations that work together. ClawClawGo lets you package all of that as a **build**. Then export it, share it, or apply someone else's to a new agent.
+ClawClawGo is a search engine and marketplace for complete AI agent configurations — **builds**. Find agent setups by capability, use case, or creator. No tracking. No accounts required. Publish anonymously or with verified identity via Nostr keys.
+
+Your AI agent is more than config files. It's a combination of models, skills, integrations, personality, memory, and automations that work together. ClawClawGo lets you search for existing builds, explore how they're configured, copy what works, and publish your own.
 
 ### The 6 Blocks
 
