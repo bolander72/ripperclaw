@@ -305,7 +305,7 @@ function applyLoadout(loadoutPath, agentId, options = {}) {
   if (fs.existsSync(agentWorkspace)) {
     throw new Error(
       `Agent workspace already exists at ${agentWorkspace}. ` +
-      `Ripperclaw never overwrites existing agents. Use a different --agent id ` +
+      `RipperClaw never overwrites existing agents. Use a different --agent id ` +
       `or remove the directory manually if you're sure.`
     );
   }

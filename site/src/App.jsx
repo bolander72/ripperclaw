@@ -60,9 +60,9 @@ function DownloadDropdown() {
   }, [])
 
   const platforms = [
-    { label: 'macOS', icon: IconBrandApple, href: `${RELEASE_BASE}/download/Ripperclaw.dmg` },
-    { label: 'Windows', icon: IconBrandWindows, href: `${RELEASE_BASE}/download/Ripperclaw.msi` },
-    { label: 'Linux', icon: IconBrandDebian, href: `${RELEASE_BASE}/download/Ripperclaw.AppImage` },
+    { label: 'macOS', icon: IconBrandApple, href: `${RELEASE_BASE}/download/RipperClaw.dmg` },
+    { label: 'Windows', icon: IconBrandWindows, href: `${RELEASE_BASE}/download/RipperClaw.msi` },
+    { label: 'Linux', icon: IconBrandDebian, href: `${RELEASE_BASE}/download/RipperClaw.AppImage` },
   ]
 
   return (
@@ -71,7 +71,7 @@ function DownloadDropdown() {
         onClick={() => setOpen(!open)}
         className="px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center gap-2"
       >
-        Get Ripperclaw
+        Get RipperClaw
         <IconChevronDown size={16} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       <AnimatePresence>
@@ -503,7 +503,7 @@ function LoadoutDetail({ loadout, onClose }) {
   )
 }
 
-// ─── What Is Ripperclaw ────────────────────────────────────
+// ─── What Is RipperClaw ────────────────────────────────────
 
 function WhatIsSection() {
   const features = [
@@ -544,7 +544,7 @@ function WhatIsSection() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
-            What is Ripperclaw?
+            What is RipperClaw?
           </h2>
           <p className="text-rc-text-dim text-lg max-w-2xl mx-auto">
             A place to build, share, and discover AI agent loadouts.
@@ -709,11 +709,11 @@ function FAQSection() {
     },
     {
       q: 'Is this free?',
-      a: 'Ripperclaw is free. OpenClaw is free and open source. You\'ll pay for AI model API calls depending on which providers you use — or run fully local models for zero cost.',
+      a: 'RipperClaw is free. OpenClaw is free and open source. You\'ll pay for AI model API calls depending on which providers you use — or run fully local models for zero cost.',
     },
     {
       q: 'What is OpenClaw?',
-      a: 'An open source AI agent framework. It runs on your hardware, connects to your real tools (messages, calendar, email, smart home), and operates 24/7. Ripperclaw is where the community shares their OpenClaw configurations.',
+      a: 'An open source AI agent framework. It runs on your hardware, connects to your real tools (messages, calendar, email, smart home), and operates 24/7. RipperClaw is where the community shares their OpenClaw configurations.',
     },
     {
       q: 'How do I get started?',
@@ -805,7 +805,7 @@ function Footer() {
         {/* Links grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div>
-            <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Ripperclaw</h4>
+            <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">RipperClaw</h4>
             <ul className="space-y-2.5">
               <li><a href="#showcase" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Browse Loadouts</a></li>
               <li><a href="https://ripperclaw.com/docs" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Documentation</a></li>
