@@ -145,7 +145,6 @@ function Hero() {
 
         {/* Headline */}
         <h1 className="text-5xl md:text-7xl font-grotesk font-bold text-rc-text mb-6 leading-[1.1] tracking-tight">
-          Search for{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-rc-cyan via-rc-green to-rc-cyan">
             AI agent builds.
           </span>
