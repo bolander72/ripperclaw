@@ -1,22 +1,22 @@
 # ClawClawGo Landing Page
 
-Cyberpunk-themed landing page for ClawClawGo — AI agent config management for OpenClaw.
+Landing page for ClawClawGo, the search engine and marketplace for AI agent builds on OpenClaw.
 
 ## Features
 
-- **Retro-futuristic cyberpunk aesthetic** — Dark theme with cyan + magenta accents
-- **Scanline effects** — Animated CRT-style overlay
-- **Interactive slot visualization** — Hover over the 9 cyberware slots
-- **Smooth scroll navigation** — Single-page layout
-- **Mobile responsive** — Works on all devices
-- **Pure static site** — No server required
+- Dark theme with cyan + magenta accents
+- Animated build cards (conveyor belt)
+- Interactive block visualization
+- Smooth scroll, single-page layout
+- Mobile responsive
+- Pure static site, no server required
 
 ## Tech Stack
 
-- **Vite** — Build tool
-- **React 19** — UI framework
-- **Tailwind CSS v4** — Styling
-- **Google Fonts** — Space Grotesk, JetBrains Mono, Inter
+- Vite (build tool)
+- React 19 (UI)
+- Tailwind CSS v4 (styling)
+- Google Fonts: Space Grotesk, JetBrains Mono, Inter
 
 ## Colors (from the app)
 
@@ -53,12 +53,12 @@ Output: `dist/` directory
 
 ## Deploy
 
-The `dist/` folder contains the production-ready static site. Deploy to:
+The `dist/` folder is the production-ready static site. Works with:
 
-- **Vercel** — `vercel dist`
-- **Netlify** — Drag and drop `dist/` folder
-- **GitHub Pages** — Push `dist/` contents to `gh-pages` branch
-- **Any static host** — Upload `dist/` contents
+- Vercel: `vercel dist`
+- Netlify: drag and drop `dist/`
+- GitHub Pages: push `dist/` to `gh-pages` branch
+- Any static host: upload `dist/` contents
 
 ### Domain: clawclawgo.com
 
@@ -66,13 +66,12 @@ Point DNS to your hosting provider and deploy the `dist/` folder.
 
 ## Sections
 
-1. **Hero** — Big headline, slot grid, download CTA
-2. **The Slots** — 9 cyberware slots explained
-3. **The Feed** — How sharing works (publish → browse → compare → clone)
-4. **How It Works** — 3-step guide
-5. **Templates** — Starter configs (Homelab, Ops, Researcher, Smart Home, Creator)
-6. **Open Source** — GitHub links, MIT license
-7. **Footer** — Minimal links
+1. Hero: headline, build cards, download CTA
+2. What Is ClawClawGo: feature grid
+3. How It Works: 3-step flow
+4. Anatomy of a Build: the 6 blocks
+5. FAQs
+6. Footer with links and CTA
 
 ## License
 

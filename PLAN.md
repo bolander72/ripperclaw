@@ -1,4 +1,4 @@
-# ClawClawGo — Phase 2-3 Plan
+# ClawClawGo - Phase 2-3 Plan
 
 ## Vision
 
@@ -14,7 +14,7 @@ Users can:
 Core principles:
 - **Privacy**: No tracking, no accounts required to browse, PII scrubber runs locally
 - **Decentralization**: Nostr-based, no central authority, censorship-resistant
-- **Transparency**: Every build shows exactly what's configured — no black boxes
+- **Transparency**: Every build shows exactly what's configured: no black boxes
 - **Remixability**: Fork, modify, republish. Credit is optional but tracked.
 
 ## 1. Slot Mapping (Real Data)
@@ -24,7 +24,7 @@ Map actual OpenClaw subsystems to cyberware slots. Each slot should show what's 
 | Slot | Label | What Maps Here |
 |------|-------|----------------|
 | `heart` | Heart | HEARTBEAT.md tasks, heartbeat cron interval/model, cron job health |
-| `soul` | Soul | SOUL.md, IDENTITY.md, USER.md — name, token count, personality |
+| `soul` | Soul | SOUL.md, IDENTITY.md, USER.md: name, token count, personality |
 | `brain` | Brain | LCM/LosslessClaw, lcm.db, memory files (handoff.md, daily notes, MEMORY.md, facts.md), DAG compaction |
 | `os` | Operating System | OpenClaw version, gateway status, Node.js, platform/arch |
 | `skeleton` | Skeleton | Primary model, subagent model, local model (Ollama), auth mode, max concurrency |
@@ -49,7 +49,7 @@ Each slot's detail panel should show:
 | SOUL/IDENTITY/USER | `~/.openclaw/workspace/*.md` |
 | HEARTBEAT tasks | `~/.openclaw/workspace/HEARTBEAT.md` (parse `- **name**:` lines) |
 | Memory files | Check existence of `memory/{handoff,active-work,facts,YYYY-MM-DD}.md` |
-| LCM database | `~/.openclaw/lcm.db` (SQLite — can query for stats) |
+| LCM database | `~/.openclaw/lcm.db` (SQLite: can query for stats) |
 | Skills | Scan `/opt/homebrew/lib/node_modules/openclaw/skills/` + `~/.openclaw/workspace/skills/` |
 | Cron jobs | `openclaw cron list --json` |
 | System status | `openclaw status` |
@@ -76,17 +76,17 @@ Already works via CLI (`src/export.ts`). Produces a `Loadout` JSON.
 - Split-pane view with slot-by-slot comparison
 - Color coding: green = you have it, magenta = they have it, yellow = different version
 
-## 3. The Feed — Search & Discovery Engine
+## 3. The Feed: Search & Discovery Engine
 
 ### Options Evaluated
 
 #### A. Nostr (Recommended)
 **Pros:**
 - Perfect fit: JSON events, relay-based pub/sub, built for discovery
-- NIP-15 literally describes "Nostr Marketplace" — close to our use case
+- NIP-15 literally describes "Nostr Marketplace": close to our use case
 - NIP-32 (Labeling) for tagging loadouts by template/category
-- NIP-01 events are just signed JSON — loadouts ARE JSON
-- Rust SDK exists: `nostr-sdk` (0.44.1) — mature, well-maintained
+- NIP-01 events are just signed JSON: loadouts ARE JSON
+- Rust SDK exists: `nostr-sdk` (0.44.1): mature, well-maintained
 - Free relays exist, can self-host too
 - Users already have nostr keys if they're in the Bitcoin/crypto space (Alex/Rijndael is)
 - Privacy: private loadouts stay local, public ones get published as events
@@ -114,19 +114,19 @@ Already works via CLI (`src/export.ts`). Produces a `Loadout` JSON.
 **Cons:** Single point of failure, hosting costs, goes against the vibe
 
 #### D. Hybrid: Nostr + Centralized Index
-**Pros:** Best of both — nostr for distribution, centralized for discovery/search
+**Pros:** Best of both worlds. Nostr for distribution, centralized for discovery/search
 **Cons:** More complexity
 
 ### Recommendation: Start with Nostr, add centralized index later if needed
 
-Nostr fits the cyberpunk aesthetic perfectly. The data model is almost 1:1 — a loadout is a signed JSON event. Discovery happens through relay subscriptions. Privacy is built in (don't publish = private). The Rust SDK is production-ready.
+Nostr fits the cyberpunk aesthetic perfectly. The data model is almost 1:1 with loadouts as signed JSON events. Discovery happens through relay subscriptions. Privacy is built in (don't publish = private). The Rust SDK is production-ready.
 
 The Feed becomes a nostr client for loadout events. Users follow other riggers, browse by template/tag, and import configs they like.
 
 ### Custom Nostr Event Kind
 
 ```
-kind: 38333 (parameterized replaceable — NIP-33)
+kind: 38333 (parameterized replaceable, NIP-33)
 tags:
   - ["d", "<loadout-name>"]        # unique per author
   - ["t", "netrunner"]             # template tag
@@ -148,7 +148,7 @@ Parameterized replaceable means updating your rig replaces the old event (same a
 **Anonymous publishing:**
 - Generate ephemeral Nostr keypair for anonymous builds
 - Or use your existing Nostr identity for verified attribution
-- Choice is yours — identity is optional, not required
+- Choice is yours: identity is optional, not required
 
 **Search capabilities:**
 - Full-text search across build names, descriptions, tags
@@ -180,7 +180,7 @@ Nostr handles mutable, discoverable loadouts. Bitcoin handles permanence.
 - Store inscription ID in nostr event tags: `["i", "ord:<inscription_id>"]`
 - UI: gold badge on loadouts with on-chain anchors
 
-Not urgent — build nostr first, add Bitcoin anchoring when the network has real users.
+Not urgent. Build nostr first, add Bitcoin anchoring when the network has real users.
 
 ### Implementation Phases
 

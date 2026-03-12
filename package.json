@@ -1,7 +1,7 @@
 {
   "name": "clawclawgo",
   "version": "0.1.0",
-  "description": "Search engine and marketplace for AI agent builds — privacy-first, decentralized, open source",
+  "description": "Search engine and marketplace for AI agent builds. Privacy-first, decentralized, open source.",
   "type": "module",
   "bin": {
     "clawclawgo": "./dist/cli.js"

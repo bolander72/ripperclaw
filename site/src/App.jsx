@@ -515,7 +515,7 @@ function WhatIsSection() {
     {
       icon: IconWorldSearch,
       title: 'Search and discover',
-      desc: 'Find agent builds by capability, personality, use case, or creator. Search is fast and private — no tracking, no accounts required.',
+      desc: 'Find agent builds by capability, personality, use case, or creator. Search is fast and private. No tracking, no accounts required.',
     },
     {
       icon: IconFingerprint,

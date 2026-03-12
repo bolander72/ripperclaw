@@ -12,7 +12,7 @@ Privacy-first. Decentralized. Open source. Think DuckDuckGo for OpenClaw configu
 
 ## What is it?
 
-ClawClawGo is a search engine and marketplace for complete AI agent configurations — **builds**. Find agent setups by capability, use case, or creator. No tracking. No accounts required. Publish anonymously or with verified identity via Nostr keys.
+ClawClawGo is a search engine and marketplace for complete AI agent configurations: **builds**. Find agent setups by capability, use case, or creator. No tracking. No accounts required. Publish anonymously or with verified identity via Nostr keys.
 
 Your AI agent is more than config files. It's a combination of models, skills, integrations, personality, memory, and automations that work together. ClawClawGo lets you search for existing builds, explore how they're configured, copy what works, and publish your own.
 
