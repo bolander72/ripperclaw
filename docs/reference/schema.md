@@ -1,26 +1,38 @@
 # Build Schema
 
-The build format is a JSON document with three top-level sections.
+The build format is a JSON document with three top-level sections: `schema`, `meta`, `blocks`, and `dependencies`.
 
 ## Structure
 
 ```json
 {
-  "schema": 1,
+  "schema": 2,
   "meta": { ... },
   "blocks": { ... },
-  "mods": [ ... ]
+  "dependencies": { ... }
 }
 ```
+
+## Schema Version
+
+```json
+{
+  "schema": 2
+}
+```
+
+The schema version is always `2`. Older version 1 builds used a different structure with a `mods` array instead of the `blocks.skills` structure.
 
 ## Meta
 
 ```json
 {
   "name": "Quinn",
-  "author": "bolander72",
+  "agentName": "Quinn",
+  "author": "@Bolander72",
   "version": 1,
-  "exportedAt": "2026-03-11T22:00:00.000Z",
+  "exportedAt": "2026-03-12T18:00:00.000Z",
+  "openclawVersion": "1.5.0",
   "description": "Full-featured personal assistant",
   "tags": ["personal", "voice", "smart-home"]
 }
@@ -29,19 +41,21 @@ The build format is a JSON document with three top-level sections.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `name` | string | yes | Human-readable build name |
-| `author` | string | no | Author identifier |
-| `version` | number | no | Build version (bump on significant changes) |
-| `exportedAt` | string | yes | ISO 8601 timestamp |
-| `description` | string | no | Short description |
-| `tags` | string[] | no | Categorization tags |
+| `agentName` | string | yes | Name of the agent this was exported from |
+| `author` | string | yes | Author identifier (e.g., @username) |
+| `version` | number | yes | Build revision number (bumps on re-export) |
+| `exportedAt` | string | yes | ISO 8601 timestamp of export |
+| `openclawVersion` | string | no | OpenClaw version at export time |
+| `description` | string | no | Short description of what this agent does |
+| `tags` | string[] | no | Searchable tags for categorization |
 
 ## Blocks
 
-All 6 blocks have typed structures. Here's the complete schema for each.
+The `blocks` object contains six core block types. Each block has a specific structure.
 
 ### `model`
 
-Model configuration with three tiers: main (default), fast (when speed matters), and free (fallback for simple tasks).
+Model configuration with routing tiers.
 
 ```json
 {
@@ -49,27 +63,35 @@ Model configuration with three tiers: main (default), fast (when speed matters),
     "main": {
       "provider": "anthropic",
       "model": "claude-opus-4-6",
-      "paid": true
+      "alias": "Opus",
+      "paid": true,
+      "local": false
     },
-    "fast": {
+    "subagent": {
       "provider": "anthropic",
       "model": "claude-sonnet-4-5",
-      "paid": true
-    },
-    "free": {
-      "provider": "ollama",
-      "model": "qwen3.5:4b",
-      "paid": false
+      "alias": "Sonnet",
+      "paid": true,
+      "local": false
     }
+  },
+  "routing": {
+    "description": "Opus for main, Sonnet for subagents, Haiku for utilities"
   }
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `provider` | string | API provider (anthropic, openai, google, ollama, etc.) |
-| `model` | string | Model identifier |
-| `paid` | boolean | Whether this tier costs money per request |
+**Model Tier:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `provider` | string | yes | API provider (anthropic, openai, google, ollama, etc.) |
+| `model` | string | yes | Full model identifier |
+| `alias` | string | no | Human-friendly name (e.g., Opus, Sonnet) |
+| `paid` | boolean | no | Whether this model requires a paid API key |
+| `local` | boolean | no | Whether this model runs locally |
+
+Common tier names: `main`, `subagent`, `heartbeat`, `utility`. You can define custom tiers as needed.
 
 ### `persona`
 
@@ -84,28 +106,33 @@ Who the agent is: identity, personality, working style, and user context.
   },
   "soul": {
     "included": true,
-    "content": "# SOUL.md\n\n..."
-  },
-  "agents": {
-    "included": true,
-    "content": "# AGENTS.md\n\n..."
+    "preview": "# SOUL.md - Who You Are\n\n_You're not a chatbot...",
+    "content": "<full SOUL.md content>",
+    "tokenEstimate": 3200
   },
   "user": {
     "included": false,
-    "template": true
+    "note": "USER.md is never included in shared builds"
+  },
+  "agents": {
+    "included": true,
+    "preview": "# AGENTS.md - Your Workspace...",
+    "content": "<full AGENTS.md content>"
   }
 }
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `identity` | object | IDENTITY.md parsed fields (name, creature, vibe, emoji) |
+| `identity` | object | IDENTITY.md parsed fields (name, creature, vibe) |
 | `soul.included` | boolean | Whether SOUL.md is included |
+| `soul.preview` | string | First ~500 chars for preview before applying |
 | `soul.content` | string | Full SOUL.md content (PII scrubbed) |
+| `soul.tokenEstimate` | number | Approximate token count of content |
+| `user.included` | boolean | Always `false` (USER.md never transfers) |
 | `agents.included` | boolean | Whether AGENTS.md is included |
+| `agents.preview` | string | Preview snippet |
 | `agents.content` | string | Full AGENTS.md content |
-| `user.included` | boolean | Whether USER.md content is included (always false on export) |
-| `user.template` | boolean | Whether to write a USER.md template on apply |
 
 ### `skills`
 
@@ -118,52 +145,68 @@ Installed skill packages that give the agent capabilities.
       "name": "weather",
       "version": "1.0.0",
       "source": "bundled",
+      "description": "Get current weather and forecasts",
       "requiresConfig": false
     },
     {
       "name": "frontend-design-ultimate",
       "version": "1.2.0",
       "source": "clawhub",
-      "requiresConfig": false
+      "description": "Create production-grade static sites",
+      "requiresConfig": false,
+      "configHint": "No setup needed"
     }
   ]
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `name` | string | Skill identifier |
-| `version` | string | Semantic version |
-| `source` | enum | `"bundled"` (ships with OpenClaw) or `"clawhub"` (community) |
-| `requiresConfig` | boolean | Whether the skill needs manual setup after installation |
+**Skill Item:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | yes | Skill package name |
+| `version` | string | no | Semver version string |
+| `source` | enum | yes | Where this skill comes from: `clawhub`, `local`, `custom`, `bundled` |
+| `description` | string | no | What this skill does |
+| `requiresConfig` | boolean | no | Whether post-install configuration is needed |
+| `configHint` | string | no | What configuration is needed |
 
 ### `integrations`
 
-External services the agent connects to. Always informational: credentials never transfer.
+External services the agent connects to. Credentials never transfer.
 
 ```json
 {
   "items": [
     {
-      "type": "imessage",
+      "type": "channel",
       "name": "iMessage via BlueBubbles",
-      "setupDocs": "https://docs.openclaw.ai/channels/bluebubbles",
-      "manual": true
+      "provider": "bluebubbles",
+      "autoApply": false,
+      "docsUrl": "https://docs.openclaw.ai/integrations/bluebubbles",
+      "setupGuideUrl": "https://docs.openclaw.ai/guides/bluebubbles.md"
+    },
+    {
+      "type": "calendar",
+      "name": "Calendar (caldir)",
+      "provider": "caldir",
+      "autoApply": false,
+      "setupGuideUrl": "https://docs.openclaw.ai/guides/caldir.md"
     }
   ]
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `type` | string | Integration category (imessage, telegram, calendar, email, etc.) |
-| `name` | string | Human-readable integration name |
-| `setupDocs` | string | URL to setup instructions |
-| `manual` | boolean | Always true (integrations require manual setup) |
+**Integration Item:**
 
-::: warning
-Integration entries describe what the source agent had configured. They never include credentials or connection details.
-:::
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | enum | yes | Integration category: `channel`, `calendar`, `email`, `smart-home`, `code`, `voice`, `camera`, `other` |
+| `name` | string | yes | Human-readable integration name |
+| `provider` | string | yes | Provider/tool identifier (bluebubbles, caldir, himalaya, etc.) |
+| `autoApply` | boolean | yes | Always `false` (integrations require manual setup) |
+| `docsUrl` | string | no | Link to setup docs (human-readable) |
+| `setupGuideUrl` | string | no | Machine-readable setup guide URL (fetched by applying agent) |
 
 ### `automations`
 
@@ -175,32 +218,39 @@ Scheduled and recurring tasks.
     "included": true,
     "content": "# HEARTBEAT.md\n\n## Periodic Checks\n- ..."
   },
-  "cronJobs": [
+  "cron": [
     {
       "name": "Daily Health Check",
-      "schedule": { "kind": "cron", "expr": "0 8 * * *" },
-      "dependsOn": ["skills.healthcheck"]
+      "schedule": { "kind": "cron" },
+      "description": "Check system health every morning",
+      "dependsOn": ["integrations.email"]
     }
   ]
 }
 ```
 
+**Heartbeat:**
+
 | Field | Type | Description |
 |-------|------|-------------|
-| `heartbeat.included` | boolean | Whether HEARTBEAT.md is included |
-| `heartbeat.content` | string | Full HEARTBEAT.md content |
-| `cronJobs` | array | List of scheduled jobs |
-| `cronJobs[].name` | string | Job display name |
-| `cronJobs[].schedule` | object | Cron expression or interval definition |
-| `cronJobs[].dependsOn` | array | Prerequisites (skills, integrations) needed for this job |
+| `included` | boolean | Whether HEARTBEAT.md is included |
+| `content` | string | Full HEARTBEAT.md content |
+
+**Cron Item:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | yes | Job display name |
+| `schedule` | object | yes | Schedule definition (kind: `at`, `every`, or `cron`) |
+| `description` | string | no | What this automation does |
+| `dependsOn` | string[] | no | Prerequisites (skills, integrations) needed for this job |
 
 ### `memory`
 
-The agent's context management system. Structure only: actual memories are never exported.
+The agent's context management system. Structure only, actual memories are never exported.
 
 ```json
 {
-  "engine": "lossless-claw",
   "structure": {
     "directories": ["memory/", "memory/reference/", "memory/research/"],
     "templateFiles": [
@@ -209,33 +259,136 @@ The agent's context management system. Structure only: actual memories are never
         "content": "# Handoff\n\n..."
       }
     ]
+  },
+  "engine": {
+    "type": "lossless-claw",
+    "description": "LosslessClaw with DAG-based compaction"
+  }
+}
+```
+
+**Structure:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `directories` | string[] | Directory paths to create |
+| `templateFiles` | object[] | Template files to seed (never overwrites existing) |
+
+**Template File:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `path` | string | File path relative to agent workspace |
+| `content` | string | Template content |
+
+**Engine:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | string | Memory system identifier |
+| `description` | string | Human description of the memory engine |
+
+## Dependencies
+
+System-level requirements for the build. Populated during export by walking skills and integrations.
+
+```json
+{
+  "bins": ["python3", "ffmpeg", "caldir"],
+  "brew": ["portaudio"],
+  "pip": ["whisper", "kokoro-onnx"],
+  "npm": [],
+  "models": [
+    {
+      "name": "kokoro-v1.0.onnx",
+      "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/...",
+      "path": "~/.cache/kokoro-onnx/",
+      "size": "82MB"
+    }
+  ],
+  "config": [
+    {
+      "key": "OPENAI_API_KEY",
+      "description": "OpenAI API key for Whisper API",
+      "required": false
+    }
+  ],
+  "platform": ["darwin"],
+  "minOpenclawVersion": "1.4.0",
+  "guides": {
+    "bluebubbles": "https://docs.openclaw.ai/guides/bluebubbles.md",
+    "caldir": "https://docs.openclaw.ai/guides/caldir.md"
   }
 }
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `engine` | string | Memory system identifier (e.g., `"lossless-claw"`) |
-| `structure.directories` | array | Directory paths to create |
-| `structure.templateFiles` | array | Template files to write on apply |
-| `templateFiles[].path` | string | File path relative to agent workspace |
-| `templateFiles[].content` | string | Template content |
+| `bins` | string[] | Required binaries on PATH |
+| `brew` | string[] | Homebrew packages |
+| `pip` | string[] | Python pip packages |
+| `npm` | string[] | npm global packages |
+| `models` | object[] | Model files to download |
+| `config` | object[] | Configuration requirements |
+| `platform` | string[] | Supported platforms (darwin, linux, win32) |
+| `minOpenclawVersion` | string | Minimum OpenClaw version |
+| `guides` | object | Setup guides keyed by provider/tool name (URLs to fetchable markdown) |
 
-## Mods (Legacy)
+**Model Requirement:**
 
-The `mods` array is a flat list of skills for backward compatibility with schema version 1:
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Model file name |
+| `url` | string | Download URL |
+| `path` | string | Install path (supports ~) |
+| `size` | string | File size (e.g., '82MB') |
+
+**Config Requirement:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `key` | string | Environment variable or keychain key |
+| `description` | string | What this config is for |
+| `required` | boolean | Whether this is required |
+
+## Custom Blocks
+
+Builds can include custom block types beyond the six defaults. Any string key in `blocks` is valid.
 
 ```json
 {
-  "mods": [
-    { "name": "weather", "source": "bundled", "enabled": true },
-    { "name": "humanize", "source": "custom", "enabled": true }
-  ]
+  "blocks": {
+    "model": { ... },
+    "persona": { ... },
+    "customBlock": {
+      "label": "My Custom Block",
+      "status": "active",
+      "component": "CustomComponent",
+      "version": "1.0",
+      "details": { "foo": "bar" },
+      "items": [ { "name": "item1" } ]
+    }
+  }
 }
 ```
 
-New exports use `blocks.skills.items` instead.
+Custom blocks can contain any structure. Common properties:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `label` | string | Display label |
+| `status` | string | Status indicator |
+| `component` | string | UI component name |
+| `version` | string | Block version |
+| `details` | object | Arbitrary metadata |
+| `items` | array | List of items |
 
 ## Validation
 
-The formal JSON Schema is at [`specs/build-v2.schema.json`](https://github.com/bolander72/clawclawgo/blob/main/specs/build-v2.schema.json) in the repo.
+The formal JSON Schema is at [`specs/build.schema.json`](https://github.com/bolander72/clawclawgo/blob/main/specs/build.schema.json) in the repo.
+
+Use the `validate` command to check a build file:
+
+```bash
+clawclawgo validate my-build.json
+```

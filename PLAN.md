@@ -17,11 +17,11 @@ Core principles:
 - **Transparency**: Every build shows exactly what's configured: no black boxes
 - **Remixability**: Fork, modify, republish. Credit is optional but tracked.
 
-## 1. Slot Mapping (Real Data)
+## 1. Block Mapping (Real Data)
 
-Map actual OpenClaw subsystems to cyberware slots. Each slot should show what's actually running, not just config keys.
+Map actual OpenClaw subsystems to cyberware blocks. Each block should show what's actually running, not just config keys.
 
-| Slot | Label | What Maps Here |
+| Block | Label | What Maps Here |
 |------|-------|----------------|
 | `heart` | Heart | HEARTBEAT.md tasks, heartbeat cron interval/model, cron job health |
 | `soul` | Soul | SOUL.md, IDENTITY.md, USER.md: name, token count, personality |
@@ -33,9 +33,9 @@ Map actual OpenClaw subsystems to cyberware slots. Each slot should show what's 
 | `eyes` | Eyes | UniFi cameras (G4 Doorbell Pro), Peekaboo screen capture, image model, camera entities from HA |
 | `nervousSystem` | Nervous System | Channels (BlueBubbles/iMessage), cron jobs, reminders, calendar (caldir), email (himalaya), Home Assistant, smart home devices |
 
-### Detail Panel Per Slot
+### Detail Panel Per Block
 
-Each slot's detail panel should show:
+Each block's detail panel should show:
 - **Status**: active/degraded/offline with reason
 - **Specs**: key-value pairs from real data
 - **Sub-components**: e.g., Eyes shows each camera, Nervous System shows each channel/integration
@@ -59,21 +59,21 @@ Each slot's detail panel should show:
 ## 2. Import / Diff / Comparison View
 
 ### Export
-Already works via CLI (`src/export.ts`). Produces a `Loadout` JSON.
+Already works via CLI (`src/export.ts`). Produces a `Build` JSON.
 
 ### Import + Diff
-- Load a `.loadout.json` file (drag-and-drop or file picker)
-- Parse into `Loadout` type
-- Run diff against current rig
+- Load a `.build.json` file (drag-and-drop or file picker)
+- Parse into `Build` type
+- Run diff against current build
 - Show side-by-side comparison:
-  - Left: "Your Rig" (current)
-  - Right: "Their Rig" (imported)
-  - Highlighted differences per slot
-  - Mods only in yours / only in theirs / version differences
+  - Left: "Your Build" (current)
+  - Right: "Their Build" (imported)
+  - Highlighted differences per block
+  - Skills only in yours / only in theirs / version differences
 
 ### UI
 - New sidebar button: ⊕ (Compare)
-- Split-pane view with slot-by-slot comparison
+- Split-pane view with block-by-block comparison
 - Color coding: green = you have it, magenta = they have it, yellow = different version
 
 ## 3. The Feed: Search & Discovery Engine
@@ -84,26 +84,26 @@ Already works via CLI (`src/export.ts`). Produces a `Loadout` JSON.
 **Pros:**
 - Perfect fit: JSON events, relay-based pub/sub, built for discovery
 - NIP-15 literally describes "Nostr Marketplace": close to our use case
-- NIP-32 (Labeling) for tagging loadouts by template/category
-- NIP-01 events are just signed JSON: loadouts ARE JSON
+- NIP-32 (Labeling) for tagging builds by template/category
+- NIP-01 events are just signed JSON: builds ARE JSON
 - Rust SDK exists: `nostr-sdk` (0.44.1): mature, well-maintained
 - Free relays exist, can self-host too
 - Users already have nostr keys if they're in the Bitcoin/crypto space (Alex/Rijndael is)
-- Privacy: private loadouts stay local, public ones get published as events
+- Privacy: private builds stay local, public ones get published as events
 - Censorship-resistant by design
 - No server costs for us initially
 
 **Cons:**
 - Relay reliability varies
-- Need to define a custom event kind for loadouts (straightforward via NIP-01)
+- Need to define a custom event kind for builds (straightforward via NIP-01)
 - No built-in search beyond relay capabilities (NIP-50 helps)
 
 **How it works:**
 1. User generates or imports a nostr keypair
-2. "Publish Rig" → signs loadout JSON as a nostr event (custom kind, e.g., 38333)
+2. "Publish Build" → signs build JSON as a nostr event (custom kind, e.g., 38333)
 3. Event published to configured relays
 4. "The Feed" subscribes to events of that kind across relays
-5. Other users see published rigs, can import/diff
+5. Other users see published builds, can import/diff
 
 #### B. IPFS / Content-Addressed
 **Pros:** Content-addressed, permanent, dedup
@@ -119,24 +119,24 @@ Already works via CLI (`src/export.ts`). Produces a `Loadout` JSON.
 
 ### Recommendation: Start with Nostr, add centralized index later if needed
 
-Nostr fits the cyberpunk aesthetic perfectly. The data model is almost 1:1 with loadouts as signed JSON events. Discovery happens through relay subscriptions. Privacy is built in (don't publish = private). The Rust SDK is production-ready.
+Nostr fits the cyberpunk aesthetic perfectly. The data model is almost 1:1 with builds as signed JSON events. Discovery happens through relay subscriptions. Privacy is built in (don't publish = private). The Rust SDK is production-ready.
 
-The Feed becomes a nostr client for loadout events. Users follow other riggers, browse by template/tag, and import configs they like.
+The Feed becomes a nostr client for build events. Users follow other builders, browse by template/tag, and import configs they like.
 
 ### Custom Nostr Event Kind
 
 ```
 kind: 38333 (parameterized replaceable, NIP-33)
 tags:
-  - ["d", "<loadout-name>"]        # unique per author
+  - ["d", "<build-name>"]          # unique per author
   - ["t", "netrunner"]             # template tag
   - ["t", "voice"]                 # feature tags
-  - ["version", "3"]               # loadout version
+  - ["version", "3"]               # build version
   - ["clawclawgo", "0.1.0"]        # client version
-content: <loadout JSON string>
+content: <build JSON string>
 ```
 
-Parameterized replaceable means updating your rig replaces the old event (same author + same "d" tag).
+Parameterized replaceable means updating your build replaces the old event (same author + same "d" tag).
 
 ### Search & Privacy Features
 
@@ -164,21 +164,21 @@ Parameterized replaceable means updating your rig replaces the old event (same a
 
 ### Phase 4: Bitcoin Permanence Layer
 
-Nostr handles mutable, discoverable loadouts. Bitcoin handles permanence.
+Nostr handles mutable, discoverable builds. Bitcoin handles permanence.
 
-**Concept:** Inscribe a commitment (hash of loadout JSON) on-chain via ordinals. The full loadout lives on nostr (updatable), but the on-chain inscription proves "this rig existed at this point in time."
+**Concept:** Inscribe a commitment (hash of build JSON) on-chain via ordinals. The full build lives on nostr (updatable), but the on-chain inscription proves "this build existed at this point in time."
 
 **Use cases:**
 - Proof-of-build: "I was running this exact config on this date"
-- Loadout versioning with immutable history
-- Premium/verified rigs anchored on-chain
+- Build versioning with immutable history
+- Premium/verified builds anchored on-chain
 - Could tie into Taproot Wizards ecosystem
 
 **Implementation (later):**
-- SHA-256 hash of canonical loadout JSON
+- SHA-256 hash of canonical build JSON
 - Inscribe via ord CLI or Xverse API
 - Store inscription ID in nostr event tags: `["i", "ord:<inscription_id>"]`
-- UI: gold badge on loadouts with on-chain anchors
+- UI: gold badge on builds with on-chain anchors
 
 Not urgent. Build nostr first, add Bitcoin anchoring when the network has real users.
 
@@ -186,18 +186,18 @@ Not urgent. Build nostr first, add Bitcoin anchoring when the network has real u
 
 **Phase 3a: Local Feed (no network)**
 - Feed UI component with mock data
-- Card layout showing other people's rigs
+- Card layout showing other people's builds
 - Click to view → comparison view
 
 **Phase 3b: Nostr Integration**
 - Add `nostr-sdk` to Rust backend
 - Key management (generate, import, display npub)
 - Publish command: sign + push to relays
-- Subscribe command: pull loadout events from relays
+- Subscribe command: pull build events from relays
 - Feed populated from real nostr events
 
 **Phase 3c: Social Features**
-- Follow other riggers (nostr follow list, NIP-02)
-- Reactions/zaps on loadouts (NIP-25)
+- Follow other builders (nostr follow list, NIP-02)
+- Reactions/zaps on builds (NIP-25)
 - Comments (NIP-22)
 - Templates as curated collections

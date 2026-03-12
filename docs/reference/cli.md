@@ -41,6 +41,8 @@ node clawclawgo.mjs apply <build.json> --agent <agent-id> [options]
 | `--agent <id>` | Agent ID (required, lowercase alphanumeric + hyphens) |
 | `--dry-run` | Preview actions without making changes |
 | `--use-my-models` | Remap build model tiers to your existing config |
+| `--skip-deps` | Skip dependency checking |
+| `--skip-security` | Skip security scan (not recommended) |
 
 **Example:**
 
@@ -70,6 +72,62 @@ node clawclawgo.mjs apply quinn-build.json --agent test-bot --use-my-models
 6. Write HEARTBEAT.md
 7. Create memory directories and template files
 8. Add agent config entry to `openclaw.json`
+
+### `scan`
+
+Scan a build file for security issues without applying it.
+
+```bash
+node clawclawgo.mjs scan <build.json>
+```
+
+Runs all five security passes and outputs the security report with trust score and findings. See [Security Scanning](/guide/security) for details.
+
+**Example:**
+
+```bash
+node clawclawgo.mjs scan my-build.json
+```
+
+### `validate`
+
+Validate a build file against the schema and check that setup guides exist.
+
+```bash
+node clawclawgo.mjs validate <build.json>
+```
+
+Checks:
+- JSON structure matches schema
+- All required fields present
+- Integration setup guide URLs resolve (HTTP HEAD)
+- Dependency references are valid
+
+**Example:**
+
+```bash
+node clawclawgo.mjs validate my-build.json
+```
+
+### `preview`
+
+Preview what an applier would see (security summary, dependency report, guide availability).
+
+```bash
+node clawclawgo.mjs preview <build.json>
+```
+
+Shows:
+- Security scan summary with trust score
+- Dependency report (installed vs missing)
+- Setup guide availability per integration
+- Block-by-block action plan
+
+**Example:**
+
+```bash
+node clawclawgo.mjs preview my-build.json
+```
 
 ## Environment
 

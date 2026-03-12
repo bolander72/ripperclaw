@@ -6,11 +6,14 @@ Apply a build to create a new agent or update an existing one.
 
 ClawClawGo follows strict safety rules when applying:
 
-1. **Never overwrites existing agent workspaces**: if `~/.openclaw/agents/<id>/` exists, the apply is blocked. You must choose a unique ID or delete the existing agent first.
-2. **Mandatory backup before changes**: `openclaw.json` is automatically copied to `openclaw.backup-<timestamp>.json` before any modifications.
-3. **Protects the default agent**: if `agents.list` is empty (single-agent setup), the current agent is automatically marked as `default: true` before creating the new one. This prevents orphaning your existing agent.
-4. **Integrations are always manual**: credentials, API keys, and connection details never transfer. You get a checklist with documentation links for manual setup.
-5. **Persona requires confirmation**: SOUL.md and AGENTS.md changes are shown in a diff view before applying. You must explicitly confirm persona changes since they alter the agent's core identity.
+1. **Security scan first**: Every build is [scanned for security issues](/guide/security) before apply. Blocked builds cannot be applied.
+2. **Never overwrites existing agent workspaces**: if `~/.openclaw/agents/<id>/` exists, the apply is blocked. You must choose a unique ID or delete the existing agent first.
+3. **Mandatory backup before changes**: `openclaw.json` is automatically copied to `openclaw.backup-<timestamp>.json` before any modifications.
+4. **Protects the default agent**: if `agents.list` is empty (single-agent setup), the current agent is automatically marked as `default: true` before creating the new one. This prevents orphaning your existing agent.
+5. **Dependency check**: [Dependencies are checked](/guide/dependencies) before installation. You see what's missing and can opt in to auto-install.
+6. **Setup guide availability**: For integrations with [setup guides](/guide/setup-guides), the guide is fetched and presented.
+7. **Integrations are always manual**: credentials, API keys, and connection details never transfer. You get a checklist with documentation links for manual setup.
+8. **Persona requires confirmation**: SOUL.md and AGENTS.md changes are shown in a diff view before applying. You must explicitly confirm persona changes since they alter the agent's core identity.
 
 ## Apply Modes
 
