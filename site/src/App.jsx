@@ -52,7 +52,7 @@ function formatDate(dateStr) {
 const RELEASE_BASE = 'https://github.com/bolander72/ripperclaw/releases'
 const RELEASE_TAG = 'v0.1.0'
 
-function DownloadDropdown() {
+function DownloadDropdown({ className = '' }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -71,10 +71,10 @@ function DownloadDropdown() {
   ]
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className={`relative ${className}`}>
       <button
         onClick={() => setOpen(!open)}
-        className="px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center gap-2"
+        className="w-full px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center justify-center gap-2"
       >
         Get RipperClaw
         <IconChevronDown size={16} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -163,11 +163,11 @@ function Hero() {
         </p>
 
         {/* CTA */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <DownloadDropdown />
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm mx-auto">
+          <DownloadDropdown className="w-full" />
           <Link
             to="/explore"
-            className="px-6 py-3 bg-white/5 text-rc-text font-grotesk font-semibold rounded-xl hover:bg-white/10 transition-colors border border-rc-border flex items-center gap-2"
+            className="w-full px-6 py-3 bg-white/5 text-rc-text font-grotesk font-semibold rounded-xl hover:bg-white/10 transition-colors border border-rc-border flex items-center justify-center gap-2"
           >
             Browse Loadouts
             <IconArrowDown size={16} />
@@ -795,11 +795,11 @@ function Footer() {
           <p className="text-rc-text-dim text-sm mb-8 max-w-md mx-auto">
             Create your agent loadout, publish it for the community, and discover builds you never thought of.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <DownloadDropdown />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm mx-auto">
+            <DownloadDropdown className="w-full" />
             <a
               href="/docs/"
-              className="px-6 py-3 bg-white/5 hover:bg-white/10 text-rc-text font-grotesk font-semibold rounded-xl transition-colors border border-rc-border flex items-center gap-2"
+              className="w-full px-6 py-3 bg-white/5 hover:bg-white/10 text-rc-text font-grotesk font-semibold rounded-xl transition-colors border border-rc-border flex items-center justify-center gap-2"
             >
               <IconBook2 size={18} />
               Docs
