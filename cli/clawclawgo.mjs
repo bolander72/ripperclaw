@@ -4,8 +4,9 @@
  *
  * Usage:
  *   clawclawgo export [--agent <id>] [--out <file>]
- *   clawclawgo apply <build.json> --agent <id> [--mode merge|replace] [--use-my-models] [--dry-run]
+ *   clawclawgo apply <build.json> --agent <id> [--mode merge|replace] [--use-my-models] [--dry-run] [--skip-deps] [--skip-security]
  *   clawclawgo preview <build.json>
+ *   clawclawgo scan <build.json>
  */
 
 import fs from 'fs';
@@ -68,6 +69,223 @@ function scrubPII(text) {
 function preview(text, maxLen = 500) {
   if (!text) return null;
   return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;
+}
+
+// ── Dependency Checking ──
+
+function checkDependencies(build) {
+  const deps = build.dependencies;
+  if (!deps) return { checks: [], missing: 0 };
+
+  const checks = [];
+
+  // Check bins
+  (deps.bins || []).forEach(bin => {
+    const installed = tryExec(`which ${bin}`) !== undefined;
+    checks.push({ name: bin, type: 'bin', installed, installCmd: installed ? null : `install ${bin}` });
+  });
+
+  // Check brew
+  (deps.brew || []).forEach(pkg => {
+    const installed = tryExec(`brew list ${pkg}`) !== undefined;
+    checks.push({ name: pkg, type: 'brew', installed, installCmd: installed ? null : `brew install ${pkg}` });
+  });
+
+  // Check pip
+  (deps.pip || []).forEach(pkg => {
+    const installed = tryExec(`pip show ${pkg}`) !== undefined || tryExec(`pip3 show ${pkg}`) !== undefined;
+    checks.push({ name: pkg, type: 'pip', installed, installCmd: installed ? null : `pip install ${pkg}` });
+  });
+
+  // Check npm
+  (deps.npm || []).forEach(pkg => {
+    const installed = tryExec(`npm list -g ${pkg}`) !== undefined;
+    checks.push({ name: pkg, type: 'npm', installed, installCmd: installed ? null : `npm install -g ${pkg}` });
+  });
+
+  // Check models
+  (deps.models || []).forEach(model => {
+    const expandedPath = model.path.replace(/^~/, process.env.HOME);
+    const fullPath = path.join(expandedPath, model.name);
+    const installed = fs.existsSync(fullPath);
+    checks.push({ name: model.name, type: 'model', installed, details: installed ? fullPath : `${model.size || '?'} from ${model.url}` });
+  });
+
+  // Check platform
+  if (deps.platform) {
+    const current = process.platform;
+    const supported = deps.platform.includes(current);
+    checks.push({ name: `platform (${deps.platform.join(', ')})`, type: 'platform', installed: supported, details: `you're on ${current}` });
+  }
+
+  // Check version
+  if (deps.minOpenclawVersion) {
+    const current = tryExec('openclaw --version')?.replace(/[^0-9.]/g, '');
+    const ok = current && compareVersions(current, deps.minOpenclawVersion) >= 0;
+    checks.push({ name: `OpenClaw >= ${deps.minOpenclawVersion}`, type: 'version', installed: ok, details: current ? `you have ${current}` : 'openclaw not found' });
+  }
+
+  const missing = checks.filter(c => !c.installed).length;
+  return { checks, missing };
+}
+
+function compareVersions(a, b) {
+  const aParts = a.split('.').map(Number);
+  const bParts = b.split('.').map(Number);
+  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+    const aPart = aParts[i] || 0;
+    const bPart = bParts[i] || 0;
+    if (aPart < bPart) return -1;
+    if (aPart > bPart) return 1;
+  }
+  return 0;
+}
+
+function formatDependencyReport(buildName, checks) {
+  const installed = checks.filter(c => c.installed);
+  const missing = checks.filter(c => !c.installed);
+
+  const lines = [];
+  lines.push(`\nDependencies for "${buildName}":\n`);
+
+  if (installed.length > 0) {
+    lines.push('INSTALLED:');
+    for (const c of installed) {
+      lines.push(`  ✅ ${c.name}${c.details ? ` (${c.details})` : ''}`);
+    }
+    lines.push('');
+  }
+
+  if (missing.length > 0) {
+    lines.push('MISSING:');
+    for (const c of missing) {
+      lines.push(`  ❌ ${c.name}${c.installCmd ? ` → ${c.installCmd}` : ''}`);
+      if (c.details) lines.push(`     ${c.details}`);
+    }
+    lines.push('');
+  }
+
+  lines.push(`${installed.length} installed, ${missing.length} missing`);
+  return lines.join('\n');
+}
+
+// ── Security Scanning ──
+
+function scanBuildSecurity(build) {
+  const findings = [];
+
+  // Simple pattern-based scanning (reimplemented from src/security.ts)
+  const BLOCK_PATTERNS = [
+    { pattern: /ignore.*(?:previous|above|prior).*instructions/i, msg: 'Instructions to ignore previous instructions' },
+    { pattern: /do\s+not\s+(?:tell|inform|notify|alert).*user/i, msg: 'Instructions to hide behavior from user' },
+    { pattern: /(?:disable|bypass|skip|ignore).*(?:safety|security|permission)/i, msg: 'Instructions to disable safety features' },
+    { pattern: /\|\s*curl\s+.*https?:\/\//i, msg: 'Shell command pipes output to external URL' },
+    { pattern: /rm\s+-rf\s+(?:\/|~\/(?!\.openclaw))/i, msg: 'Dangerous file deletion outside workspace' },
+    { pattern: /security\s+find-generic-password/i, msg: 'Keychain credential access' },
+    { pattern: /(?:https?:\/\/)?(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?/, msg: 'Hardcoded IP address' },
+  ];
+
+  const WARN_PATTERNS = [
+    { pattern: /exec\s*\(/i, msg: 'Contains exec() call' },
+    { pattern: /eval\s*\(/i, msg: 'Contains eval() call' },
+    { pattern: /curl\s+.*https?:\/\//i, msg: 'curl usage (review for legitimacy)' },
+    { pattern: /wget\s+.*https?:\/\//i, msg: 'wget usage (review for legitimacy)' },
+  ];
+
+  function scanText(text, location, patterns, severity) {
+    for (const { pattern, msg } of patterns) {
+      if (pattern.test(text)) {
+        findings.push({ severity, location, message: msg, match: text.match(pattern)?.[0]?.slice(0, 100) });
+      }
+    }
+  }
+
+  // Scan persona content
+  const soulContent = build.blocks?.persona?.soul?.content || '';
+  const agentsContent = build.blocks?.persona?.agents?.content || '';
+  const heartbeatContent = build.blocks?.automations?.heartbeat?.content || '';
+
+  scanText(soulContent, 'blocks.persona.soul.content', BLOCK_PATTERNS, 'block');
+  scanText(soulContent, 'blocks.persona.soul.content', WARN_PATTERNS, 'warn');
+  scanText(agentsContent, 'blocks.persona.agents.content', BLOCK_PATTERNS, 'block');
+  scanText(agentsContent, 'blocks.persona.agents.content', WARN_PATTERNS, 'warn');
+  scanText(heartbeatContent, 'blocks.automations.heartbeat', BLOCK_PATTERNS, 'block');
+  scanText(heartbeatContent, 'blocks.automations.heartbeat', WARN_PATTERNS, 'warn');
+
+  // Skill verification
+  const skills = build.blocks?.skills?.items || [];
+  for (let i = 0; i < skills.length; i++) {
+    const skill = skills[i];
+    if (skill.source === 'custom') {
+      findings.push({ severity: 'block', location: `blocks.skills.items[${i}]`, message: `Custom skill "${skill.name}" from unknown source` });
+    }
+    if (skill.source === 'local') {
+      findings.push({ severity: 'warn', location: `blocks.skills.items[${i}]`, message: `Local skill "${skill.name}" (cannot verify contents)` });
+    }
+  }
+
+  // Calculate trust score
+  let score = 0;
+  const allClawhub = skills.every(s => s.source === 'clawhub' && s.version);
+  if (allClawhub && skills.length > 0) score += 20;
+  const hasWarnings = findings.some(f => f.severity === 'warn');
+  if (!hasWarnings) score += 20;
+  const personaText = soulContent + agentsContent;
+  const hasShell = /(?:exec|eval|curl|wget|bash|sh|python -c)/i.test(personaText);
+  if (!hasShell) score += 15;
+
+  const blocked = findings.some(f => f.severity === 'block');
+  const blockCount = findings.filter(f => f.severity === 'block').length;
+  const warnCount = findings.filter(f => f.severity === 'warn').length;
+
+  return {
+    buildName: build.meta.name,
+    scannedAt: new Date().toISOString(),
+    trustScore: Math.min(100, Math.max(0, score)),
+    findings,
+    blocked,
+    summary: `${blockCount} blocked, ${warnCount} warnings`,
+  };
+}
+
+function formatSecurityReport(report) {
+  const lines = [];
+  lines.push(`\nScanning "${report.buildName}" for security issues...\n`);
+
+  const blocked = report.findings.filter(f => f.severity === 'block');
+  const warnings = report.findings.filter(f => f.severity === 'warn');
+
+  if (blocked.length > 0) {
+    lines.push(`❌ BLOCKED (${blocked.length})`);
+    for (const f of blocked) {
+      lines.push(`${f.location}: ${f.message}`);
+      if (f.match) lines.push(`→ "${f.match}"`);
+    }
+    lines.push('');
+  }
+
+  if (warnings.length > 0) {
+    lines.push(`⚠️  WARNINGS (${warnings.length})`);
+    for (const f of warnings) {
+      lines.push(`${f.location}: ${f.message}`);
+    }
+    lines.push('');
+  }
+
+  lines.push(`Trust Score: ${report.trustScore}/100`);
+  const badge = report.trustScore >= 80 ? 'Verified' : report.trustScore >= 50 ? 'Community' : report.trustScore >= 20 ? 'Unreviewed' : 'Suspicious';
+  lines.push(`Badge: ${badge}\n`);
+
+  if (report.blocked) {
+    lines.push('This build has blocking security issues and cannot be applied.');
+    lines.push('Review the findings above and contact the author.');
+  } else if (warnings.length > 0) {
+    lines.push('⚠️  This build has warnings. Review before applying.');
+  } else {
+    lines.push('✅ No blocking issues found.');
+  }
+
+  return lines.join('\n');
 }
 
 // ── Export ──
@@ -291,9 +509,28 @@ function exportBuild(agentId) {
 // ── Apply ──
 
 function applyBuild(buildPath, agentId, options = {}) {
-  const { mode = 'merge', useMyModels = false, dryRun = false } = options;
+  const { mode = 'merge', useMyModels = false, dryRun = false, skipDeps = false, skipSecurity = false } = options;
 
   const build = JSON.parse(fs.readFileSync(buildPath, 'utf8'));
+
+  // Security scan first (unless skipped)
+  if (!skipSecurity) {
+    const secReport = scanBuildSecurity(build);
+    console.log(formatSecurityReport(secReport));
+    if (secReport.blocked) {
+      throw new Error('Build has blocking security issues. Fix or use --skip-security to bypass (not recommended).');
+    }
+  }
+
+  // Dependency check (unless skipped)
+  if (!skipDeps && build.dependencies) {
+    const depResult = checkDependencies(build);
+    console.log(formatDependencyReport(build.meta.name, depResult.checks));
+    if (depResult.missing > 0) {
+      throw new Error(`${depResult.missing} dependencies missing. Install them or use --skip-deps to bypass.`);
+    }
+  }
+
   const config = readConfig();
   const agents = config.agents?.list || [];
   const defaults = config.agents?.defaults || {};
@@ -600,6 +837,14 @@ function previewBuild(buildPath) {
   if (build.meta.description) lines.push(`   ${build.meta.description}`);
   lines.push('');
 
+  // Security summary
+  const secReport = scanBuildSecurity(build);
+  lines.push(`🔒 Security: Trust Score ${secReport.trustScore}/100 (${secReport.summary})`);
+  if (secReport.blocked) {
+    lines.push('   ❌ Has blocking security issues');
+  }
+  lines.push('');
+
   // Model
   const m = build.blocks?.model;
   if (m?.tiers) {
@@ -660,6 +905,25 @@ function previewBuild(buildPath) {
     lines.push(`  Directories: ${mem.structure.directories?.length || 0}`);
     lines.push(`  Template files: ${mem.structure.templateFiles?.length || 0}`);
     lines.push(`  Engine: ${mem.engine?.type || 'default'}`);
+    lines.push('');
+  }
+
+  // Dependencies
+  if (build.dependencies) {
+    const depResult = checkDependencies(build);
+    const totalDeps = depResult.checks.length;
+    lines.push(`📦 Dependencies (${totalDeps} total, ${depResult.missing} missing)`);
+    if (depResult.missing > 0) {
+      const missingItems = depResult.checks.filter(c => !c.installed).slice(0, 3);
+      for (const item of missingItems) {
+        lines.push(`  ❌ ${item.name}`);
+      }
+      if (depResult.missing > 3) {
+        lines.push(`  ... and ${depResult.missing - 3} more`);
+      }
+    } else {
+      lines.push('  ✅ All dependencies installed');
+    }
   }
 
   return lines.join('\n');
@@ -705,6 +969,8 @@ try {
         mode: getArg('--mode') || 'merge',
         useMyModels: hasFlag('--use-my-models'),
         dryRun: hasFlag('--dry-run'),
+        skipDeps: hasFlag('--skip-deps'),
+        skipSecurity: hasFlag('--skip-security'),
       });
       console.log(JSON.stringify(result, null, 2));
       break;
@@ -718,6 +984,17 @@ try {
       console.log(previewBuild(buildPath));
       break;
     }
+    case 'scan': {
+      const buildPath = args[1];
+      if (!buildPath) {
+        console.error('Usage: clawclawgo scan <build.json>');
+        process.exit(1);
+      }
+      const build = JSON.parse(fs.readFileSync(buildPath, 'utf8'));
+      const report = scanBuildSecurity(build);
+      console.log(formatSecurityReport(report));
+      break;
+    }
     default:
       console.log(`clawclawgo: OpenClaw agent build manager
 
@@ -725,11 +1002,14 @@ Commands:
   export [--agent <id>] [--out <file>]    Export current agent as build
   apply <file> --agent <id> [options]     Apply build to agent
   preview <file>                          Preview build contents
+  scan <file>                             Run security scan on build
 
 Apply options:
   --mode merge|replace    Apply mode (default: merge)
   --use-my-models         Use your current models instead of build's
-  --dry-run               Show what would happen without doing it`);
+  --dry-run               Show what would happen without doing it
+  --skip-deps             Skip dependency checking
+  --skip-security         Skip security scanning (not recommended)`);
   }
 } catch (err) {
   console.error(`❌ ${err.message}`);

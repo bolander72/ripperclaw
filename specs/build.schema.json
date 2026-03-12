@@ -76,7 +76,8 @@
           }
         }
       }
-    }
+    },
+    "dependencies": { "$ref": "#/definitions/dependenciesBlock" }
   },
   "definitions": {
     "modelTier": {
@@ -344,6 +345,69 @@
             "description": { "type": "string" }
           },
           "description": "Informational: what memory engine this agent uses"
+        }
+      }
+    },
+    "modelRequirement": {
+      "type": "object",
+      "required": ["name", "url", "path"],
+      "properties": {
+        "name": { "type": "string", "description": "Model file name" },
+        "url": { "type": "string", "format": "uri", "description": "Download URL" },
+        "path": { "type": "string", "description": "Install path (supports ~)" },
+        "size": { "type": "string", "description": "File size (e.g., '82MB')" }
+      }
+    },
+    "configRequirement": {
+      "type": "object",
+      "required": ["key"],
+      "properties": {
+        "key": { "type": "string", "description": "Environment variable or keychain key" },
+        "description": { "type": "string", "description": "What this config is for" },
+        "required": { "type": "boolean", "description": "Whether this is required" }
+      }
+    },
+    "dependenciesBlock": {
+      "type": "object",
+      "properties": {
+        "bins": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Required binaries on PATH"
+        },
+        "brew": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Homebrew packages"
+        },
+        "pip": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Python pip packages"
+        },
+        "npm": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "npm global packages"
+        },
+        "models": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/modelRequirement" },
+          "description": "Model files to download"
+        },
+        "config": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/configRequirement" },
+          "description": "Configuration requirements"
+        },
+        "platform": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Supported platforms (darwin, linux, win32)"
+        },
+        "minOpenclawVersion": {
+          "type": "string",
+          "description": "Minimum OpenClaw version"
         }
       }
     }

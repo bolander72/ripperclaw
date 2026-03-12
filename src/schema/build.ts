@@ -150,6 +150,45 @@ export interface MemoryBlock {
   };
 }
 
+export interface ModelRequirement {
+  /** Model file name */
+  name: string;
+  /** Download URL */
+  url: string;
+  /** Install path (supports ~) */
+  path: string;
+  /** File size (e.g., '82MB') */
+  size?: string;
+}
+
+export interface ConfigRequirement {
+  /** Environment variable or keychain key */
+  key: string;
+  /** What this config is for */
+  description?: string;
+  /** Whether this is required */
+  required?: boolean;
+}
+
+export interface DependenciesBlock {
+  /** Required binaries on PATH */
+  bins?: string[];
+  /** Homebrew packages */
+  brew?: string[];
+  /** Python pip packages */
+  pip?: string[];
+  /** npm global packages */
+  npm?: string[];
+  /** Model files to download */
+  models?: ModelRequirement[];
+  /** Configuration requirements */
+  config?: ConfigRequirement[];
+  /** Supported platforms (darwin, linux, win32) */
+  platform?: string[];
+  /** Minimum OpenClaw version */
+  minOpenclawVersion?: string;
+}
+
 // ── Build ───────────────────────────────────────────────────────────
 
 export interface BuildMeta {
@@ -187,6 +226,28 @@ export interface Build {
     /** Custom block types beyond the six defaults */
     [key: string]: ModelBlock | PersonaBlock | SkillsBlock | IntegrationsBlock | AutomationsBlock | MemoryBlock | CustomBlock | undefined;
   };
+  /** Dependency manifest */
+  dependencies?: DependenciesBlock;
+}
+
+// ── Security Types ──────────────────────────────────────────────────
+
+export interface SecurityFinding {
+  severity: "block" | "warn" | "info";
+  category: "prompt-injection" | "automation" | "exfiltration" | "skill" | "pii";
+  location: string;
+  message: string;
+  match?: string;
+  pattern?: string;
+}
+
+export interface SecurityReport {
+  buildName: string;
+  scannedAt: string;
+  trustScore: number;
+  findings: SecurityFinding[];
+  blocked: boolean;
+  summary: string;
 }
 
 /** Custom block type for extensibility */

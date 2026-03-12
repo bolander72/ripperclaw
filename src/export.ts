@@ -15,7 +15,9 @@ import type {
   IntegrationsBlock,
   AutomationsBlock,
   MemoryBlock,
+  DependenciesBlock,
 } from "./schema/build.js";
+import { buildDependencyManifest } from "./dependencies.js";
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -479,6 +481,12 @@ export async function exportBuild(
       memory: memoryBlock,
     },
   };
+
+  // Resolve dependencies from skills and integrations
+  const dependencies = await buildDependencyManifest(build, paths.workspace);
+  if (Object.keys(dependencies).length > 0) {
+    build.dependencies = dependencies;
+  }
 
   return build;
 }
