@@ -29,6 +29,27 @@ Keys are stored locally at `~/.ripperclaw/keys.json` with restricted permissions
 
 Published loadouts use **NIP-33** (parameterized replaceable events) with kind `38333`. This means publishing again with the same name updates the existing event rather than creating a duplicate.
 
+### PII Scrubbing
+
+Before publishing, RipperClaw automatically removes personally identifiable information:
+
+**Removed from persona files:**
+- Phone numbers
+- Email addresses
+- Physical addresses
+- API keys and tokens
+- Webhook URLs
+- Internal IP addresses
+- SSH host details
+
+**Never included:**
+- USER.md content (always excluded)
+- Memory content (facts, handoffs, daily notes)
+- Chat history or conversations
+- Integration credentials
+
+The scrubbing process preserves the structure and tone of your persona files while removing sensitive details. Review the preview to confirm everything looks safe before publishing.
+
 ## Managing Your Identity
 
 Go to **Settings → Identity** to:

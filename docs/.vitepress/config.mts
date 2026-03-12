@@ -36,6 +36,8 @@ export default defineConfig({
             { text: 'Exporting', link: '/guide/exporting' },
             { text: 'Applying', link: '/guide/applying' },
             { text: 'Publishing', link: '/guide/publishing' },
+            { text: 'Provenance', link: '/guide/provenance' },
+            { text: 'Settings', link: '/guide/settings' },
           ],
         },
       ],
