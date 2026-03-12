@@ -1,31 +1,29 @@
 /**
- * Loadout Diff — compare two loadouts slot by slot.
+ * Build Diff - compare two builds block by block.
  */
 
 import type {
-  Loadout,
-  LoadoutDiff,
-  SlotDiff,
-  SlotName,
-} from "./schema/loadout.js";
+  Build,
+  BuildDiff,
+  BlockDiff,
+  BlockName,
+} from "./schema/build.js";
 
-const SLOT_NAMES: SlotName[] = [
-  "heart",
-  "soul",
-  "brain",
-  "os",
-  "mouth",
-  "ears",
-  "eyes",
-  "nervousSystem",
-  "skeleton",
+const BLOCK_NAMES: BlockName[] = [
+  "model",
+  "persona",
+  "skills",
+  "integrations",
+  "automations",
+  "memory",
 ];
 
 function diffObjects(
   a: Record<string, unknown> | undefined,
   b: Record<string, unknown> | undefined
 ): { field: string; yours: unknown; theirs: unknown }[] {
-  const changes: { field: string; yours: unknown; theirs: unknown }[] = [];
+  const changes: { field: string; yours: unknown; theirs: unknown }[] =
+    [];
   const allKeys = new Set([
     ...Object.keys(a || {}),
     ...Object.keys(b || {}),
@@ -42,51 +40,92 @@ function diffObjects(
   return changes;
 }
 
-export function diffLoadouts(yours: Loadout, theirs: Loadout): LoadoutDiff {
-  const slotDiffs: SlotDiff[] = [];
+export function diffBuilds(yours: Build, theirs: Build): BuildDiff {
+  const blockDiffs: BlockDiff[] = [];
 
-  for (const slot of SLOT_NAMES) {
-    const a = yours.slots[slot] as Record<string, unknown> | undefined;
-    const b = theirs.slots[slot] as Record<string, unknown> | undefined;
+  for (const block of BLOCK_NAMES) {
+    const a = yours.blocks[block] as
+      | Record<string, unknown>
+      | undefined;
+    const b = theirs.blocks[block] as
+      | Record<string, unknown>
+      | undefined;
 
     // If both undefined, skip
     if (!a && !b) continue;
 
     const changes = diffObjects(a, b);
     if (changes.length > 0) {
-      slotDiffs.push({ slot, changes });
+      blockDiffs.push({ block, changes });
     }
   }
 
-  // Mod diffs
-  const yourMods = new Map(yours.mods.map((m) => [m.name, m]));
-  const theirMods = new Map(theirs.mods.map((m) => [m.name, m]));
+  // Skill diffs
+  const yourSkills = new Map(
+    yours.blocks.skills?.items.map((s) => [s.name, s]) || []
+  );
+  const theirSkills = new Map(
+    theirs.blocks.skills?.items.map((s) => [s.name, s]) || []
+  );
 
-  const modsOnlyYours: string[] = [];
-  const modsOnlyTheirs: string[] = [];
-  const modVersionDiffs: { name: string; yours?: string; theirs?: string }[] =
-    [];
+  const skillsOnlyYours: string[] = [];
+  const skillsOnlyTheirs: string[] = [];
+  const skillVersionDiffs: {
+    name: string;
+    yours?: string;
+    theirs?: string;
+  }[] = [];
 
-  for (const [name, mod] of yourMods) {
-    if (!theirMods.has(name)) {
-      modsOnlyYours.push(name);
+  for (const [name, skill] of yourSkills) {
+    if (!theirSkills.has(name)) {
+      skillsOnlyYours.push(name);
     } else {
-      const theirMod = theirMods.get(name)!;
-      if (mod.version !== theirMod.version) {
-        modVersionDiffs.push({
+      const theirSkill = theirSkills.get(name)!;
+      if (skill.version !== theirSkill.version) {
+        skillVersionDiffs.push({
           name,
-          yours: mod.version,
-          theirs: theirMod.version,
+          yours: skill.version,
+          theirs: theirSkill.version,
         });
       }
     }
   }
 
-  for (const name of theirMods.keys()) {
-    if (!yourMods.has(name)) {
-      modsOnlyTheirs.push(name);
+  for (const name of theirSkills.keys()) {
+    if (!yourSkills.has(name)) {
+      skillsOnlyTheirs.push(name);
     }
   }
 
-  return { slotDiffs, modsOnlyYours, modsOnlyTheirs, modVersionDiffs };
+  // Integration diffs
+  const yourIntegrations = new Set(
+    yours.blocks.integrations?.items.map((i) => i.provider) || []
+  );
+  const theirIntegrations = new Set(
+    theirs.blocks.integrations?.items.map((i) => i.provider) || []
+  );
+
+  const integrationsOnlyYours: string[] = [];
+  const integrationsOnlyTheirs: string[] = [];
+
+  for (const provider of yourIntegrations) {
+    if (!theirIntegrations.has(provider)) {
+      integrationsOnlyYours.push(provider);
+    }
+  }
+
+  for (const provider of theirIntegrations) {
+    if (!yourIntegrations.has(provider)) {
+      integrationsOnlyTheirs.push(provider);
+    }
+  }
+
+  return {
+    blockDiffs,
+    skillsOnlyYours,
+    skillsOnlyTheirs,
+    skillVersionDiffs,
+    integrationsOnlyYours,
+    integrationsOnlyTheirs,
+  };
 }

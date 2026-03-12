@@ -190,7 +190,7 @@
         },
         "source": {
           "type": "string",
-          "enum": ["clawhub", "local", "custom"],
+          "enum": ["clawhub", "local", "custom", "bundled"],
           "description": "Where this skill comes from"
         },
         "description": {

@@ -1,5 +1,5 @@
 /**
- * Loadout Export — reads the local OpenClaw installation and builds a loadout snapshot.
+ * Build Export - reads the local OpenClaw installation and builds a v2 build snapshot.
  * Sanitizes secrets, API keys, and PII. Only structure and versions leave the machine.
  */
 
@@ -8,18 +8,14 @@ import { join, basename } from "node:path";
 import { homedir } from "node:os";
 import { execSync } from "node:child_process";
 import type {
-  Loadout,
-  Mod,
-  SlotHeart,
-  SlotSoul,
-  SlotBrain,
-  SlotOS,
-  SlotMouth,
-  SlotEars,
-  SlotEyes,
-  SlotNervousSystem,
-  SlotSkeleton,
-} from "./schema/loadout.js";
+  Build,
+  ModelBlock,
+  PersonaBlock,
+  SkillsBlock,
+  IntegrationsBlock,
+  AutomationsBlock,
+  MemoryBlock,
+} from "./schema/build.js";
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -54,6 +50,25 @@ function tryExec(cmd: string): string | undefined {
   }
 }
 
+function scrubPII(text: string): string {
+  if (!text) return text;
+  // Phone numbers
+  text = text.replace(/\+?1?\d{10,11}/g, "[REDACTED_PHONE]");
+  // Email addresses
+  text = text.replace(/[\w.-]+@[\w.-]+\.\w+/g, "[REDACTED_EMAIL]");
+  // Street addresses (simple pattern)
+  text = text.replace(
+    /\d+\s+[\w\s]+(?:St|Ave|Blvd|Dr|Rd|Ln|Way|Ct)\b[^.\n]*/gi,
+    "[REDACTED_ADDRESS]"
+  );
+  return text;
+}
+
+function preview(text: string, maxLen = 500): string | undefined {
+  if (!text) return undefined;
+  return text.length > maxLen ? text.slice(0, maxLen) + "..." : text;
+}
+
 // ── Config Paths ────────────────────────────────────────────────────
 
 function resolveClawPaths() {
@@ -67,163 +82,120 @@ function resolveClawPaths() {
   };
 }
 
-// ── Slot Extractors ─────────────────────────────────────────────────
+// ── Block Extractors ────────────────────────────────────────────────
 
-function extractHeart(config: any): SlotHeart | undefined {
-  const defaults = config?.agents?.defaults;
-  const hb = defaults?.heartbeat;
-  if (!hb) return undefined;
-
-  return {
-    interval: hb.every || "unknown",
-    model: hb.model || "default",
-    tasks: [], // Could parse HEARTBEAT.md for task names
-  };
-}
-
-async function extractSoul(workspace: string): Promise<SlotSoul> {
-  const soulPath = join(workspace, "SOUL.md");
-  const identityPath = join(workspace, "IDENTITY.md");
-
-  const exists = await fileExists(soulPath);
-  const soul: SlotSoul = { exists };
-
-  if (exists) {
-    const text = await readText(soulPath);
-    soul.tokens = tokenEstimate(text);
-  }
-
-  if (await fileExists(identityPath)) {
-    const identity = await readText(identityPath);
-    const nameMatch = identity.match(/\*\*Name:\*\*\s*(.+)/);
-    if (nameMatch) soul.name = nameMatch[1].trim();
-  }
-
-  return soul;
-}
-
-function extractBrain(config: any): SlotBrain {
-  const plugins = config?.plugins || {};
-  const compaction = config?.agents?.defaults?.compaction || {};
-  const contextEngine = plugins?.slots?.contextEngine || "legacy";
-
-  // Try to get version from installs
-  const installId =
-    contextEngine !== "legacy" ? contextEngine : undefined;
-  const installInfo = installId
-    ? plugins?.installs?.[installId]
-    : undefined;
-
-  return {
-    contextEngine,
-    contextEngineVersion: installInfo?.version,
-    compactionMode: compaction.mode,
-    reserveTokensFloor: compaction.reserveTokensFloor,
-    memoryPlugin: plugins?.slots?.memory,
-  };
-}
-
-function extractOS(config: any): SlotOS {
-  const openclawVersion =
-    tryExec("openclaw --version")?.replace(/[^0-9.a-z-]/gi, "") || "unknown";
-
-  return {
-    runtime: "openclaw",
-    version: openclawVersion,
-    gatewayMode: config?.gateway?.mode,
-    nodeVersion: process.version,
-    platform: process.platform,
-    arch: process.arch,
-  };
-}
-
-function extractMouth(config: any): SlotMouth {
-  const tts = config?.messages?.tts;
-  if (!tts) return { tts: "none" };
-
-  const provider = tts.provider || "none";
-  const providerConfig = tts[provider] || {};
-
-  return {
-    tts: provider,
-    voice: providerConfig.voice,
-    speed: providerConfig.rate
-      ? parseFloat(providerConfig.rate)
-      : undefined,
-    lang: providerConfig.lang,
-  };
-}
-
-function extractEars(config: any): SlotEars {
-  const audio = config?.tools?.media?.audio;
-  if (!audio?.enabled) return { stt: "none" };
-
-  const models = audio.models || [];
-  const first = models[0];
-  if (!first) return { stt: "none" };
-
-  // Detect provider from config
-  const isLocal = first.type === "cli";
-  const stt = isLocal ? "local-cli" : first.type || "unknown";
-
-  return {
-    stt,
-    model: first.model,
-    local: isLocal,
-  };
-}
-
-function extractEyes(config: any): SlotEyes {
-  // Cameras would be detected from HA config, nodes, etc.
-  // For now, basic detection
-  return {
-    cameras: [], // TODO: detect from HA entities or node capabilities
-    screenCapture: false, // TODO: detect peekaboo
-  };
-}
-
-function extractNervousSystem(config: any): SlotNervousSystem {
-  const channels: string[] = [];
-  const channelConfig = config?.channels || {};
-
-  for (const [id, cfg] of Object.entries(channelConfig)) {
-    if ((cfg as any)?.enabled !== false) {
-      channels.push(id);
-    }
-  }
-
-  return {
-    channels,
-    integrations: [], // TODO: detect HA, calendar, email from workspace analysis
-  };
-}
-
-function extractSkeleton(config: any): SlotSkeleton {
+function buildModelBlock(config: any): ModelBlock {
   const defaults = config?.agents?.defaults || {};
   const model = defaults.model || {};
   const subagents = defaults.subagents || {};
+  const heartbeat = defaults.heartbeat || {};
+  const aliases = defaults.models || {};
+
+  function buildTier(modelStr: string) {
+    if (!modelStr || modelStr === "unknown") return undefined;
+    const [provider, modelName] = modelStr.includes("/")
+      ? modelStr.split("/", 2)
+      : ["unknown", modelStr];
+    const alias = aliases[modelStr]?.alias;
+    const isLocal = provider === "ollama";
+    const isPaid = !isLocal && provider !== "unknown";
+    return {
+      provider,
+      model: modelName,
+      ...(alias && { alias }),
+      paid: isPaid,
+      local: isLocal,
+    };
+  }
+
+  const primaryModel = model.primary || "unknown";
+  const subagentModel = subagents.model?.primary || primaryModel;
+  const heartbeatModel = heartbeat.model || "unknown";
+
+  const mainTier = buildTier(primaryModel);
+  const subagentTier = buildTier(subagentModel);
+  const heartbeatTier = buildTier(heartbeatModel);
 
   return {
-    primaryModel: model.primary || "unknown",
-    subagentModel: subagents.model?.primary,
-    maxConcurrent: defaults.maxConcurrent,
-    maxSubagents: subagents.maxConcurrent,
-    authMode: config?.gateway?.auth?.mode,
+    tiers: {
+      ...(mainTier && { main: mainTier }),
+      ...(subagentTier && { subagent: subagentTier }),
+      ...(heartbeatTier && { heartbeat: heartbeatTier }),
+    },
+    routing: {
+      description: `${mainTier?.alias || primaryModel} for main, ${subagentTier?.alias || subagentModel} for sub-agents, ${heartbeatTier?.alias || heartbeatModel} for heartbeats`,
+    },
   };
 }
 
-// ── Mod Detection ───────────────────────────────────────────────────
+async function buildPersonaBlock(workspace: string): Promise<PersonaBlock> {
+  const soulPath = join(workspace, "SOUL.md");
+  const identityPath = join(workspace, "IDENTITY.md");
+  const agentsPath = join(workspace, "AGENTS.md");
 
-async function detectMods(config: any, workspace: string): Promise<Mod[]> {
-  const mods: Mod[] = [];
+  const identityContent = await fileExists(identityPath)
+    ? await readText(identityPath)
+    : null;
+  const soulContent = await fileExists(soulPath)
+    ? await readText(soulPath)
+    : null;
+  const agentsContent = await fileExists(agentsPath)
+    ? await readText(agentsPath)
+    : null;
+
+  // Parse identity fields
+  const identityName = identityContent
+    ?.match(/\*\*Name:\*\*\s*(.+)/)?.[1]
+    ?.trim();
+  const identityCreature = identityContent
+    ?.match(/\*\*Creature:\*\*\s*(.+)/)?.[1]
+    ?.trim();
+  const identityVibe = identityContent
+    ?.match(/\*\*Vibe:\*\*\s*(.+)/)?.[1]
+    ?.trim();
+
+  return {
+    identity: {
+      ...(identityName && { name: identityName }),
+      ...(identityCreature && { creature: identityCreature }),
+      ...(identityVibe && { vibe: identityVibe }),
+    },
+    soul: soulContent
+      ? {
+          included: true,
+          preview: preview(scrubPII(soulContent)),
+          content: scrubPII(soulContent),
+          tokenEstimate: tokenEstimate(soulContent),
+        }
+      : { included: false },
+    user: {
+      included: false,
+      note: "USER.md excluded: contains personal information about the human",
+    },
+    agents: agentsContent
+      ? {
+          included: true,
+          preview: preview(scrubPII(agentsContent)),
+          content: scrubPII(agentsContent),
+        }
+      : { included: false },
+  };
+}
+
+async function buildSkillsBlock(
+  config: any,
+  workspace: string
+): Promise<SkillsBlock> {
+  const items: SkillsBlock["items"] = [];
 
   // Bundled skills from config
   const allowBundled = config?.skills?.allowBundled || [];
   for (const skill of allowBundled) {
-    mods.push({
+    items.push({
       name: skill,
       source: "bundled",
-      enabled: true,
+      description: `Bundled OpenClaw skill: ${skill}`,
+      requiresConfig: false,
     });
   }
 
@@ -236,12 +208,15 @@ async function detectMods(config: any, workspace: string): Promise<Mod[]> {
         if (entry.isDirectory()) {
           const skillMd = join(skillsDir, entry.name, "SKILL.md");
           if (await fileExists(skillMd)) {
+            const content = await readText(skillMd);
+            const desc = content.match(/^#[^\n]*\n+([^\n]+)/)?.[1]?.trim();
             // Don't add if already in bundled list
             if (!allowBundled.includes(entry.name)) {
-              mods.push({
+              items.push({
                 name: entry.name,
-                source: "custom",
-                enabled: true,
+                source: "clawhub",
+                description: desc,
+                requiresConfig: false,
               });
             }
           }
@@ -255,17 +230,185 @@ async function detectMods(config: any, workspace: string): Promise<Mod[]> {
   // Plugin-installed skills
   const installs = config?.plugins?.installs || {};
   for (const [id, info] of Object.entries(installs)) {
-    if (id === "bluebubbles") continue; // channel, not a mod
+    if (id === "bluebubbles") continue; // channel, not a skill
     const installInfo = info as any;
-    mods.push({
-      name: id,
-      version: installInfo.version,
-      source: "plugin",
-      enabled: config?.plugins?.entries?.[id]?.enabled !== false,
+    if (!items.find((s) => s.name === id)) {
+      items.push({
+        name: id,
+        version: installInfo.version,
+        source: "clawhub",
+      });
+    }
+  }
+
+  return { items };
+}
+
+async function buildIntegrationsBlock(
+  config: any,
+  workspace: string
+): Promise<IntegrationsBlock> {
+  const items: IntegrationsBlock["items"] = [];
+
+  // BlueBubbles (iMessage)
+  if (config.channels?.bluebubbles?.enabled) {
+    items.push({
+      type: "channel",
+      name: "iMessage (BlueBubbles)",
+      provider: "bluebubbles",
+      autoApply: false,
+      docsUrl: "https://docs.openclaw.ai/integrations/bluebubbles",
     });
   }
 
-  return mods;
+  // Detect caldir
+  if (tryExec("which caldir")) {
+    items.push({
+      type: "calendar",
+      name: "Calendar (caldir)",
+      provider: "caldir",
+      autoApply: false,
+    });
+  }
+
+  // Detect himalaya
+  if (tryExec("which himalaya")) {
+    items.push({
+      type: "email",
+      name: "Email (IMAP/SMTP)",
+      provider: "himalaya",
+      autoApply: false,
+    });
+  }
+
+  // Detect Home Assistant (check TOOLS.md for HA reference)
+  const toolsPath = join(workspace, "TOOLS.md");
+  const toolsContent = await fileExists(toolsPath)
+    ? await readText(toolsPath)
+    : "";
+  if (
+    toolsContent.includes("Home Assistant") ||
+    toolsContent.includes("home_assistant")
+  ) {
+    items.push({
+      type: "smart-home",
+      name: "Home Assistant",
+      provider: "homeassistant",
+      autoApply: false,
+      docsUrl: "https://docs.openclaw.ai/integrations/home-assistant",
+    });
+  }
+
+  // Detect gh CLI
+  if (tryExec("which gh")) {
+    items.push({
+      type: "code",
+      name: "GitHub",
+      provider: "gh",
+      autoApply: false,
+    });
+  }
+
+  // Voice I/O
+  if (
+    toolsContent.includes("voice_loop") ||
+    toolsContent.includes("Kokoro")
+  ) {
+    items.push({
+      type: "voice",
+      name: "Voice Loop (Whisper + Kokoro)",
+      provider: "voice-loop",
+      autoApply: false,
+    });
+  }
+
+  return { items };
+}
+
+async function buildAutomationsBlock(
+  config: any,
+  workspace: string
+): Promise<AutomationsBlock> {
+  const heartbeatPath = join(workspace, "HEARTBEAT.md");
+  const heartbeatContent = await fileExists(heartbeatPath)
+    ? await readText(heartbeatPath)
+    : null;
+  const heartbeatTasks = heartbeatContent?.match(/^-\s/gm)?.length || 0;
+
+  return {
+    heartbeat: heartbeatContent
+      ? {
+          included: true,
+          content: scrubPII(heartbeatContent),
+          taskCount: heartbeatTasks,
+        }
+      : { included: false },
+    cron: [],
+  };
+}
+
+async function buildMemoryBlock(
+  config: any,
+  workspace: string
+): Promise<MemoryBlock> {
+  const memoryDirs: string[] = [];
+  const templateFiles: Array<{ path: string; content: string }> = [];
+  const memoryDir = join(workspace, "memory");
+
+  if (await fileExists(memoryDir)) {
+    // Collect directory structure
+    async function walkDirs(dir: string, rel: string) {
+      memoryDirs.push(rel + "/");
+      const entries = await readdir(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (
+          entry.isDirectory() &&
+          !entry.name.startsWith(".")
+        ) {
+          await walkDirs(
+            join(dir, entry.name),
+            rel + "/" + entry.name
+          );
+        }
+      }
+    }
+    try {
+      await walkDirs(memoryDir, "memory");
+    } catch {
+      // memory dir not readable
+    }
+
+    // Include template files (just structure, not actual content)
+    for (const name of ["handoff.md", "active-work.md", "facts.md"]) {
+      const title = name
+        .replace(".md", "")
+        .replace(/-/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+      templateFiles.push({
+        path: `memory/${name}`,
+        content: `# ${title}\n\n_Updated each session._`,
+      });
+    }
+  }
+
+  const contextEngine =
+    config?.plugins?.slots?.contextEngine || "legacy";
+  const engineType =
+    contextEngine === "lossless-claw" ? "lcm" : "default";
+
+  return {
+    structure: {
+      directories: memoryDirs,
+      templateFiles,
+    },
+    engine: {
+      type: engineType,
+      description:
+        engineType === "lcm"
+          ? "Lossless Context Management: auto-compacts conversation history"
+          : "Default OpenClaw context engine",
+    },
+  };
 }
 
 // ── Main Export ──────────────────────────────────────────────────────
@@ -277,9 +420,9 @@ export interface ExportOptions {
   description?: string;
 }
 
-export async function exportLoadout(
+export async function exportBuild(
   options: ExportOptions = {}
-): Promise<Loadout> {
+): Promise<Build> {
   const paths = resolveClawPaths();
 
   // Read config
@@ -288,32 +431,54 @@ export async function exportLoadout(
     config = await readJson(paths.config);
   }
 
-  // Extract all slots
-  const soul = await extractSoul(paths.workspace);
+  // Build all blocks
+  const modelBlock = buildModelBlock(config);
+  const personaBlock = await buildPersonaBlock(paths.workspace);
+  const skillsBlock = await buildSkillsBlock(config, paths.workspace);
+  const integrationsBlock = await buildIntegrationsBlock(
+    config,
+    paths.workspace
+  );
+  const automationsBlock = await buildAutomationsBlock(
+    config,
+    paths.workspace
+  );
+  const memoryBlock = await buildMemoryBlock(config, paths.workspace);
 
-  const loadout: Loadout = {
-    schema: 1,
+  // Get OpenClaw version
+  const openclawVersion =
+    tryExec("openclaw --version")?.replace(/[^0-9.a-z-]/gi, "") ||
+    undefined;
+
+  const build: Build = {
+    schema: 2,
     meta: {
-      name: options.name || `${soul.name || "Agent"}'s Loadout`,
-      author: options.author || tryExec("git config user.name") || "unknown",
+      name:
+        options.name ||
+        `${personaBlock.identity?.name || "Agent"}'s Build`,
+      agentName: personaBlock.identity?.name || "Agent",
+      description:
+        options.description ||
+        personaBlock.identity?.vibe ||
+        "An OpenClaw agent build",
+      author:
+        options.author ||
+        tryExec("git config user.name") ||
+        "local",
       version: 1,
       exportedAt: new Date().toISOString(),
+      openclawVersion,
       tags: options.tags,
-      description: options.description,
     },
-    slots: {
-      heart: extractHeart(config),
-      soul,
-      brain: extractBrain(config),
-      os: extractOS(config),
-      mouth: extractMouth(config),
-      ears: extractEars(config),
-      eyes: extractEyes(paths.config),
-      nervousSystem: extractNervousSystem(config),
-      skeleton: extractSkeleton(config),
+    blocks: {
+      model: modelBlock,
+      persona: personaBlock,
+      skills: skillsBlock,
+      integrations: integrationsBlock,
+      automations: automationsBlock,
+      memory: memoryBlock,
     },
-    mods: await detectMods(config, paths.workspace),
   };
 
-  return loadout;
+  return build;
 }

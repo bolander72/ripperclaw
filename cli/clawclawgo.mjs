@@ -265,7 +265,7 @@ function exportBuild(agentId) {
 
   // ── Assemble ──
   const build = {
-    schema: 1,
+    schema: 2,
     meta: {
       name: `${identityName}'s Build`,
       agentName: identityName,

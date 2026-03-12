@@ -17,30 +17,42 @@ export interface BlockData {
 }
 
 export interface Build {
-  schema: number;
+  schema: 2;
   meta: {
     name: string;
+    agentName: string;
+    description?: string;
     author: string;
     version: number;
     exportedAt: string;
-    template?: string;
+    openclawVersion?: string;
     tags?: string[];
-    description?: string;
   };
-  blocks: Record<string, {
-    label: string;
-    status: string;
-    component: string;
-    version?: string;
-    details: Record<string, unknown>;
-  }>;
-  mods: Mod[];
+  blocks: {
+    model?: BlockContent;
+    persona?: BlockContent;
+    skills?: BlockContent;
+    integrations?: BlockContent;
+    automations?: BlockContent;
+    memory?: BlockContent;
+    [key: string]: BlockContent | undefined;
+  };
 }
 
-export interface Mod {
+export interface BlockContent {
+  label?: string;
+  status?: string;
+  component?: string;
+  version?: string;
+  details?: Record<string, unknown>;
+  items?: unknown[];
+  [key: string]: unknown;
+}
+
+export interface SkillItem {
   name: string;
-  source: 'bundled' | 'custom' | 'plugin' | 'community';
-  enabled: boolean;
+  source: 'bundled' | 'custom' | 'clawhub' | 'local';
+  enabled?: boolean;
   version?: string;
   description?: string;
 }
@@ -67,7 +79,9 @@ export interface BuildComparison {
     theirName: string;
   };
   blockDiffs: BlockDiff[];
-  modsOnlyYours: string[];
-  modsOnlyTheirs: string[];
-  modVersionDiffs: { name: string; yours?: string; theirs?: string }[];
+  skillsOnlyYours: string[];
+  skillsOnlyTheirs: string[];
+  skillVersionDiffs: { name: string; yours?: string; theirs?: string }[];
+  integrationsOnlyYours: string[];
+  integrationsOnlyTheirs: string[];
 }

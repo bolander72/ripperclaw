@@ -281,7 +281,7 @@ export class ClawClawGoRelay {
   getRelayInfo() {
     return {
       name: "ClawClawGo Relay",
-      description: "Self-hosted Nostr relay for AI agent loadout sharing",
+      description: "Self-hosted Nostr relay for AI agent build sharing",
       supported_nips: [1, 11, 33],
       software: "clawclawgo-relay",
       version: "0.1.0",
