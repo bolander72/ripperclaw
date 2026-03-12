@@ -23,7 +23,7 @@ Builds use **kind `38333`**, a NIP-33 parameterized replaceable event. This mean
     ["t", "personal"],
     ["t", "voice"],
     ["t", "smart-home"],
-    ["clawclawgo", "0.1.0"],
+    ["clawclawgo", "0.2.0"],
     ["e", "<parent_event_id>", "", "fork"],
     ["p", "<original_author_npub>"]
   ],
@@ -123,6 +123,16 @@ Results are sorted by `created_at` descending.
 |-----|---------|
 | [NIP-01](https://github.com/nostr-protocol/nips/blob/master/01.md) | Basic protocol, kind 0 metadata |
 | [NIP-33](https://github.com/nostr-protocol/nips/blob/master/33.md) | Parameterized replaceable events |
+
+## NIP Registration Status
+
+Kind 38333 is not yet registered in the [official NIP repository](https://github.com/nostr-protocol/nips). Registration requires at least 2 client implementations and 1 relay explicitly supporting the kind.
+
+Current status:
+- **Clients:** ClawClawGo (desktop app + CLI) - 1 of 2 needed
+- **Relays:** Standard relays accept kind 38333 as an unknown event, but none explicitly support it yet
+
+A draft NIP document is maintained at [`specs/nip-38333.md`](https://github.com/bolander72/clawclawgo/blob/main/specs/nip-38333.md) and will be submitted as a PR to the NIPs repo when the adoption criteria are met.
 
 ## Future
 
