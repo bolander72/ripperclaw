@@ -8,10 +8,11 @@ import { FeedView } from './components/FeedView';
 import { LoadoutsView } from './components/LoadoutsView';
 import { PublishDialog } from './components/PublishDialog';
 import { ApplyWizard } from './components/ApplyWizard';
+import { SettingsView } from './components/SettingsView';
 import { useSlots, useSkills, useSystemStatus, useCloneLoadout, useAgents } from './hooks/useTauri';
 import { slots as mockSlots, mods as mockMods } from './data/mockLoadout';
 
-type View = 'rig' | 'mods' | 'loadouts' | 'compare' | 'feed';
+type View = 'rig' | 'mods' | 'loadouts' | 'compare' | 'feed' | 'settings';
 
 function CloneToast({ result }: { result: { message: string; type: 'success' | 'error' } | null }) {
   if (!result) return null;
@@ -70,6 +71,7 @@ function App() {
     { id: 'loadouts', icon: '▤', label: 'Loadouts' },
     { id: 'compare', icon: '⊕', label: 'Compare' },
     { id: 'feed', icon: '◎', label: 'The Feed' },
+    { id: 'settings', icon: '⚙', label: 'Settings' },
   ];
 
   return (
@@ -234,6 +236,8 @@ function App() {
               }}
             />
           )}
+
+          {view === 'settings' && <SettingsView />}
         </main>
       </div>
 

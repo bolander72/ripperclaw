@@ -121,6 +121,103 @@ pub fn nostr_import_keys(nsec: String) -> Result<KeyInfo, String> {
     })
 }
 
+#[tauri::command]
+pub fn nostr_export_keys() -> Result<StoredKeys, String> {
+    let path = keys_path();
+    let data = fs::read_to_string(&path).map_err(|_| "No keys found.".to_string())?;
+    let stored: StoredKeys = serde_json::from_str(&data).map_err(|e| format!("Parse error: {}", e))?;
+    Ok(stored)
+}
+
+// ─── Profile (NIP-01 kind 0 metadata) ───
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct NostrProfile {
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub display_name: String,
+    #[serde(default)]
+    pub about: String,
+    #[serde(default)]
+    pub picture: String,
+    #[serde(default)]
+    pub website: String,
+    #[serde(default)]
+    pub nip05: String,
+    #[serde(default)]
+    pub banner: String,
+}
+
+fn profile_path() -> PathBuf {
+    data_dir().join("profile.json")
+}
+
+fn load_profile() -> NostrProfile {
+    fs::read_to_string(profile_path())
+        .ok()
+        .and_then(|data| serde_json::from_str(&data).ok())
+        .unwrap_or_default()
+}
+
+fn save_profile(profile: &NostrProfile) -> Result<(), String> {
+    let json = serde_json::to_string_pretty(profile).map_err(|e| format!("JSON error: {}", e))?;
+    fs::write(profile_path(), json).map_err(|e| format!("Write error: {}", e))?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn nostr_get_profile() -> NostrProfile {
+    load_profile()
+}
+
+#[tauri::command]
+pub async fn nostr_set_profile(profile: NostrProfile) -> Result<String, String> {
+    save_profile(&profile)?;
+
+    let keys = load_keys().ok_or("No keys found. Generate or import keys first.")?;
+    let client = Client::new(keys);
+
+    for relay in DEFAULT_RELAYS {
+        client.add_relay(*relay).await.map_err(|e| e.to_string())?;
+    }
+    client.connect().await;
+
+    // Build kind 0 metadata
+    let mut metadata = Metadata::new();
+    if !profile.name.is_empty() {
+        metadata = metadata.name(&profile.name);
+    }
+    if !profile.display_name.is_empty() {
+        metadata = metadata.display_name(&profile.display_name);
+    }
+    if !profile.about.is_empty() {
+        metadata = metadata.about(&profile.about);
+    }
+    if !profile.picture.is_empty() {
+        let url = Url::parse(&profile.picture).map_err(|e| format!("Invalid picture URL: {}", e))?;
+        metadata = metadata.picture(url);
+    }
+    if !profile.website.is_empty() {
+        let url = Url::parse(&profile.website).map_err(|e| format!("Invalid website URL: {}", e))?;
+        metadata = metadata.website(url);
+    }
+    if !profile.nip05.is_empty() {
+        metadata = metadata.nip05(&profile.nip05);
+    }
+    if !profile.banner.is_empty() {
+        let url = Url::parse(&profile.banner).map_err(|e| format!("Invalid banner URL: {}", e))?;
+        metadata = metadata.banner(url);
+    }
+
+    let output = client.set_metadata(&metadata).await.map_err(|e| e.to_string())?;
+    let event_id = output.id().to_hex();
+
+    client.disconnect().await;
+
+    Ok(event_id)
+}
+
 // ─── Publishing ───
 
 #[derive(Serialize, Clone)]

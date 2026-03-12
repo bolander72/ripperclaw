@@ -9,10 +9,9 @@ const TEMPLATES = [
   { id: 'creator', label: 'Creator', color: 'var(--rc-red)', desc: 'Content & social' },
 ];
 
-type Step = 'configure' | 'review' | 'publishing' | 'done';
+type Step = 'identity' | 'configure' | 'review' | 'publishing' | 'done';
 
 export function PublishDialog({ onClose }: { onClose: () => void }) {
-  const [step, setStep] = useState<Step>('configure');
   const [rigName, setRigName] = useState('');
   const [template, setTemplate] = useState('ops');
   const [description, setDescription] = useState('');
@@ -21,10 +20,15 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
   const [scrubbedJson, setScrubbedJson] = useState<string>('');
   const [publishError, setPublishError] = useState<string | null>(null);
   const [publishResult, setPublishResult] = useState<{ event_id: string; relays_sent: number } | null>(null);
+  const [nsecInput, setNsecInput] = useState('');
+  const [importError, setImportError] = useState<string | null>(null);
 
-  const { keys, generate } = useNostrKeys();
+  const { keys, generate, importKey, refresh } = useNostrKeys();
   const { publish, publishing } = useNostrPublish();
   const { exportSafe, exporting } = useSafeExport();
+
+  // Start on identity step if no keys, otherwise skip to configure
+  const [step, setStep] = useState<Step>(keys.has_keys ? 'configure' : 'identity');
 
   const tags = tagInput
     .split(/[,\s]+/)
@@ -75,6 +79,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--rc-text)' }}>
+            {step === 'identity' && 'Your Identity'}
             {step === 'configure' && 'Publish Loadout'}
             {step === 'review' && 'Review & Confirm'}
             {step === 'publishing' && 'Publishing...'}
@@ -89,23 +94,129 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        {/* Step: Configure */}
-        {step === 'configure' && (
+        {/* Step: Identity (first-time only) */}
+        {step === 'identity' && (
           <div className="space-y-4">
-            {/* Identity check */}
-            {!keys.has_keys && (
+            <div
+              className="p-4 rounded border text-xs leading-relaxed"
+              style={{
+                borderColor: 'var(--rc-cyan)',
+                background: 'rgba(0,240,255,0.03)',
+                color: 'var(--rc-text-dim)',
+              }}
+            >
+              <p className="mb-3">
+                Your loadout will be signed with a <strong style={{ color: 'var(--rc-text)' }}>Nostr keypair</strong> so others
+                can verify it's yours. This is your publishing identity — it stays with your loadouts.
+              </p>
+              <p style={{ color: 'var(--rc-text-muted)' }}>
+                You can update your identity anytime in <strong>Settings</strong>.
+              </p>
+            </div>
+
+            {/* Generated key preview */}
+            {keys.has_keys ? (
+              <div
+                className="p-3 rounded border text-xs font-mono"
+                style={{
+                  borderColor: 'var(--rc-green)',
+                  background: 'rgba(0,255,100,0.03)',
+                  color: 'var(--rc-green)',
+                }}
+              >
+                ✓ {keys.npub_short}
+              </div>
+            ) : (
               <div
                 className="p-3 rounded border text-xs"
                 style={{
-                  borderColor: 'var(--rc-yellow)',
-                  background: 'rgba(255,200,0,0.05)',
-                  color: 'var(--rc-yellow)',
+                  borderColor: 'var(--rc-border)',
+                  background: 'rgba(255,255,255,0.02)',
+                  color: 'var(--rc-text-muted)',
                 }}
               >
-                No nostr identity yet. One will be generated automatically when you publish.
+                A fresh identity will be created for you. Or import an existing one below.
               </div>
             )}
 
+            {/* Import existing key */}
+            <div>
+              <label className="text-[10px] uppercase tracking-wider block mb-2" style={{ color: 'var(--rc-text-muted)' }}>
+                Already on Nostr? Import your key
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  value={nsecInput}
+                  onChange={(e) => { setNsecInput(e.target.value); setImportError(null); }}
+                  placeholder="nsec1..."
+                  className="flex-1 px-3 py-2 rounded text-xs border outline-none font-mono"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    borderColor: 'var(--rc-border)',
+                    color: 'var(--rc-text)',
+                  }}
+                />
+                <button
+                  onClick={async () => {
+                    try {
+                      await importKey(nsecInput.trim());
+                      setNsecInput('');
+                      setImportError(null);
+                    } catch {
+                      setImportError('Invalid nsec key');
+                    }
+                  }}
+                  disabled={!nsecInput.trim()}
+                  className="px-4 py-2 rounded text-xs font-semibold border transition-all hover:opacity-80 disabled:opacity-40"
+                  style={{ borderColor: 'var(--rc-cyan)', color: 'var(--rc-cyan)' }}
+                >
+                  Import
+                </button>
+              </div>
+              {importError && (
+                <div className="text-[10px] mt-1" style={{ color: 'var(--rc-red)' }}>{importError}</div>
+              )}
+            </div>
+
+            {/* Or stay anon */}
+            <div className="text-[10px] text-center" style={{ color: 'var(--rc-text-muted)' }}>
+              No Nostr account? No problem — publish anonymously with a generated key.
+              <br />Add a display name, avatar, and NIP-05 verification later in Settings.
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                className="flex-1 py-2.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                style={{ borderColor: 'var(--rc-border)', color: 'var(--rc-text-dim)' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!keys.has_keys) {
+                    await generate();
+                    await refresh();
+                  }
+                  setStep('configure');
+                }}
+                className="flex-1 py-2.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                style={{
+                  borderColor: 'var(--rc-cyan)',
+                  color: 'var(--rc-bg)',
+                  background: 'var(--rc-cyan)',
+                }}
+              >
+                {keys.has_keys ? 'Continue →' : 'Generate & Continue →'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step: Configure */}
+        {step === 'configure' && (
+          <div className="space-y-4">
             {/* PII warning */}
             <div
               className="p-3 rounded border text-xs"

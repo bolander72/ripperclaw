@@ -7,6 +7,21 @@ export interface KeyInfo {
   has_keys: boolean;
 }
 
+export interface StoredKeys {
+  nsec: string;
+  npub: string;
+}
+
+export interface NostrProfile {
+  name: string;
+  display_name: string;
+  about: string;
+  picture: string;
+  website: string;
+  nip05: string;
+  banner: string;
+}
+
 export interface PublishResult {
   event_id: string;
   relays_sent: number;
@@ -67,7 +82,38 @@ export function useNostrKeys() {
     }
   };
 
-  return { keys, loading, generate, importKey, refresh };
+  const exportKeys = async (): Promise<StoredKeys> => {
+    return invoke<StoredKeys>('nostr_export_keys');
+  };
+
+  return { keys, loading, generate, importKey, exportKeys, refresh };
+}
+
+export function useNostrProfile() {
+  const [profile, setProfile] = useState<NostrProfile>({
+    name: '', display_name: '', about: '', picture: '', website: '', nip05: '', banner: '',
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    invoke<NostrProfile>('nostr_get_profile')
+      .then(setProfile)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const saveProfile = async (updated: NostrProfile) => {
+    setSaving(true);
+    try {
+      await invoke<string>('nostr_set_profile', { profile: updated });
+      setProfile(updated);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return { profile, loading, saving, saveProfile, setProfile };
 }
 
 export function useNostrFeed() {
