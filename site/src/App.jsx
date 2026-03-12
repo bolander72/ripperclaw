@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { HashRouter, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import {
   IconBrain, IconCpu, IconMicrophone,
@@ -889,11 +889,11 @@ function Landing() {
 
 export default function App() {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/explore" element={<Explore />} />
       </Routes>
-    </HashRouter>
+    </BrowserRouter>
   )
 }
