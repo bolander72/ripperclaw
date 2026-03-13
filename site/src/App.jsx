@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import {
   IconBrain, IconCpu, IconMicrophone,
@@ -10,7 +10,7 @@ import {
   IconHeartbeat, IconClock, IconBell,
 
   IconArrowDown, IconExternalLink, IconCopy, IconChevronRight,
-  IconRefresh, IconPuzzle, IconMessages,
+  IconRefresh, IconPuzzle, IconMessages, IconSearch,
   IconChevronDown, IconBook2, IconBrandDiscord,
 } from '@tabler/icons-react'
 import { builds } from './builds'
@@ -41,79 +41,88 @@ function formatDate(dateStr) {
 // ─── Hero Section ──────────────────────────────────────────
 
 function Hero() {
+  const navigate = useNavigate()
+  const [query, setQuery] = useState('')
+  const [focused, setFocused] = useState(false)
+
+  const handleSearch = useCallback((e) => {
+    e.preventDefault()
+    navigate(`/explore${query ? `?q=${encodeURIComponent(query)}` : ''}`)
+  }, [query, navigate])
+
   return (
-    <section className="relative min-h-[70vh] flex flex-col items-center justify-center px-6 py-20 overflow-hidden">
+    <section className="relative min-h-[60vh] flex flex-col items-center justify-center px-6 py-20 overflow-hidden">
       {/* Background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-rc-cyan/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-1/3 left-1/3 w-[400px] h-[400px] bg-rc-magenta/3 rounded-full blur-[100px] pointer-events-none" />
 
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
-        className="text-center max-w-3xl relative z-10"
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="text-center max-w-2xl relative z-10 w-full"
       >
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rc-cyan/10 border border-rc-cyan/20 text-rc-cyan text-xs font-mono tracking-wider mb-8"
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-rc-cyan animate-pulse" />
-          SEARCH · EXPLORE · NO TRACKING
-        </motion.div>
-
-        {/* Headline */}
-        <h1 className="text-5xl md:text-7xl font-grotesk font-bold text-rc-text mb-6 leading-[1.1] tracking-tight">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-rc-cyan via-rc-green to-rc-cyan">
-            AI agent builds.
-          </span>
+        {/* Logo + title */}
+        <h1 className="text-4xl md:text-5xl font-grotesk font-bold text-rc-text mb-3 leading-[1.1] tracking-tight">
+          ClawClawGo
         </h1>
 
-        {/* Subhead */}
-        <p className="text-lg md:text-xl text-rc-text-dim max-w-2xl mx-auto mb-4 leading-relaxed">
-          Find complete OpenClaw configurations. No tracking. No accounts. Publish anonymously or with verified identity. 
-          Search, copy, remix.
+        <p className="text-rc-text-dim text-sm mb-8">
+          Search AI agent builds. No tracking. No accounts.
         </p>
 
-        <p className="text-sm text-rc-text-muted max-w-lg mx-auto mb-10">
-          Every build is a complete agent setup: models, skills, integrations, personality, automations, memory.
-          Browse what others have built. Copy what works. Make it yours.
-        </p>
+        {/* Search bar */}
+        <form onSubmit={handleSearch} className="relative w-full max-w-xl mx-auto mb-6">
+          <div className={`
+            flex items-center bg-rc-surface border rounded-2xl transition-all duration-300 overflow-hidden
+            ${focused ? 'border-rc-cyan/50 shadow-[0_0_20px_rgba(0,240,160,0.08)]' : 'border-rc-border'}
+          `}>
+            <div className="pl-5 pr-2 text-rc-text-muted">
+              <IconSearch size={20} />
+            </div>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              placeholder="voice assistant, coding agent, home automation..."
+              className="flex-1 py-4 px-2 bg-transparent text-rc-text font-grotesk text-base placeholder:text-rc-text-muted/50 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="m-1.5 px-6 py-2.5 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors text-sm shrink-0"
+            >
+              Search
+            </button>
+          </div>
+        </form>
 
-        {/* CTA */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-lg mx-auto">
-          <a
-            href="/docs"
-            className="w-full px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center justify-center gap-2"
-          >
-            Read the Docs
-          </a>
-          <Link
-            to="/explore"
-            className="w-full px-6 py-3 bg-white/5 text-rc-text font-grotesk font-semibold rounded-xl hover:bg-white/10 transition-colors border border-rc-border flex items-center justify-center gap-2"
-          >
-            Search Builds
-            <IconArrowDown size={16} />
-          </Link>
+        {/* Quick links */}
+        <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
+          <span className="text-rc-text-muted">Try:</span>
+          {['voice assistant', 'coding', 'smart home', 'personal assistant'].map((tag) => (
+            <button
+              key={tag}
+              onClick={() => { setQuery(tag); navigate(`/explore?q=${encodeURIComponent(tag)}`) }}
+              className="px-3 py-1.5 rounded-lg bg-white/5 border border-rc-border text-rc-text-dim hover:text-rc-text hover:border-rc-cyan/30 transition-colors font-mono"
+            >
+              {tag}
+            </button>
+          ))}
         </div>
-      </motion.div>
 
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-      >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          className="w-5 h-8 rounded-full border-2 border-rc-text-muted/30 flex items-start justify-center p-1"
-        >
-          <motion.div className="w-1 h-2 rounded-full bg-rc-text-muted/50" />
-        </motion.div>
+        {/* Sub-links */}
+        <div className="flex items-center justify-center gap-6 mt-8 text-sm">
+          <Link to="/explore" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1.5">
+            Live feed <IconArrowDown size={14} />
+          </Link>
+          <a href="/docs" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1.5">
+            Docs <IconBook2 size={14} />
+          </a>
+          <a href="https://github.com/bolander72/clawclawgo" target="_blank" rel="noopener" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1.5">
+            GitHub <IconBrandGithub size={14} />
+          </a>
+        </div>
       </motion.div>
     </section>
   )

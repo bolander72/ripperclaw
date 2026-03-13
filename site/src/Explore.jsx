@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SimplePool, nip19 } from 'nostr-tools'
+import { useSearchParams } from 'react-router-dom'
 import {
   IconChevronRight, IconRefresh, IconFilter, IconSortDescending,
   IconGitFork, IconUsers, IconClock, IconHash,
   IconCopy, IconCheck, IconShieldCheck, IconAlertTriangle,
   IconPackage, IconTerminal2, IconArrowRight, IconArrowLeft,
-  IconX, IconDownload, IconEye,
+  IconX, IconDownload, IconEye, IconSearch, IconLivePhoto,
+  IconArrowUp,
 } from '@tabler/icons-react'
 
 // ─── Constants ─────────────────────────────────────────────
@@ -32,15 +34,18 @@ const itemGradients = [
 function formatDate(timestamp) {
   const d = new Date(timestamp * 1000)
   const now = new Date()
-  const diff = Math.floor((now - d) / (1000 * 60 * 60 * 24))
-  if (diff === 0) return 'Today'
-  if (diff === 1) return 'Yesterday'
-  if (diff < 7) return `${diff}d ago`
+  const diff = Math.floor((now - d) / 1000)
+  if (diff < 5) return 'just now'
+  if (diff < 60) return `${diff}s ago`
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+  const days = Math.floor(diff / 86400)
+  if (days === 1) return 'yesterday'
+  if (days < 7) return `${days}d ago`
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 function extractItems(content) {
-  // Extract displayable items from flat build config
   const items = []
   if (content.model?.tiers) {
     Object.values(content.model.tiers).forEach(tier => {
@@ -57,7 +62,6 @@ function extractItems(content) {
   if (content.automations?.heartbeat) items.push({ name: 'Heartbeat' })
   if (content.automations?.cron?.length) items.push({ name: `${content.automations.cron.length} cron jobs` })
   if (content.persona?.identity?.name) items.push({ name: content.persona.identity.name })
-  // Count top-level config keys
   const configKeys = Object.keys(content).filter(k => !['schema', 'meta', 'dependencies'].includes(k))
   return { items, keyCount: configKeys.length }
 }
@@ -96,98 +100,116 @@ function parseBuildEvent(event) {
   }
 }
 
-// ─── Build Card ──────────────────────────────────────────
+function matchesQuery(build, query) {
+  if (!query) return true
+  const q = query.toLowerCase()
+  const searchable = [
+    build.agentName,
+    build.name,
+    build.creator,
+    ...build.tags,
+    ...build.items.map(i => i.name),
+  ].join(' ').toLowerCase()
+  return q.split(/\s+/).every(term => searchable.includes(term))
+}
 
-function BuildCard({ build, index, onClick, dropped }) {
+// ─── Feed Item ───────────────────────────────────────────
+
+function FeedItem({ build, index, isNew, onClick }) {
   return (
     <motion.div
-      initial={dropped ? { y: -200, opacity: 0, scale: 0.95 } : { opacity: 0, y: 20 }}
-      animate={{ y: 0, opacity: 1, scale: 1 }}
+      layout
+      initial={isNew ? { opacity: 0, y: -80, scale: 0.95 } : { opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
       transition={
-        dropped
-          ? { type: 'spring', stiffness: 100, damping: 15, delay: index * 0.08 }
-          : { delay: index * 0.05, duration: 0.3 }
+        isNew
+          ? { type: 'spring', stiffness: 200, damping: 25 }
+          : { delay: index * 0.03, duration: 0.3 }
       }
-      whileHover={{ y: -4, scale: 1.01 }}
       onClick={onClick}
       className="relative cursor-pointer group"
     >
       <div className="bg-rc-surface rounded-2xl border border-rc-border group-hover:border-rc-cyan/40 transition-all duration-300 overflow-hidden">
-        {/* Badges */}
-        <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-          {build.isNew && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rc-cyan/15 border border-rc-cyan/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-rc-cyan animate-pulse" />
-              <span className="text-[10px] font-mono font-bold text-rc-cyan tracking-wider">NEW</span>
-              <span className="text-[10px] font-mono text-rc-cyan/60">{formatDate(build.createdAt)}</span>
+        <div className="flex flex-col md:flex-row">
+          {/* Left: timestamp + badges */}
+          <div className="md:w-44 shrink-0 p-5 md:border-r border-rc-border flex md:flex-col items-center md:items-start gap-3 md:gap-2">
+            <span className="text-rc-text-muted text-xs font-mono">
+              {formatDate(build.createdAt)}
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {build.isNew && (
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-rc-cyan/15 border border-rc-cyan/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rc-cyan animate-pulse" />
+                  <span className="text-[9px] font-mono font-bold text-rc-cyan tracking-wider">NEW</span>
+                </div>
+              )}
+              {build.fork && (
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-rc-magenta/15 border border-rc-magenta/30">
+                  <IconGitFork size={10} className="text-rc-magenta" />
+                  <span className="text-[9px] font-mono font-bold text-rc-magenta tracking-wider">FORK</span>
+                </div>
+              )}
             </div>
-          )}
-          {build.fork && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rc-magenta/15 border border-rc-magenta/30">
-              <IconGitFork size={12} className="text-rc-magenta" />
-              <span className="text-[10px] font-mono font-bold text-rc-magenta tracking-wider">FORK</span>
-            </div>
-          )}
-        </div>
-
-        {/* Items tag cloud */}
-        <div className="p-5 pt-12">
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {build.items.slice(0, 8).map((item, ii) => (
-              <span
-                key={ii}
-                className={`px-2 py-1 rounded-lg bg-gradient-to-br ${itemGradients[ii % itemGradients.length]} border border-white/10 text-[11px] font-mono font-medium text-rc-text`}
-              >
-                {item.name}
-              </span>
-            ))}
-            {build.items.length > 8 && (
-              <span className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-mono text-rc-text-muted">
-                +{build.items.length - 8}
-              </span>
-            )}
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="px-5 pb-5">
-          <div className="mb-2">
-            <div className="flex items-center gap-2">
-              <h3 className="font-grotesk font-bold text-rc-text text-base truncate">
+          {/* Middle: name + items */}
+          <div className="flex-1 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <h3 className="font-grotesk font-bold text-rc-text text-base">
                 {build.agentName}
               </h3>
-              <span className="text-rc-text-muted text-xs">·</span>
-              <span className="text-rc-text-dim text-xs font-mono truncate">
+              <span className="text-rc-text-muted text-xs font-mono hidden sm:inline">
                 {build.name}
               </span>
             </div>
+            <div className="flex flex-wrap gap-1.5">
+              {build.items.slice(0, 10).map((item, ii) => (
+                <span
+                  key={ii}
+                  className={`px-2 py-1 rounded-lg bg-gradient-to-br ${itemGradients[ii % itemGradients.length]} border border-white/10 text-[11px] font-mono font-medium text-rc-text`}
+                >
+                  {item.name}
+                </span>
+              ))}
+              {build.items.length > 10 && (
+                <span className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-mono text-rc-text-muted">
+                  +{build.items.length - 10}
+                </span>
+              )}
+            </div>
+            {build.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {build.tags.slice(0, 4).map((tag, i) => (
+                  <span key={i} className="px-1.5 py-0.5 text-[9px] font-mono text-rc-text-muted flex items-center gap-0.5">
+                    <IconHash size={9} />{tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center justify-between">
+          {/* Right: creator + arrow */}
+          <div className="md:w-36 shrink-0 p-5 flex items-center justify-between md:justify-end md:flex-col md:items-end gap-2">
             <span className="text-rc-cyan/70 text-xs font-mono">
               {build.creator}
             </span>
-            <span className="text-rc-text-muted text-[10px] font-mono">
+            <span className="text-rc-text-muted text-xs font-mono">
               {build.items.length} items
             </span>
+            <IconChevronRight size={16} className="text-rc-text-muted group-hover:text-rc-cyan transition-colors hidden md:block" />
           </div>
-
-          {build.tags && build.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {build.tags.slice(0, 3).map((tag, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-0.5 bg-white/5 rounded-md text-[9px] font-mono text-rc-text-muted flex items-center gap-1"
-                >
-                  <IconHash size={10} />
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
 
-        <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-t from-rc-cyan/5 via-transparent to-transparent" />
+        {/* New-item glow */}
+        {isNew && (
+          <motion.div
+            initial={{ opacity: 0.5 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 2 }}
+            className="absolute inset-0 rounded-2xl pointer-events-none border-2 border-rc-cyan/30"
+          />
+        )}
       </div>
     </motion.div>
   )
@@ -197,7 +219,6 @@ function BuildCard({ build, index, onClick, dropped }) {
 
 function BuildDetail({ build, onClose, onApply }) {
   const [showRaw, setShowRaw] = useState(false)
-  // Show all config keys from the raw content
   const configKeys = Object.keys(build.content || {}).filter(k => !['schema', 'meta', 'dependencies'].includes(k))
 
   return (
@@ -279,7 +300,7 @@ function BuildDetail({ build, onClose, onApply }) {
                 transition={{ delay: ii * 0.03 }}
                 className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-rc-border hover:border-rc-cyan/30 transition-colors"
               >
-                <div className={`w-2 h-2 rounded-full bg-rc-cyan`} />
+                <div className="w-2 h-2 rounded-full bg-rc-cyan" />
                 <span className="font-grotesk text-sm text-rc-text">
                   {item.name}
                 </span>
@@ -402,7 +423,6 @@ function scanBuild(content) {
     }
   }
 
-  // Info checks
   const keys = Object.keys(content).filter(k => !['schema', 'meta', 'dependencies'].includes(k))
   findings.info.push({ name: 'Config keys', value: keys.join(', ') })
   if (content.model?.tiers) {
@@ -431,15 +451,11 @@ function ApplyWizard({ build, onClose }) {
   const [agentId, setAgentId] = useState('')
 
   useEffect(() => {
-    // Run security scan on mount
     const result = scanBuild(build.content)
     setScanResult(result)
   }, [build])
 
   const buildJson = JSON.stringify(build.content, null, 2)
-  const cliCommand = agentId
-    ? `echo '${buildJson.replace(/'/g, "'\\''")}' | clawclawgo apply --from-stdin --agent ${agentId}`
-    : null
 
   const simpleCommand = agentId
     ? `pbpaste | clawclawgo apply --from-stdin --agent ${agentId}`
@@ -507,7 +523,6 @@ function ApplyWizard({ build, onClose }) {
             {step === 0 && (
               <motion.div key="review" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <h3 className="text-lg font-grotesk font-semibold text-rc-text mb-4">Review build contents</h3>
-
                 <div className="space-y-3 mb-6">
                   {build.items.map((item, i) => (
                     <div key={i} className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-xl border border-rc-border">
@@ -516,16 +531,13 @@ function ApplyWizard({ build, onClose }) {
                     </div>
                   ))}
                 </div>
-
                 {build.content.dependencies && (
                   <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <IconPackage size={16} className="text-amber-400" />
                       <span className="text-sm font-grotesk font-medium text-amber-300">Dependencies</span>
                     </div>
-                    <p className="text-xs text-rc-text-dim">
-                      This build declares dependencies. The CLI will check them during apply.
-                    </p>
+                    <p className="text-xs text-rc-text-dim">This build declares dependencies. The CLI will check them during apply.</p>
                   </div>
                 )}
               </motion.div>
@@ -621,11 +633,8 @@ function ApplyWizard({ build, onClose }) {
             {step === 2 && (
               <motion.div key="apply" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <h3 className="text-lg font-grotesk font-semibold text-rc-text mb-2">Apply to your agent</h3>
-                <p className="text-sm text-rc-text-dim mb-6">
-                  Choose an agent ID for this build, then run the command in your terminal.
-                </p>
+                <p className="text-sm text-rc-text-dim mb-6">Choose an agent ID, then run the command in your terminal.</p>
 
-                {/* Agent ID input */}
                 <div className="mb-6">
                   <label className="block text-xs font-mono text-rc-text-muted mb-2">Agent ID</label>
                   <input
@@ -639,7 +648,6 @@ function ApplyWizard({ build, onClose }) {
 
                 {agentId && (
                   <>
-                    {/* Option 1: Copy + paste */}
                     <div className="mb-6 p-4 rounded-xl bg-white/5 border border-rc-border">
                       <p className="text-xs font-mono text-rc-text-muted mb-3">Option 1: Copy build to clipboard, then run</p>
                       <div className="flex items-center gap-2 mb-3">
@@ -656,7 +664,6 @@ function ApplyWizard({ build, onClose }) {
                       </div>
                     </div>
 
-                    {/* Option 2: Download file */}
                     <div className="p-4 rounded-xl bg-white/5 border border-rc-border">
                       <p className="text-xs font-mono text-rc-text-muted mb-3">Option 2: Download and apply file</p>
                       <div className="flex items-center gap-2 mb-3">
@@ -726,24 +733,28 @@ function ApplyWizard({ build, onClose }) {
 // ─── Explore Page ──────────────────────────────────────────
 
 export default function Explore() {
+  const [searchParams] = useSearchParams()
+  const initialQuery = searchParams.get('q') || ''
+
   const [builds, setBuilds] = useState([])
   const [selectedBuild, setSelectedBuild] = useState(null)
   const [applyBuild, setApplyBuild] = useState(null)
   const [isConnecting, setIsConnecting] = useState(true)
-  const [sortBy, setSortBy] = useState('newest')
+  const [query, setQuery] = useState(initialQuery)
+  const [searchFocused, setSearchFocused] = useState(false)
+  const [newIds, setNewIds] = useState(new Set())
+  const [isPaused, setIsPaused] = useState(false)
+  const [buildCount, setBuildCount] = useState(0)
   const poolRef = useRef(null)
   const seenIds = useRef(new Set())
+  const feedRef = useRef(null)
+  const isInitialLoad = useRef(true)
 
   useEffect(() => {
     const pool = new SimplePool()
     poolRef.current = pool
 
-    const filters = [
-      {
-        kinds: [38333],
-        limit: 100,
-      },
-    ]
+    const filters = [{ kinds: [38333], limit: 200 }]
 
     const sub = pool.subscribeMany(RELAYS, filters, {
       onevent(event) {
@@ -754,12 +765,29 @@ export default function Explore() {
         if (build) {
           setBuilds(prev => {
             if (prev.find(l => l.id === build.id)) return prev
-            return [build, ...prev]
+            const next = [build, ...prev].sort((a, b) => b.createdAt - a.createdAt)
+            return next
           })
+          setBuildCount(c => c + 1)
+
+          // Mark as "new" (animate from top) only after initial load
+          if (!isInitialLoad.current) {
+            setNewIds(prev => new Set([...prev, build.id]))
+            // Clear the "new" marker after animation
+            setTimeout(() => {
+              setNewIds(prev => {
+                const next = new Set(prev)
+                next.delete(build.id)
+                return next
+              })
+            }, 2000)
+          }
         }
       },
       oneose() {
         setIsConnecting(false)
+        // Mark initial load complete after a short delay
+        setTimeout(() => { isInitialLoad.current = false }, 500)
       },
     })
 
@@ -769,65 +797,70 @@ export default function Explore() {
     }
   }, [])
 
-  const sortedBuilds = [...builds].sort((a, b) => {
-    if (sortBy === 'newest') {
-      return b.createdAt - a.createdAt
-    } else if (sortBy === 'most-remixed') {
-      return b.remixCount - a.remixCount
-    }
-    return 0
-  })
+  const filteredBuilds = builds.filter(b => matchesQuery(b, query))
 
   return (
     <div className="min-h-screen bg-rc-bg">
-      {/* Header */}
-      <header className="border-b border-rc-border bg-rc-bg/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <a href="/" className="font-grotesk font-bold text-rc-text text-xl hover:text-rc-cyan transition-colors">
-                ← ClawClawGo
-              </a>
-              <div className="h-6 w-px bg-rc-border" />
-              <h1 className="font-grotesk font-semibold text-rc-text text-lg">Explore</h1>
+      {/* Sticky header with search */}
+      <header className="border-b border-rc-border bg-rc-bg/90 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 py-3">
+          <div className="flex items-center gap-3">
+            <a href="/" className="font-grotesk font-bold text-rc-text text-lg hover:text-rc-cyan transition-colors shrink-0">
+              ClawClawGo
+            </a>
+            <div className="h-5 w-px bg-rc-border shrink-0" />
+
+            {/* Search */}
+            <div className={`flex-1 flex items-center bg-rc-surface border rounded-xl transition-all ${searchFocused ? 'border-rc-cyan/40' : 'border-rc-border'}`}>
+              <div className="pl-3 text-rc-text-muted">
+                <IconSearch size={16} />
+              </div>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+                placeholder="Filter builds..."
+                className="flex-1 py-2.5 px-2 bg-transparent text-rc-text font-grotesk text-sm placeholder:text-rc-text-muted/50 focus:outline-none"
+              />
+              {query && (
+                <button onClick={() => setQuery('')} className="pr-3 text-rc-text-muted hover:text-rc-text">
+                  <IconX size={14} />
+                </button>
+              )}
             </div>
 
-            <div className="flex items-center gap-3">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 bg-rc-surface border border-rc-border rounded-xl text-rc-text text-sm font-grotesk font-medium focus:outline-none focus:border-rc-cyan/40 transition-colors"
-              >
-                <option value="newest">Newest First</option>
-                <option value="most-remixed">Most Remixed</option>
-              </select>
-
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rc-surface border border-rc-border">
-                <div className={`w-2 h-2 rounded-full ${isConnecting ? 'bg-rc-yellow animate-pulse' : 'bg-rc-green'}`} />
-                <span className="text-xs font-mono text-rc-text-dim">
-                  {isConnecting ? 'Connecting...' : `${builds.length} builds`}
-                </span>
-              </div>
+            {/* Live indicator */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rc-surface border border-rc-border shrink-0">
+              <div className={`w-2 h-2 rounded-full ${isConnecting ? 'bg-amber-400 animate-pulse' : 'bg-green-400'}`} />
+              <span className="text-xs font-mono text-rc-text-dim hidden sm:inline">
+                {isConnecting ? 'Connecting' : `${builds.length} builds`}
+              </span>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
-            Community Builds
-          </h2>
-          <p className="text-rc-text-dim text-lg max-w-2xl mx-auto mb-2">
-            Real-time feed of agent builds from Nostr. Every build is a NIP-33 event (kind 38333)
-            published to the decentralized network.
-          </p>
-          <p className="text-rc-text-muted text-sm">
-            Connected to {RELAYS.length} relays · Updates in real-time
-          </p>
+      {/* Feed */}
+      <main className="max-w-4xl mx-auto px-4 py-6" ref={feedRef}>
+        {/* Feed title */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <IconLivePhoto size={18} className="text-rc-cyan" />
+            <h2 className="font-grotesk font-semibold text-rc-text text-sm">
+              Live Feed
+            </h2>
+            <span className="text-rc-text-muted text-xs font-mono">
+              {filteredBuilds.length}{query ? ` / ${builds.length}` : ''} builds
+            </span>
+          </div>
+          <span className="text-rc-text-muted text-[10px] font-mono">
+            {RELAYS.length} relays connected
+          </span>
         </div>
 
+        {/* Loading state */}
         {isConnecting && builds.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-12 h-12 border-2 border-rc-cyan/20 border-t-rc-cyan rounded-full animate-spin mb-4" />
@@ -835,33 +868,51 @@ export default function Explore() {
           </div>
         )}
 
-        {!isConnecting && builds.length === 0 && (
+        {/* Empty state */}
+        {!isConnecting && filteredBuilds.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
-              <IconUsers size={32} className="text-rc-text-muted" />
+              {query ? <IconSearch size={32} className="text-rc-text-muted" /> : <IconUsers size={32} className="text-rc-text-muted" />}
             </div>
-            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">No builds yet</p>
-            <p className="text-rc-text-dim text-sm max-w-md text-center">
-              Be the first to publish a build! Share your agent configuration with the community.
+            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">
+              {query ? 'No matches' : 'No builds yet'}
             </p>
+            <p className="text-rc-text-dim text-sm max-w-md text-center">
+              {query
+                ? `Nothing matches "${query}". Try a different search.`
+                : 'Be the first to publish a build. Share your agent configuration with the community.'
+              }
+            </p>
+            {query && (
+              <button
+                onClick={() => setQuery('')}
+                className="mt-4 px-4 py-2 bg-white/5 hover:bg-white/10 text-rc-text rounded-xl border border-rc-border transition-colors text-sm font-grotesk"
+              >
+                Clear search
+              </button>
+            )}
           </div>
         )}
 
-        {builds.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {sortedBuilds.map((build, i) => (
-              <BuildCard
-                key={build.id}
-                build={build}
-                index={i}
-                onClick={() => setSelectedBuild(build)}
-                dropped={true}
-              />
-            ))}
+        {/* Build list */}
+        {filteredBuilds.length > 0 && (
+          <div className="space-y-3">
+            <AnimatePresence initial={false}>
+              {filteredBuilds.map((build, i) => (
+                <FeedItem
+                  key={build.id}
+                  build={build}
+                  index={i}
+                  isNew={newIds.has(build.id)}
+                  onClick={() => setSelectedBuild(build)}
+                />
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </main>
 
+      {/* Modals */}
       <AnimatePresence>
         {selectedBuild && !applyBuild && (
           <BuildDetail
