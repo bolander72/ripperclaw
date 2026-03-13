@@ -1,24 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
-  IconBrain, IconCpu, IconMicrophone,
-  IconMessageCircle, IconCalendar, IconMail, IconCheckbox, IconSmartHome, IconBrandGithub,
-  IconWaveSine, IconPalette, IconTerminal2, IconWorldSearch, IconNote,
-  IconUser, IconFingerprint, IconUserCircle,
-  IconDatabase, IconNotebook, IconHeartHandshake, IconPinned,
-  IconHeartbeat, IconClock, IconBell,
-
-  IconArrowDown, IconExternalLink, IconCopy, IconChevronRight,
-  IconRefresh, IconPuzzle, IconMessages, IconSearch,
-  IconChevronDown, IconBook2, IconBrandDiscord,
+  IconBrandGithub, IconSearch, IconBook2, IconBrandDiscord,
+  IconArrowDown, IconChevronDown, IconChevronRight,
+  IconFingerprint, IconUserCircle, IconCopy, IconPuzzle,
+  IconRefresh, IconWorldSearch, IconLivePhoto,
 } from '@tabler/icons-react'
-import { builds } from './builds'
+import { builds as sampleBuilds } from './builds'
 import Explore from './Explore'
 
 // ─── Helpers ───────────────────────────────────────────────
 
-// Item color palette for build cards (cycles through)
 const itemGradients = [
   'from-purple-500/40 to-blue-500/40',
   'from-cyan-500/40 to-emerald-500/40',
@@ -38,9 +31,42 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-// ─── Hero Section ──────────────────────────────────────────
+// ─── Shared Nav ────────────────────────────────────────────
 
-function Hero() {
+function Nav({ minimal }) {
+  return (
+    <header className={`border-b border-rc-border bg-rc-bg/90 backdrop-blur-md ${minimal ? '' : 'sticky top-0 z-40'}`}>
+      <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+        <a href="/" className="font-grotesk font-bold text-rc-text text-lg hover:text-rc-cyan transition-colors">
+          ClawClawGo
+        </a>
+        <nav className="flex items-center gap-5 text-sm">
+          <Link to="/explore" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1">
+            <IconLivePhoto size={14} /> Feed
+          </Link>
+          <Link to="/community" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Community</Link>
+          <Link to="/about" className="text-rc-text-dim hover:text-rc-cyan transition-colors">About</Link>
+          <Link to="/faq" className="text-rc-text-dim hover:text-rc-cyan transition-colors">FAQ</Link>
+          <a href="/docs" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Docs</a>
+        </nav>
+      </div>
+    </header>
+  )
+}
+
+function PageShell({ children }) {
+  return (
+    <div className="min-h-screen bg-rc-bg">
+      <Nav />
+      {children}
+      <Footer />
+    </div>
+  )
+}
+
+// ─── Home (Search) ─────────────────────────────────────────
+
+function Home() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
@@ -51,113 +77,115 @@ function Hero() {
   }, [query, navigate])
 
   return (
-    <section className="relative min-h-[60vh] flex flex-col items-center justify-center px-6 py-20 overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-rc-cyan/5 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-rc-bg flex flex-col">
+      {/* Minimal nav for home */}
+      <header className="px-4 py-3">
+        <div className="max-w-4xl mx-auto flex items-center justify-end">
+          <nav className="flex items-center gap-5 text-sm">
+            <Link to="/explore" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1">
+              <IconLivePhoto size={14} /> Feed
+            </Link>
+            <Link to="/community" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Community</Link>
+            <Link to="/about" className="text-rc-text-dim hover:text-rc-cyan transition-colors">About</Link>
+            <Link to="/faq" className="text-rc-text-dim hover:text-rc-cyan transition-colors">FAQ</Link>
+            <a href="/docs" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Docs</a>
+          </nav>
+        </div>
+      </header>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="text-center max-w-2xl relative z-10 w-full"
-      >
-        {/* Logo + title */}
-        <h1 className="text-4xl md:text-5xl font-grotesk font-bold text-rc-text mb-3 leading-[1.1] tracking-tight">
-          ClawClawGo
-        </h1>
+      {/* Centered search */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-rc-cyan/5 rounded-full blur-[120px] pointer-events-none" />
 
-        <p className="text-rc-text-dim text-sm mb-8">
-          Search AI agent builds. No tracking. No accounts.
-        </p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="text-center max-w-2xl relative z-10 w-full"
+        >
+          <h1 className="text-4xl md:text-5xl font-grotesk font-bold text-rc-text mb-3 leading-[1.1] tracking-tight">
+            ClawClawGo
+          </h1>
+          <p className="text-rc-text-dim text-sm mb-8">
+            Search AI agent builds. No tracking. No accounts.
+          </p>
 
-        {/* Search bar */}
-        <form onSubmit={handleSearch} className="relative w-full max-w-xl mx-auto mb-6">
-          <div className={`
-            flex items-center bg-rc-surface border rounded-2xl transition-all duration-300 overflow-hidden
-            ${focused ? 'border-rc-cyan/50 shadow-[0_0_20px_rgba(0,240,160,0.08)]' : 'border-rc-border'}
-          `}>
-            <div className="pl-5 pr-2 text-rc-text-muted">
-              <IconSearch size={20} />
+          {/* Search bar */}
+          <form onSubmit={handleSearch} className="relative w-full max-w-xl mx-auto mb-6">
+            <div className={`
+              flex items-center bg-rc-surface border rounded-2xl transition-all duration-300 overflow-hidden
+              ${focused ? 'border-rc-cyan/50 shadow-[0_0_20px_rgba(0,240,160,0.08)]' : 'border-rc-border'}
+            `}>
+              <div className="pl-5 pr-2 text-rc-text-muted">
+                <IconSearch size={20} />
+              </div>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                placeholder="voice assistant, coding agent, home automation..."
+                className="flex-1 py-4 px-2 bg-transparent text-rc-text font-grotesk text-base placeholder:text-rc-text-muted/50 focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="m-1.5 px-6 py-2.5 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors text-sm shrink-0"
+              >
+                Search
+              </button>
             </div>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
-              placeholder="voice assistant, coding agent, home automation..."
-              className="flex-1 py-4 px-2 bg-transparent text-rc-text font-grotesk text-base placeholder:text-rc-text-muted/50 focus:outline-none"
-            />
-            <button
-              type="submit"
-              className="m-1.5 px-6 py-2.5 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors text-sm shrink-0"
-            >
-              Search
-            </button>
+          </form>
+
+          {/* Quick links */}
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
+            <span className="text-rc-text-muted">Try:</span>
+            {['voice assistant', 'coding', 'smart home', 'personal assistant'].map((tag) => (
+              <button
+                key={tag}
+                onClick={() => navigate(`/explore?q=${encodeURIComponent(tag)}`)}
+                className="px-3 py-1.5 rounded-lg bg-white/5 border border-rc-border text-rc-text-dim hover:text-rc-text hover:border-rc-cyan/30 transition-colors font-mono"
+              >
+                {tag}
+              </button>
+            ))}
           </div>
-        </form>
 
-        {/* Quick links */}
-        <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
-          <span className="text-rc-text-muted">Try:</span>
-          {['voice assistant', 'coding', 'smart home', 'personal assistant'].map((tag) => (
-            <button
-              key={tag}
-              onClick={() => { setQuery(tag); navigate(`/explore?q=${encodeURIComponent(tag)}`) }}
-              className="px-3 py-1.5 rounded-lg bg-white/5 border border-rc-border text-rc-text-dim hover:text-rc-text hover:border-rc-cyan/30 transition-colors font-mono"
-            >
-              {tag}
-            </button>
-          ))}
-        </div>
-
-        {/* Sub-links */}
-        <div className="flex items-center justify-center gap-6 mt-8 text-sm">
-          <Link to="/explore" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1.5">
-            Live feed <IconArrowDown size={14} />
-          </Link>
-          <a href="/docs" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1.5">
-            Docs <IconBook2 size={14} />
-          </a>
-          <a href="https://github.com/bolander72/clawclawgo" target="_blank" rel="noopener" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1.5">
-            GitHub <IconBrandGithub size={14} />
-          </a>
-        </div>
-      </motion.div>
-    </section>
+          {/* Sub-links */}
+          <div className="flex items-center justify-center gap-6 mt-8 text-sm">
+            <Link to="/explore" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1.5">
+              Live feed <IconLivePhoto size={14} />
+            </Link>
+            <a href="https://github.com/bolander72/clawclawgo" target="_blank" rel="noopener" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1.5">
+              GitHub <IconBrandGithub size={14} />
+            </a>
+          </div>
+        </motion.div>
+      </div>
+    </div>
   )
 }
 
-// ─── Build Card (Conveyor Item) ──────────────────────────
+// ─── Community Builds ──────────────────────────────────────
 
-function BuildCard({ build, index, onClick, dropped }) {
-
+function BuildCard({ build, onClick }) {
   return (
     <motion.div
-      initial={dropped ? { y: -400, opacity: 0, rotate: -5 } : { opacity: 0, y: 20 }}
-      animate={{ y: 0, opacity: 1, rotate: 0 }}
-      transition={
-        dropped
-          ? { type: 'spring', stiffness: 120, damping: 18, delay: index * 0.12 }
-          : { delay: index * 0.08, duration: 0.4 }
-      }
-      whileHover={{ y: -8, scale: 1.02 }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -4 }}
       onClick={onClick}
-      className="relative cursor-pointer shrink-0 w-[280px] group h-[260px]"
+      className="cursor-pointer group"
     >
-      {/* Card */}
       <div className="bg-rc-surface rounded-2xl border border-rc-border group-hover:border-rc-cyan/40 transition-all duration-300 overflow-hidden h-full flex flex-col">
-        {/* NEW badge */}
         {build.isNew && (
           <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rc-cyan/15 border border-rc-cyan/30">
             <span className="w-1.5 h-1.5 rounded-full bg-rc-cyan animate-pulse" />
             <span className="text-[10px] font-mono font-bold text-rc-cyan tracking-wider">NEW</span>
-            <span className="text-[10px] font-mono text-rc-cyan/60">{formatDate(build.createdAt)}</span>
           </div>
         )}
-
-        {/* Items tag cloud preview */}
-        <div className="p-5 pt-12 flex-1">
+        <div className="p-5 pt-10 flex-1">
           <div className="flex flex-wrap gap-1.5 mb-4">
             {build.items.slice(0, 8).map((item, ii) => (
               <span
@@ -174,120 +202,24 @@ function BuildCard({ build, index, onClick, dropped }) {
             )}
           </div>
         </div>
-
-        {/* Card footer */}
         <div className="px-5 pb-5 mt-auto">
-          {/* Agent name + build type */}
-          <div className="mb-2">
-            <div className="flex items-center gap-2">
-              <h3 className="font-grotesk font-bold text-rc-text text-base truncate">
-                {build.agentName}
-              </h3>
-              <span className="text-rc-text-muted text-xs">·</span>
-              <span className="text-rc-text-dim text-xs font-mono truncate">
-                {build.name}
-              </span>
-            </div>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="font-grotesk font-bold text-rc-text text-base truncate">{build.agentName}</h3>
+            <span className="text-rc-text-muted text-xs">·</span>
+            <span className="text-rc-text-dim text-xs font-mono truncate">{build.name}</span>
           </div>
-
-          {/* Creator + stats */}
           <div className="flex items-center justify-between">
-            <span className="text-rc-cyan/70 text-xs font-mono">
-              {build.creator}
-            </span>
-            <span className="text-rc-text-muted text-[10px] font-mono">
-              {build.items.length} items
-            </span>
+            <span className="text-rc-cyan/70 text-xs font-mono">{build.creator}</span>
+            <span className="text-rc-text-muted text-[10px] font-mono">{build.items.length} items</span>
           </div>
         </div>
-
-        {/* Hover glow */}
         <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-t from-rc-cyan/5 via-transparent to-transparent" />
       </div>
     </motion.div>
   )
 }
 
-// ─── Conveyor Belt ─────────────────────────────────────────
-
-function ConveyorBelt({ onSelectBuild }) {
-  const [dropped, setDropped] = useState(false)
-  const trackRef = useRef(null)
-  const [isPaused, setIsPaused] = useState(false)
-
-  useEffect(() => {
-    // Trigger drop animation after mount
-    const timer = setTimeout(() => setDropped(true), 300)
-    return () => clearTimeout(timer)
-  }, [])
-
-  // Duplicate builds for seamless scroll
-  const displayBuilds = [...builds, ...builds]
-
-  return (
-    <section id="showcase" className="relative py-16 overflow-hidden max-w-[100vw]">
-      {/* Section header */}
-      <div className="text-center mb-12 px-6">
-        <h2 className="text-2xl md:text-3xl font-grotesk font-bold text-rc-text mb-3">
-          Community Builds
-        </h2>
-        <p className="text-rc-text-dim text-sm max-w-md mx-auto">
-          Real agent configurations from the community. New builds drop in as they're shared.
-        </p>
-      </div>
-
-      {/* Edge fade */}
-      <div className="absolute inset-0 pointer-events-none z-10">
-        <div className="absolute top-0 left-0 w-20 md:w-40 h-full bg-gradient-to-r from-rc-bg to-transparent" />
-        <div className="absolute top-0 right-0 w-20 md:w-40 h-full bg-gradient-to-l from-rc-bg to-transparent" />
-      </div>
-
-      {/* Conveyor track */}
-      <div
-        className="relative"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-      >
-        <div
-          ref={trackRef}
-          className="flex gap-6 px-6"
-          style={{
-            animation: `scroll ${builds.length * 3}s linear infinite`,
-            animationPlayState: isPaused ? 'paused' : 'running',
-          }}
-        >
-          {dropped &&
-            displayBuilds.map((build, i) => (
-              <BuildCard
-                key={`${build.id}-${i}`}
-                build={build}
-                index={i % builds.length}
-                onClick={() => onSelectBuild(build)}
-                dropped={i < builds.length}
-              />
-            ))}
-        </div>
-      </div>
-
-      {/* Track line */}
-      <div className="mt-8 mx-6">
-        <div className="h-px bg-gradient-to-r from-transparent via-rc-border to-transparent" />
-      </div>
-    </section>
-  )
-}
-
-// ─── Build Detail Modal ──────────────────────────────────
-
 function BuildDetail({ build, onClose }) {
-
-  const [toast, setToast] = useState(null)
-
-  const showToast = (msg) => {
-    setToast(msg)
-    setTimeout(() => setToast(null), 2000)
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -304,78 +236,68 @@ function BuildDetail({ build, onClose }) {
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-3xl bg-rc-surface rounded-3xl border border-rc-border shadow-2xl relative my-8"
       >
-        {/* Header */}
         <div className="p-6 md:p-8 border-b border-rc-border">
           <div className="flex items-start justify-between">
             <div>
-              {build.isNew && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rc-cyan/15 border border-rc-cyan/30 mb-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rc-cyan animate-pulse" />
-                  <span className="text-[10px] font-mono font-bold text-rc-cyan tracking-wider">NEW</span>
-                  <span className="text-[10px] font-mono text-rc-cyan/60">{formatDate(build.createdAt)}</span>
-                </div>
-              )}
-              <h2 className="text-3xl font-grotesk font-bold text-rc-text mb-1">
-                {build.agentName}
-              </h2>
+              <h2 className="text-3xl font-grotesk font-bold text-rc-text mb-1">{build.agentName}</h2>
               <p className="text-rc-text-dim text-sm">
-                <span className="text-rc-cyan/70 font-mono">{build.creator}</span>
-                {' · '}
-                {build.name}
+                <span className="text-rc-cyan/70 font-mono">{build.creator}</span> · {build.name}
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={onClose}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors text-rc-text"
-              >
-                ✕
-              </button>
-            </div>
+            <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors text-rc-text">
+              ✕
+            </button>
           </div>
         </div>
-
-        {/* Build contents */}
         <div className="p-6 md:p-8">
           <div className="flex flex-wrap gap-2">
             {build.items.map((item, ii) => (
-              <motion.div
-                key={ii}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: ii * 0.03 }}
-                className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-rc-border hover:border-rc-cyan/30 transition-colors"
-              >
+              <div key={ii} className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-rc-border hover:border-rc-cyan/30 transition-colors">
                 <div className={`w-2 h-2 rounded-full ${item.color?.replace('text-', 'bg-') || 'bg-rc-text-dim'}`} />
-                <span className="font-grotesk text-sm text-rc-text">
-                  {item.name}
-                </span>
-              </motion.div>
+                <span className="font-grotesk text-sm text-rc-text">{item.name}</span>
+              </div>
             ))}
           </div>
         </div>
-
-        {/* Toast */}
-        <AnimatePresence>
-          {toast && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="absolute bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-rc-cyan rounded-full text-rc-bg font-grotesk font-medium text-sm shadow-lg"
-            >
-              {toast}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </motion.div>
     </motion.div>
   )
 }
 
-// ─── What Is ClawClawGo ────────────────────────────────────
+function CommunityPage() {
+  const [selectedBuild, setSelectedBuild] = useState(null)
 
-function WhatIsSection() {
+  return (
+    <PageShell>
+      <main className="max-w-6xl mx-auto px-6 py-16">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-3">
+            Community Builds
+          </h1>
+          <p className="text-rc-text-dim text-sm max-w-md mx-auto">
+            Real agent configurations from the community. See what others have built.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {sampleBuilds.map((build, i) => (
+            <BuildCard key={build.id} build={build} onClick={() => setSelectedBuild(build)} />
+          ))}
+        </div>
+      </main>
+
+      <AnimatePresence>
+        {selectedBuild && (
+          <BuildDetail build={selectedBuild} onClose={() => setSelectedBuild(null)} />
+        )}
+      </AnimatePresence>
+    </PageShell>
+  )
+}
+
+// ─── About (What Is ClawClawGo + How It Works) ────────────
+
+function AboutPage() {
   const features = [
     {
       icon: IconWorldSearch,
@@ -409,152 +331,106 @@ function WhatIsSection() {
     },
   ]
 
-  return (
-    <section className="py-24 px-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
-            What is ClawClawGo?
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((f, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ delay: i * 0.08, duration: 0.5 }}
-              className="p-6 rounded-2xl bg-rc-surface border border-rc-border hover:border-rc-cyan/30 transition-colors group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-rc-cyan/10 flex items-center justify-center mb-4 group-hover:bg-rc-cyan/20 transition-colors">
-                <f.icon size={20} className="text-rc-cyan" stroke={1.5} />
-              </div>
-              <h3 className="font-grotesk font-semibold text-rc-text text-base mb-2">{f.title}</h3>
-              <p className="text-rc-text-dim text-sm leading-relaxed">{f.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── How It Works ──────────────────────────────────────────
-
-function HowItWorks() {
   const steps = [
-    {
-      num: '01',
-      title: 'Search',
-      desc: 'Find agent builds by capability, use case, or creator. No tracking. No accounts. Just search and discover what others have built.',
-    },
-    {
-      num: '02',
-      title: 'Explore',
-      desc: 'See exactly how an agent is configured: which models, what skills, which integrations, what personality. Complete transparency.',
-    },
-    {
-      num: '03',
-      title: 'Apply',
-      desc: 'Copy a build and bootstrap your agent in seconds. Swap models, adjust personality, add skills. Make it yours.',
-    },
+    { num: '01', title: 'Search', desc: 'Find agent builds by capability, use case, or creator. No tracking. No accounts. Just search and discover what others have built.' },
+    { num: '02', title: 'Explore', desc: 'See exactly how an agent is configured: which models, what skills, which integrations, what personality. Complete transparency.' },
+    { num: '03', title: 'Apply', desc: 'Copy a build and bootstrap your agent in seconds. Swap models, adjust personality, add skills. Make it yours.' },
   ]
 
   return (
-    <section className="py-24 px-6 relative">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-rc-cyan/3 rounded-full blur-[150px] pointer-events-none" />
-      <div className="max-w-4xl mx-auto relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
-            How it works
-          </h2>
-          <p className="text-rc-text-dim text-lg max-w-xl mx-auto">
-            Search for builds. Explore configurations. Apply what works.
-          </p>
-        </div>
+    <PageShell>
+      <main className="max-w-6xl mx-auto px-6">
+        {/* What is it */}
+        <section className="py-16">
+          <div className="text-center mb-16">
+            <h1 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
+              What is ClawClawGo?
+            </h1>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((f, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ delay: i * 0.08, duration: 0.5 }}
+                className="p-6 rounded-2xl bg-rc-surface border border-rc-border hover:border-rc-cyan/30 transition-colors group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-rc-cyan/10 flex items-center justify-center mb-4 group-hover:bg-rc-cyan/20 transition-colors">
+                  <f.icon size={20} className="text-rc-cyan" stroke={1.5} />
+                </div>
+                <h3 className="font-grotesk font-semibold text-rc-text text-base mb-2">{f.title}</h3>
+                <p className="text-rc-text-dim text-sm leading-relaxed">{f.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
 
-        <div className="space-y-8">
-          {steps.map((step, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ delay: i * 0.15, duration: 0.5 }}
-              className="flex gap-6 items-start"
-            >
-              <div className="shrink-0 w-12 h-12 rounded-2xl bg-rc-cyan/10 border border-rc-cyan/20 flex items-center justify-center">
-                <span className="text-rc-cyan font-mono font-bold text-sm">{step.num}</span>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-grotesk font-bold text-rc-text text-xl mb-2">{step.title}</h3>
-                <p className="text-rc-text-dim text-sm leading-relaxed">{step.desc}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
+        {/* How it works */}
+        <section className="py-16 relative">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-rc-cyan/3 rounded-full blur-[150px] pointer-events-none" />
+          <div className="max-w-4xl mx-auto relative z-10">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
+                How it works
+              </h2>
+              <p className="text-rc-text-dim text-lg max-w-xl mx-auto">
+                Search for builds. Explore configurations. Apply what works.
+              </p>
+            </div>
+            <div className="space-y-8">
+              {steps.map((step, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: '-50px' }}
+                  transition={{ delay: i * 0.15, duration: 0.5 }}
+                  className="flex gap-6 items-start"
+                >
+                  <div className="shrink-0 w-12 h-12 rounded-2xl bg-rc-cyan/10 border border-rc-cyan/20 flex items-center justify-center">
+                    <span className="text-rc-cyan font-mono font-bold text-sm">{step.num}</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-grotesk font-bold text-rc-text text-xl mb-2">{step.title}</h3>
+                    <p className="text-rc-text-dim text-sm leading-relaxed">{step.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+    </PageShell>
   )
 }
 
 // ─── FAQ ───────────────────────────────────────────────────
 
-function FAQSection() {
+function FAQPage() {
   const [openIndex, setOpenIndex] = useState(null)
 
   const faqs = [
-    {
-      q: 'What is a build?',
-      a: 'A build is a complete agent configuration: the model, integrations, skills, personality, memory, and scheduling that define how an AI agent works. Think of it like a character build in a game, or dotfiles for your AI.',
-    },
-    {
-      q: 'Can I search without an account?',
-      a: 'Yes. No accounts, no tracking, no login required. Search and browse builds completely anonymously. Only create an identity if you want to publish builds.',
-    },
-    {
-      q: 'Can I publish anonymously?',
-      a: 'Yes. You can publish builds without any identity attached. Or use Nostr keys to tie builds to a verified identity if you want credit.',
-    },
-    {
-      q: 'What data is shared when I publish?',
-      a: 'Only what you approve. The PII scrubber runs locally and removes phone numbers, emails, API keys, home paths, and other sensitive data before anything leaves your machine. You review the scrubbed output before publishing.',
-    },
-    {
-      q: 'How is this decentralized?',
-      a: 'Builds are published to Nostr relays, a decentralized protocol. No central authority. No single point of failure. Censorship-resistant by design.',
-    },
-    {
-      q: 'Can I copy someone else\'s build?',
-      a: 'That\'s the whole point. Click any build card, hit "Copy Build," and you\'ve got their full configuration. Swap out what doesn\'t fit, keep what does.',
-    },
-    {
-      q: 'What\'s in a typical build?',
-      a: 'Builds contain whatever config your agent uses. Common pieces include model routing (which LLMs), personality (how it talks), skills (what it can do), integrations (what it connects to), automations (heartbeat + cron), and memory config. But builds are flexible - they contain your agent\'s full configuration, not a fixed template.',
-    },
-    {
-      q: 'Do I need OpenClaw to use a build?',
-      a: 'Builds are designed for OpenClaw agents, but the concepts are universal. The model choices, integration patterns, and personality approaches apply to any AI agent setup.',
-    },
-    {
-      q: 'Is this free?',
-      a: 'ClawClawGo is free. OpenClaw is free and open source. You\'ll pay for AI model API calls depending on which providers you use, or run fully local models for zero cost.',
-    },
-    {
-      q: 'How do I get started?',
-      a: 'Search for a build that matches your use case. Explore how it\'s configured. Copy it and apply it to your agent. Or install OpenClaw, create your own build, and publish it for others.',
-    },
+    { q: 'What is a build?', a: 'A build is a complete agent configuration: the model, integrations, skills, personality, memory, and scheduling that define how an AI agent works. Think of it like a character build in a game, or dotfiles for your AI.' },
+    { q: 'Can I search without an account?', a: 'Yes. No accounts, no tracking, no login required. Search and browse builds completely anonymously. Only create an identity if you want to publish builds.' },
+    { q: 'Can I publish anonymously?', a: 'Yes. You can publish builds without any identity attached. Or use Nostr keys to tie builds to a verified identity if you want credit.' },
+    { q: 'What data is shared when I publish?', a: 'Only what you approve. The PII scrubber runs locally and removes phone numbers, emails, API keys, home paths, and other sensitive data before anything leaves your machine. You review the scrubbed output before publishing.' },
+    { q: 'How is this decentralized?', a: 'Builds are published to Nostr relays, a decentralized protocol. No central authority. No single point of failure. Censorship-resistant by design.' },
+    { q: 'Can I copy someone else\'s build?', a: 'That\'s the whole point. Click any build card, hit "Copy Build," and you\'ve got their full configuration. Swap out what doesn\'t fit, keep what does.' },
+    { q: 'What\'s in a typical build?', a: 'Builds contain whatever config your agent uses. Common pieces include model routing (which LLMs), personality (how it talks), skills (what it can do), integrations (what it connects to), automations (heartbeat + cron), and memory config. But builds are flexible.' },
+    { q: 'Do I need OpenClaw to use a build?', a: 'Builds are designed for OpenClaw agents, but the concepts are universal. The model choices, integration patterns, and personality approaches apply to any AI agent setup.' },
+    { q: 'Is this free?', a: 'ClawClawGo is free. OpenClaw is free and open source. You\'ll pay for AI model API calls depending on which providers you use, or run fully local models for zero cost.' },
+    { q: 'How do I get started?', a: 'Search for a build that matches your use case. Explore how it\'s configured. Copy it and apply it to your agent. Or install OpenClaw, create your own build, and publish it for others.' },
   ]
 
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-3xl mx-auto">
+    <PageShell>
+      <main className="max-w-3xl mx-auto px-6 py-16">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
+          <h1 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
             FAQs
-          </h2>
+          </h1>
         </div>
 
         <div className="space-y-2">
@@ -589,17 +465,15 @@ function FAQSection() {
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <p className="px-5 pb-5 text-rc-text-dim text-sm leading-relaxed">
-                      {faq.a}
-                    </p>
+                    <p className="px-5 pb-5 text-rc-text-dim text-sm leading-relaxed">{faq.a}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
             </motion.div>
           ))}
         </div>
-      </div>
-    </section>
+      </main>
+    </PageShell>
   )
 }
 
@@ -609,42 +483,21 @@ function Footer() {
   return (
     <footer className="border-t border-rc-border py-16 px-6">
       <div className="max-w-6xl mx-auto">
-        {/* CTA */}
-        <div className="text-center mb-16">
-          <h3 className="text-2xl md:text-3xl font-grotesk font-bold text-rc-text mb-4">
-            Search. Discover. Build.
-          </h3>
-          <p className="text-rc-text-dim text-sm mb-8 max-w-md mx-auto">
-            Find agent builds that match your needs. No tracking. No accounts. Publish yours anonymously or with verified identity.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md mx-auto">
-            <a
-              href="https://github.com/bolander72/clawclawgo"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center justify-center gap-2"
-            >
-              <IconBrandGithub size={18} />
-              View on GitHub
-            </a>
-            <a
-              href="/docs/"
-              className="w-full px-6 py-3 bg-white/5 hover:bg-white/10 text-rc-text font-grotesk font-semibold rounded-xl transition-colors border border-rc-border flex items-center justify-center gap-2"
-            >
-              <IconBook2 size={18} />
-              Read the Docs
-            </a>
-          </div>
-        </div>
-
-        {/* Links grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div>
             <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">ClawClawGo</h4>
             <ul className="space-y-2.5">
-              <li><Link to="/explore" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Explore Builds</Link></li>
+              <li><Link to="/explore" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Live Feed</Link></li>
+              <li><Link to="/community" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Community Builds</Link></li>
               <li><a href="/docs/" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Documentation</a></li>
               <li><a href="https://github.com/bolander72/clawclawgo" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">GitHub</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Learn</h4>
+            <ul className="space-y-2.5">
+              <li><Link to="/about" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">What is ClawClawGo?</Link></li>
+              <li><Link to="/faq" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">FAQs</Link></li>
             </ul>
           </div>
           <div>
@@ -662,57 +515,17 @@ function Footer() {
               <li><a href="https://github.com/bolander72/clawclawgo/discussions" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Discussions</a></li>
             </ul>
           </div>
-          <div>
-            <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Legal</h4>
-            <ul className="space-y-2.5">
-              <li><a href="https://github.com/bolander72/clawclawgo/blob/main/LICENSE" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">MIT License</a></li>
-            </ul>
-          </div>
         </div>
 
-        {/* Bottom bar */}
         <div className="flex items-center justify-between pt-8 border-t border-rc-border">
-          <p className="text-rc-text-muted text-xs font-mono">
-            clawclawgo · agent builds for openclaw
-          </p>
+          <p className="text-rc-text-muted text-xs font-mono">clawclawgo · agent builds for openclaw</p>
           <div className="flex items-center gap-4">
-            <a href="https://github.com/bolander72/clawclawgo" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors">
-              <IconBrandGithub size={18} />
-            </a>
-            <a href="https://discord.com/invite/clawd" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors">
-              <IconBrandDiscord size={18} />
-            </a>
+            <a href="https://github.com/bolander72/clawclawgo" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors"><IconBrandGithub size={18} /></a>
+            <a href="https://discord.com/invite/clawd" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors"><IconBrandDiscord size={18} /></a>
           </div>
         </div>
       </div>
     </footer>
-  )
-}
-
-// ─── Landing Page ──────────────────────────────────────────
-
-function Landing() {
-  const [selectedBuild, setSelectedBuild] = useState(null)
-
-  return (
-    <div className="min-h-screen bg-rc-bg overflow-x-hidden">
-      <Hero />
-      <ConveyorBelt onSelectBuild={setSelectedBuild} />
-      <WhatIsSection />
-      <HowItWorks />
-
-      <FAQSection />
-      <Footer />
-
-      <AnimatePresence>
-        {selectedBuild && (
-          <BuildDetail
-            build={selectedBuild}
-            onClose={() => setSelectedBuild(null)}
-          />
-        )}
-      </AnimatePresence>
-    </div>
   )
 }
 
@@ -722,8 +535,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<Home />} />
         <Route path="/explore" element={<Explore />} />
+        <Route path="/community" element={<CommunityPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/faq" element={<FAQPage />} />
       </Routes>
     </BrowserRouter>
   )
