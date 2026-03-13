@@ -12,7 +12,6 @@ import {
   IconArrowDown, IconExternalLink, IconCopy, IconChevronRight,
   IconRefresh, IconPuzzle, IconMessages,
   IconChevronDown, IconBook2, IconBrandDiscord,
-  IconBrandApple, IconBrandWindows, IconBrandDebian,
 } from '@tabler/icons-react'
 import { builds } from './builds'
 import Explore from './Explore'
@@ -37,76 +36,6 @@ function formatDate(dateStr) {
   if (diff === 1) return 'Yesterday'
   if (diff < 7) return `${diff}d ago`
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
-// ─── Download Dropdown ─────────────────────────────────────
-
-const RELEASE_BASE = 'https://github.com/bolander72/clawclawgo/releases'
-const RELEASE_TAG = 'v0.2.1'
-
-function DownloadDropdown({ className = '' }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  const platforms = [
-    { label: 'macOS (Apple Silicon)', icon: IconBrandApple, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/ClawClawGo_${RELEASE_TAG.slice(1)}_aarch64.dmg` },
-    { label: 'macOS (Intel)', icon: IconBrandApple, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/ClawClawGo_${RELEASE_TAG.slice(1)}_x64.dmg` },
-    { label: 'Windows', icon: IconBrandWindows, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/ClawClawGo_${RELEASE_TAG.slice(1)}_x64-setup.exe` },
-    { label: 'Linux (.deb)', icon: IconBrandDebian, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/ClawClawGo_${RELEASE_TAG.slice(1)}_amd64.deb` },
-    { label: 'Linux (.AppImage)', icon: IconBrandDebian, href: `${RELEASE_BASE}/download/${RELEASE_TAG}/ClawClawGo_${RELEASE_TAG.slice(1)}_amd64.AppImage` },
-  ]
-
-  return (
-    <div ref={ref} className={`relative ${className}`}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
-      >
-        Get ClawClawGo
-        <IconChevronDown size={16} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-2 w-full min-w-[220px] bg-rc-surface border border-rc-border rounded-xl shadow-xl z-50 py-1"
-          >
-            {platforms.map((p) => (
-              <a
-                key={p.label}
-                href={p.href}
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-rc-text hover:bg-white/5 transition-colors text-sm font-grotesk"
-              >
-                <p.icon size={18} stroke={1.5} />
-                {p.label}
-              </a>
-            ))}
-            <div className="border-t border-rc-border">
-              <a
-                href={`${RELEASE_BASE}/tag/${RELEASE_TAG}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-rc-text-dim hover:bg-white/5 transition-colors text-xs font-mono"
-              >
-                All releases →
-              </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
 }
 
 // ─── Hero Section ──────────────────────────────────────────
@@ -155,10 +84,9 @@ function Hero() {
 
         {/* CTA */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-lg mx-auto">
-          <DownloadDropdown className="w-full" />
           <a
             href="/docs"
-            className="w-full px-6 py-3 bg-white/5 text-rc-text font-grotesk font-semibold rounded-xl hover:bg-white/10 transition-colors border border-rc-border flex items-center justify-center gap-2"
+            className="w-full px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center justify-center gap-2"
           >
             Read the Docs
           </a>
@@ -681,7 +609,15 @@ function Footer() {
             Find agent builds that match your needs. No tracking. No accounts. Publish yours anonymously or with verified identity.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md mx-auto">
-            <DownloadDropdown className="w-full" />
+            <a
+              href="https://github.com/bolander72/clawclawgo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full px-6 py-3 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors flex items-center justify-center gap-2"
+            >
+              <IconBrandGithub size={18} />
+              View on GitHub
+            </a>
             <a
               href="/docs/"
               className="w-full px-6 py-3 bg-white/5 hover:bg-white/10 text-rc-text font-grotesk font-semibold rounded-xl transition-colors border border-rc-border flex items-center justify-center gap-2"
@@ -699,7 +635,7 @@ function Footer() {
             <ul className="space-y-2.5">
               <li><Link to="/explore" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Explore Builds</Link></li>
               <li><a href="/docs/" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Documentation</a></li>
-              <li><a href={RELEASE_BASE} target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Download</a></li>
+              <li><a href="https://github.com/bolander72/clawclawgo" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">GitHub</a></li>
             </ul>
           </div>
           <div>

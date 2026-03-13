@@ -129,7 +129,7 @@ Results are sorted by `created_at` descending.
 Kind 38333 is not yet registered in the [official NIP repository](https://github.com/nostr-protocol/nips). Registration requires at least 2 client implementations and 1 relay explicitly supporting the kind.
 
 Current status:
-- **Clients:** ClawClawGo (desktop app + CLI) - 1 of 2 needed
+- **Clients:** ClawClawGo (web app + CLI) - 1 of 2 needed
 - **Relays:** Standard relays accept kind 38333 as an unknown event, but none explicitly support it yet
 
 A draft NIP document is maintained at [`specs/nip-38333.md`](https://github.com/bolander72/clawclawgo/blob/main/specs/nip-38333.md) and will be submitted as a PR to the NIPs repo when the adoption criteria are met.

@@ -1,63 +1,62 @@
 # Quick Start
 
-Get ClawClawGo running and apply your first build in under 5 minutes.
+Get started with ClawClawGo and apply your first build in under 5 minutes.
 
 ## Prerequisites
 
 - [OpenClaw](https://github.com/openclaw/openclaw) installed and running
-- macOS, Windows, or Linux
+- Node.js 16+ (for CLI)
 
-## 1. Install ClawClawGo
+## 1. Browse Builds
 
-Download the latest release for your platform from the [releases page](https://github.com/bolander72/clawclawgo/releases/latest).
+Visit **[clawclawgo.com](https://clawclawgo.com)** to search and explore agent builds shared by the community. Find one that matches your use case.
 
-| Platform | Download |
-|----------|----------|
-| macOS (Apple Silicon) | `.dmg` |
-| macOS (Intel) | `.dmg` |
-| Windows | `.exe` installer |
-| Linux | `.deb` or `.AppImage` |
+## 2. Install the CLI
 
-## 2. Launch & Connect
-
-Open ClawClawGo. If OpenClaw's gateway is running, you'll see **LIVE** in the status bar. The app automatically detects your config at `~/.openclaw/openclaw.json`.
-
-If you see **MOCK**, the gateway isn't reachable. ClawClawGo will show sample data so you can still explore the UI.
-
-## 3. View Your Build
-
-The **Build** view shows your current agent's configuration in a tree view. Click any key to drill into the details.
-
-## 4. Save a Snapshot
-
-Go to **Builds** → **Save Current Build**. Give it a name like "My Setup v1". This captures your current config as a portable JSON file.
-
-## 5. Browse the Feed
-
-Switch to **The Feed** to see builds published by other users on Nostr. Find one you like? Click **Compare** to see how it differs from yours, or **Apply** to create a new agent from it.
-
-## 6. Apply a Build
-
-The Apply Wizard walks you through:
-1. **Name** your new agent
-2. **Review** what will be created, written, or installed
-3. **Confirm** and apply
-
-Your new agent gets its own workspace at `~/.openclaw/agents/<name>/`. Restart OpenClaw to activate it.
-
-## Using the CLI
-
-Prefer the terminal? The `clawclawgo` CLI does the same thing:
+Clone the repo and install dependencies:
 
 ```bash
-# Export your current agent
-node clawclawgo.mjs export
+git clone https://github.com/bolander72/clawclawgo.git
+cd clawclawgo
+npm install
+```
 
-# Preview what an apply would do
-node clawclawgo.mjs apply build.json --agent my-bot --dry-run
+## 3. Export Your Current Agent
 
-# Apply for real
-node clawclawgo.mjs apply build.json --agent my-bot
+Capture your current agent config as a portable build:
+
+```bash
+node cli/clawclawgo.mjs export
+```
+
+This creates a `build.json` file with your agent's configuration.
+
+## 4. Preview a Build
+
+Before applying any build, preview what it will do:
+
+```bash
+node cli/clawclawgo.mjs preview build.json
+```
+
+This shows the security scan, dependency check, and what will be created.
+
+## 5. Apply a Build
+
+Create a new agent from a build:
+
+```bash
+node cli/clawclawgo.mjs apply build.json --agent my-bot --name "My Bot"
+```
+
+Your new agent gets its own workspace at `~/.openclaw/agents/my-bot/`. Restart OpenClaw to activate it.
+
+## 6. Publish Your Build (Optional)
+
+Share your build with the community via Nostr:
+
+```bash
+node cli/clawclawgo.mjs publish build.json
 ```
 
 ## Next Steps
