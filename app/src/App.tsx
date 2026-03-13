@@ -18,7 +18,7 @@ function CloneToast({ result }: { result: { message: string; type: 'success' | '
   if (!result) return null;
   return (
     <div
-      className="fixed bottom-12 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg text-xs font-semibold z-50 transition-all"
+      className="fixed bottom-12 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl text-sm font-semibold z-50 transition-all shadow-xl"
       style={{
         background: result.type === 'success' ? 'var(--rc-green)' : 'var(--rc-red)',
         color: 'var(--rc-bg)',
@@ -66,11 +66,11 @@ function App() {
   const dataSource = blocksError ? 'mock' : 'live';
 
   const navItems: { id: View; icon: string; label: string }[] = [
-    { id: 'build', icon: '⬡', label: 'Active Build' },
+    { id: 'build', icon: '⬡', label: 'Build' },
     { id: 'skills', icon: '◆', label: 'Skills' },
     { id: 'builds', icon: '▤', label: 'Builds' },
     { id: 'compare', icon: '⊕', label: 'Compare' },
-    { id: 'feed', icon: '◎', label: 'The Feed' },
+    { id: 'feed', icon: '◎', label: 'Feed' },
     { id: 'settings', icon: '⚙', label: 'Settings' },
   ];
 
@@ -78,189 +78,194 @@ function App() {
     <div className="h-screen flex flex-col">
       <Header />
 
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar nav */}
-        <nav
-          className="w-14 flex flex-col items-center py-4 gap-2 border-r"
-          style={{ borderColor: 'var(--rc-border)', background: 'var(--rc-surface)' }}
-        >
-          {/* Agent selector (only when multiple agents) */}
-          {agents.length > 1 && (
-            <div className="mb-2 pb-2 w-full flex flex-col items-center gap-1" style={{ borderBottom: '1px solid var(--rc-border)' }}>
-              {agents.map((agent) => (
-                <button
-                  key={agent.id}
-                  onClick={() => setActiveAgent(agent.id)}
-                  className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold uppercase transition-all"
-                  style={{
-                    background: activeAgent === agent.id ? 'var(--rc-overlay-light)' : 'transparent',
-                    color: activeAgent === agent.id ? 'var(--rc-cyan)' : 'var(--rc-text-muted)',
-                    border: activeAgent === agent.id ? '1px solid var(--rc-cyan)' : '1px solid transparent',
-                  }}
-                  title={agent.name || agent.id}
-                >
-                  {(agent.name || agent.id).slice(0, 2)}
-                </button>
-              ))}
-            </div>
-          )}
+      {/* Horizontal nav tabs */}
+      <nav
+        className="flex items-center gap-1 px-6 py-3 border-b"
+        style={{ borderColor: 'var(--rc-border)', background: 'var(--rc-surface)' }}
+      >
+        {/* Agent selector (only when multiple agents) */}
+        {agents.length > 1 && (
+          <div className="flex items-center gap-2 mr-6 pr-6" style={{ borderRight: '1px solid var(--rc-border)' }}>
+            <span className="text-xs font-medium" style={{ color: 'var(--rc-text-muted)' }}>Agent:</span>
+            {agents.map((agent) => (
+              <button
+                key={agent.id}
+                onClick={() => setActiveAgent(agent.id)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{
+                  background: activeAgent === agent.id ? 'rgba(0, 240, 255, 0.1)' : 'transparent',
+                  color: activeAgent === agent.id ? 'var(--rc-cyan)' : 'var(--rc-text-dim)',
+                  border: activeAgent === agent.id ? '1px solid var(--rc-cyan)' : '1px solid transparent',
+                }}
+                title={agent.name || agent.id}
+              >
+                {agent.name || agent.id}
+              </button>
+            ))}
+          </div>
+        )}
 
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setView(item.id)}
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-sm transition-all"
-              style={{
-                background: view === item.id ? 'var(--rc-overlay-light)' : 'transparent',
-                color: view === item.id ? 'var(--rc-cyan)' : 'var(--rc-text-muted)',
-                border: view === item.id ? '1px solid var(--rc-cyan)' : '1px solid transparent',
-              }}
-              title={item.label}
-            >
-              {item.icon}
-            </button>
-          ))}
-
-          <div className="flex-1" />
-
-          {/* Publish button */}
+        {/* View tabs */}
+        {navItems.map((item) => (
           <button
-            onClick={() => setShowPublish(true)}
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-sm transition-all hover:opacity-80"
+            key={item.id}
+            onClick={() => setView(item.id)}
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
             style={{
-              background: 'var(--rc-overlay-light)',
-              color: 'var(--rc-cyan)',
-              border: '1px solid var(--rc-cyan-dim)',
+              background: view === item.id ? 'rgba(0, 240, 255, 0.1)' : 'transparent',
+              color: view === item.id ? 'var(--rc-cyan)' : 'var(--rc-text-dim)',
+              borderBottom: view === item.id ? '2px solid var(--rc-cyan)' : '2px solid transparent',
             }}
-            title="Publish Build"
           >
-            ▲
+            <span>{item.icon}</span>
+            {item.label}
           </button>
-        </nav>
+        ))}
 
-        {/* Main content */}
-        <main className="flex-1 flex overflow-hidden">
-          {view === 'build' && (
-            <>
-              {/* Block grid */}
-              <div className="w-[340px] p-4 overflow-y-auto border-r" style={{ borderColor: 'var(--rc-border)' }}>
+        <div className="flex-1" />
+
+        {/* Publish button */}
+        <button
+          onClick={() => setShowPublish(true)}
+          className="px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+          style={{
+            background: 'var(--rc-cyan)',
+            color: 'var(--rc-bg)',
+          }}
+        >
+          <span>▲</span>
+          Publish
+        </button>
+      </nav>
+
+      {/* Main content */}
+      <main className="flex-1 flex overflow-hidden">
+        {view === 'build' && (
+          <>
+            {/* Block grid */}
+            <div className="w-[360px] p-6 overflow-y-auto border-r" style={{ borderColor: 'var(--rc-border)' }}>
+              <div className="flex items-center justify-between mb-6">
                 <h3
-                  className="text-xs font-semibold uppercase tracking-widest mb-4 px-1"
-                  style={{ color: 'var(--rc-text-muted)' }}
+                  className="text-sm font-semibold tracking-wide"
+                  style={{ color: 'var(--rc-text)' }}
                 >
                   Blocks
-                  {blocksLoading && (
-                    <span className="ml-2 animate-pulse" style={{ color: 'var(--rc-cyan)' }}>●</span>
-                  )}
                 </h3>
-                <div className="space-y-2">
-                  {blocks.map((block) => (
-                    <BlockCard
-                      key={block.id}
-                      block={block}
-                      selected={selectedBlock === block.id}
-                      onClick={() => setSelectedBlock(block.id)}
-                    />
-                  ))}
-                </div>
+                {blocksLoading && (
+                  <span className="animate-pulse" style={{ color: 'var(--rc-cyan)' }}>●</span>
+                )}
               </div>
-
-              {/* Detail panel */}
-              <div className="flex-1 p-4 overflow-y-auto">
-                <BlockDetail block={activeBlock} />
+              <div className="space-y-3">
+                {blocks.map((block) => (
+                  <BlockCard
+                    key={block.id}
+                    block={block}
+                    selected={selectedBlock === block.id}
+                    onClick={() => setSelectedBlock(block.id)}
+                  />
+                ))}
               </div>
-            </>
-          )}
+            </div>
 
-          {view === 'skills' && (
+            {/* Detail panel */}
             <div className="flex-1 p-6 overflow-y-auto">
-              <div className="max-w-2xl">
+              <BlockDetail block={activeBlock} />
+            </div>
+          </>
+        )}
+
+        {view === 'skills' && (
+          <div className="flex-1 p-8 overflow-y-auto">
+            <div className="max-w-3xl">
+              <div className="mb-6">
                 <h3
-                  className="text-xs font-semibold uppercase tracking-widest mb-1"
-                  style={{ color: 'var(--rc-text-muted)' }}
+                  className="text-lg font-semibold mb-2"
+                  style={{ color: 'var(--rc-text)' }}
                 >
                   Installed Skills
                   {skillsLoading && (
                     <span className="ml-2 animate-pulse" style={{ color: 'var(--rc-cyan)' }}>●</span>
                   )}
                 </h3>
-                <p className="text-xs mb-6" style={{ color: 'var(--rc-text-dim)' }}>
+                <p className="text-sm" style={{ color: 'var(--rc-text-dim)' }}>
                   {skills.length} skills · {skills.filter((s) => (s as any).enabled !== false).length} active
                 </p>
-                <SkillList skills={skills} />
               </div>
+              <SkillList skills={skills} />
             </div>
-          )}
+          </div>
+        )}
 
-          {view === 'builds' && (
-            <BuildsView
-              onCompare={(build) => {
-                setCompareTarget(build as Record<string, unknown>);
-                setView('compare');
-              }}
-              onApply={(build) => {
-                setApplyTarget(build as Record<string, unknown>);
-              }}
-            />
-          )}
+        {view === 'builds' && (
+          <BuildsView
+            onCompare={(build) => {
+              setCompareTarget(build as Record<string, unknown>);
+              setView('compare');
+            }}
+            onApply={(build) => {
+              setApplyTarget(build as Record<string, unknown>);
+            }}
+          />
+        )}
 
-          {view === 'compare' && (
-            <CompareView
-              currentBlocks={blocks}
-              currentSkills={skills}
-              currentName="Quinn"
-              initialBuild={compareTarget}
-              onClear={() => setCompareTarget(null)}
-              onClone={async (build, mode) => {
-                const json = JSON.stringify(build);
-                const res = await cloneBuild(json, mode, activeAgent);
-                if (res) {
-                  const msg = mode === 'new'
-                    ? `Saved as build: ${res.block_changes[0] || 'done'}`
-                    : `Applied to ${activeAgent || 'agent'}. ${res.applied_skills.length} skills, ${res.skipped_skills.length} skipped. ${res.block_changes.length} changes.`;
-                  setCloneResult({ message: msg, type: 'success' });
-                  setTimeout(() => setCloneResult(null), 6000);
-                } else {
-                  setCloneResult({ message: 'Clone failed', type: 'error' });
-                  setTimeout(() => setCloneResult(null), 4000);
-                }
-              }}
-            />
-          )}
+        {view === 'compare' && (
+          <CompareView
+            currentBlocks={blocks}
+            currentSkills={skills}
+            currentName="Quinn"
+            initialBuild={compareTarget}
+            onClear={() => setCompareTarget(null)}
+            onClone={async (build, mode) => {
+              const json = JSON.stringify(build);
+              const res = await cloneBuild(json, mode, activeAgent);
+              if (res) {
+                const msg = mode === 'new'
+                  ? `Saved as build: ${res.block_changes[0] || 'done'}`
+                  : `Applied to ${activeAgent || 'agent'}. ${res.applied_skills.length} skills, ${res.skipped_skills.length} skipped. ${res.block_changes.length} changes.`;
+                setCloneResult({ message: msg, type: 'success' });
+                setTimeout(() => setCloneResult(null), 6000);
+              } else {
+                setCloneResult({ message: 'Clone failed', type: 'error' });
+                setTimeout(() => setCloneResult(null), 4000);
+              }
+            }}
+          />
+        )}
 
-          {view === 'feed' && (
-            <FeedView
-              onCompare={(build) => {
-                setCompareTarget(build as Record<string, unknown>);
-                setView('compare');
-              }}
-            />
-          )}
+        {view === 'feed' && (
+          <FeedView
+            onCompare={(build) => {
+              setCompareTarget(build as Record<string, unknown>);
+              setView('compare');
+            }}
+          />
+        )}
 
-          {view === 'settings' && <SettingsView />}
-        </main>
-      </div>
+        {view === 'settings' && <SettingsView />}
+      </main>
 
       {/* Status bar */}
       <footer
-        className="flex items-center justify-between px-4 py-1.5 text-[10px] border-t"
+        className="flex items-center justify-between px-6 py-2 text-xs border-t"
         style={{
           borderColor: 'var(--rc-border)',
           background: 'var(--rc-surface)',
           color: 'var(--rc-text-muted)',
         }}
       >
-        <span>
-          RIPPERCLAW v0.1.0 · {dataSource === 'live' ? (
+        <span className="font-mono">
+          ClawClawGo v0.2.2 · {dataSource === 'live' ? (
             <span style={{ color: 'var(--rc-green)' }}>LIVE</span>
           ) : (
             <span style={{ color: 'var(--rc-magenta)' }}>MOCK</span>
           )}
           {status.gateway === 'running' && (
-            <span style={{ color: 'var(--rc-green)' }}> · GW ✓</span>
+            <span style={{ color: 'var(--rc-green)' }}> · Gateway ✓</span>
           )}
         </span>
-        <span>BUILD: QUINN · {blocks.length} BLOCKS · {skills.length} SKILLS</span>
+        <span className="font-medium">
+          {blocks.length} blocks · {skills.length} skills
+        </span>
       </footer>
 
       {/* Clone result toast */}

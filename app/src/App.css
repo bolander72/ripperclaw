@@ -14,15 +14,15 @@ a:hover {
 
 input,
 button {
-  border-radius: 6px;
+  border-radius: 12px;
   border: 1px solid var(--rc-border);
-  padding: 0.5em 1em;
-  font-size: 0.8em;
+  padding: 0.6em 1.2em;
+  font-size: 0.875em;
   font-weight: 500;
   font-family: inherit;
   color: var(--rc-text);
   background-color: var(--rc-surface);
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
   outline: none;
 }
 
@@ -32,4 +32,9 @@ button {
 
 button:hover {
   border-color: var(--rc-cyan);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
 }

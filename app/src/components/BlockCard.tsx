@@ -19,26 +19,36 @@ export function BlockCard({ block, selected, onClick }: Props) {
       className={`block-card ${selected ? 'active' : ''}`}
       onClick={onClick}
     >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-lg" style={{ color: 'var(--rc-cyan)' }}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div 
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+            style={{ 
+              background: selected ? 'rgba(0, 240, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+              color: 'var(--rc-cyan)' 
+            }}
+          >
             {block.icon}
-          </span>
-          <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: 'var(--rc-text)' }}>
-            {block.label}
-          </span>
+          </div>
+          <div>
+            <span className="text-sm font-semibold block" style={{ color: 'var(--rc-text)' }}>
+              {block.label}
+            </span>
+            <span className="text-xs block" style={{ color: 'var(--rc-cyan)' }}>
+              {block.component}
+            </span>
+          </div>
         </div>
         <div
-          className="w-2 h-2 rounded-full health-pulse"
+          className="w-2 h-2 rounded-full shrink-0"
           style={{ backgroundColor: statusColor[block.status] }}
         />
       </div>
-      <div className="text-xs" style={{ color: 'var(--rc-cyan)' }}>
-        {block.component}
-        {block.version && (
-          <span style={{ color: 'var(--rc-text-dim)' }}> v{block.version}</span>
-        )}
-      </div>
+      {block.version && (
+        <div className="text-xs font-mono mt-2" style={{ color: 'var(--rc-text-dim)' }}>
+          v{block.version}
+        </div>
+      )}
     </div>
   );
 }

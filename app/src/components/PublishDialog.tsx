@@ -138,7 +138,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
           </h2>
           <button
             onClick={onClose}
-            className="text-xs px-2 py-1 rounded border transition-all hover:opacity-80"
+            className="text-xs px-2 py-1 rounded-xl border transition-all hover:opacity-80"
             style={{ borderColor: 'var(--rc-border)', color: 'var(--rc-text-muted)' }}
           >
             ✕
@@ -149,7 +149,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
         {step === 'identity' && (
           <div className="space-y-4">
             <div
-              className="p-4 rounded border text-xs leading-relaxed"
+              className="p-4 rounded-xl border text-xs leading-relaxed"
               style={{
                 borderColor: 'var(--rc-cyan)',
                 background: 'var(--rc-overlay-accent)',
@@ -168,7 +168,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
             {/* Generated key preview */}
             {keys.has_keys ? (
               <div
-                className="p-3 rounded border text-xs font-mono"
+                className="p-3 rounded-xl border text-xs font-mono"
                 style={{
                   borderColor: 'var(--rc-green)',
                   background: 'rgba(0,255,100,0.03)',
@@ -179,7 +179,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
               </div>
             ) : (
               <div
-                className="p-3 rounded border text-xs"
+                className="p-3 rounded-xl border text-xs"
                 style={{
                   borderColor: 'var(--rc-border)',
                   background: 'var(--rc-overlay-subtle)',
@@ -201,7 +201,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
                   value={nsecInput}
                   onChange={(e) => { setNsecInput(e.target.value); setImportError(null); }}
                   placeholder="nsec1..."
-                  className="flex-1 px-3 py-2 rounded text-xs border outline-none font-mono"
+                  className="flex-1 px-3 py-2 rounded-xl text-xs border outline-none font-mono"
                   style={{
                     background: 'var(--rc-overlay-subtle)',
                     borderColor: 'var(--rc-border)',
@@ -219,7 +219,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
                     }
                   }}
                   disabled={!nsecInput.trim()}
-                  className="px-4 py-2 rounded text-xs font-semibold border transition-all hover:opacity-80 disabled:opacity-40"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold border transition-all hover:opacity-80 disabled:opacity-40"
                   style={{ borderColor: 'var(--rc-cyan)', color: 'var(--rc-cyan)' }}
                 >
                   Import
@@ -239,7 +239,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="flex-1 py-2.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                className="flex-1 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
                 style={{ borderColor: 'var(--rc-border)', color: 'var(--rc-text-dim)' }}
               >
                 Cancel
@@ -252,7 +252,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
                   }
                   setStep('configure');
                 }}
-                className="flex-1 py-2.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                className="flex-1 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
                 style={{
                   borderColor: 'var(--rc-cyan)',
                   color: 'var(--rc-bg)',
@@ -270,7 +270,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
           <div className="space-y-4">
             {/* PII warning */}
             <div
-              className="p-3 rounded border text-xs"
+              className="p-3 rounded-xl border text-xs"
               style={{
                 borderColor: 'var(--rc-magenta)',
                 background: 'rgba(255,0,170,0.05)',
@@ -290,7 +290,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
                   <button
                     key={mode}
                     onClick={() => { setPublishMode(mode); setBlockValidationError(null); }}
-                    className="flex-1 py-2 rounded border text-xs font-semibold transition-all"
+                    className="flex-1 py-2 rounded-xl border text-xs font-semibold transition-all"
                     style={{
                       borderColor: publishMode === mode ? 'var(--rc-cyan)' : 'var(--rc-border)',
                       background: publishMode === mode ? 'rgba(0,240,255,0.1)' : 'transparent',
@@ -317,7 +317,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
                       <button
                         key={s.id}
                         onClick={() => { setSelectedSlot(s.id); setBlockValidationError(null); }}
-                        className="p-2 rounded border text-center transition-all"
+                        className="p-2 rounded-xl border text-center transition-all"
                         style={{
                           borderColor: selectedBlock === s.id ? meta.color : 'var(--rc-border)',
                           background: selectedBlock === s.id ? `${meta.color}1a` : 'transparent',
@@ -356,7 +356,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
                 value={buildName}
                 onChange={(e) => setBuildName(e.target.value)}
                 placeholder="e.g. Nighthawk, Mercury, Athena..."
-                className="w-full px-3 py-2 rounded text-xs border outline-none"
+                className="w-full px-3 py-2 rounded-xl text-xs border outline-none"
                 style={{
                   background: 'var(--rc-overlay-subtle)',
                   borderColor: 'var(--rc-border)',
@@ -375,7 +375,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
                   <button
                     key={t.id}
                     onClick={() => setTemplate(t.id)}
-                    className="p-2 rounded border text-left transition-all"
+                    className="p-2 rounded-xl border text-left transition-all"
                     style={{
                       borderColor: template === t.id ? t.color : 'var(--rc-border)',
                       background: template === t.id ? `${t.color}1a` : 'transparent',
@@ -400,7 +400,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="What makes your build unique?"
                 rows={3}
-                className="w-full px-3 py-2 rounded text-xs border outline-none resize-none"
+                className="w-full px-3 py-2 rounded-xl text-xs border outline-none resize-none"
                 style={{
                   background: 'var(--rc-overlay-subtle)',
                   borderColor: 'var(--rc-border)',
@@ -419,7 +419,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 placeholder="privacy, local-first, voice"
-                className="w-full px-3 py-2 rounded text-xs border outline-none"
+                className="w-full px-3 py-2 rounded-xl text-xs border outline-none"
                 style={{
                   background: 'var(--rc-overlay-subtle)',
                   borderColor: 'var(--rc-border)',
@@ -431,7 +431,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
                   {tags.map((t) => (
                     <span
                       key={t}
-                      className="text-[9px] px-1.5 py-0.5 rounded"
+                      className="text-[9px] px-1.5 py-0.5 rounded-xl"
                       style={{ background: 'var(--rc-overlay-active)', color: 'var(--rc-cyan)' }}
                     >
                       #{t}
@@ -442,7 +442,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
             </div>
 
             {publishError && (
-              <div className="text-xs p-2 rounded" style={{ color: 'var(--rc-red)', background: 'rgba(255,50,50,0.05)' }}>
+              <div className="text-xs p-2 rounded-xl" style={{ color: 'var(--rc-red)', background: 'rgba(255,50,50,0.05)' }}>
                 {publishError}
               </div>
             )}
@@ -450,7 +450,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
             <button
               onClick={handleReview}
               disabled={exporting || !buildName.trim() || (publishMode === 'block' && !selectedBlock)}
-              className="w-full py-2.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80 disabled:opacity-40"
+              className="w-full py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80 disabled:opacity-40"
               style={{
                 borderColor: 'var(--rc-cyan)',
                 color: 'var(--rc-cyan)',
@@ -467,7 +467,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
           <div className="space-y-4">
             {/* Scrub report */}
             <div
-              className="p-3 rounded border text-xs"
+              className="p-3 rounded-xl border text-xs"
               style={{
                 borderColor: 'var(--rc-green)',
                 background: 'rgba(0,255,100,0.03)',
@@ -491,7 +491,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
             {/* Warnings */}
             {scrubReport.warnings.length > 0 && (
               <div
-                className="p-3 rounded border text-xs"
+                className="p-3 rounded-xl border text-xs"
                 style={{
                   borderColor: 'var(--rc-red)',
                   background: 'rgba(255,50,50,0.05)',
@@ -511,7 +511,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
                 Scrubbed Build Preview
               </label>
               <pre
-                className="p-3 rounded border text-[10px] font-mono overflow-auto max-h-60"
+                className="p-3 rounded-xl border text-[10px] font-mono overflow-auto max-h-60"
                 style={{
                   background: 'rgba(0,0,0,0.3)',
                   borderColor: 'var(--rc-border)',
@@ -523,7 +523,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
             </div>
 
             {publishError && (
-              <div className="text-xs p-2 rounded" style={{ color: 'var(--rc-red)', background: 'rgba(255,50,50,0.05)' }}>
+              <div className="text-xs p-2 rounded-xl" style={{ color: 'var(--rc-red)', background: 'rgba(255,50,50,0.05)' }}>
                 {publishError}
               </div>
             )}
@@ -531,7 +531,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
             <div className="flex gap-3">
               <button
                 onClick={() => setStep('configure')}
-                className="flex-1 py-2 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                className="flex-1 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
                 style={{ borderColor: 'var(--rc-border)', color: 'var(--rc-text-dim)' }}
               >
                 Back
@@ -539,7 +539,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
               <button
                 onClick={handlePublish}
                 disabled={publishing}
-                className="flex-1 py-2 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                className="flex-1 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
                 style={{
                   borderColor: 'var(--rc-cyan)',
                   color: 'var(--rc-bg)',
@@ -569,7 +569,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
             <div className="text-sm font-bold" style={{ color: 'var(--rc-text)' }}>
               Build Published
             </div>
-            <div className="text-[10px] font-mono p-2 rounded" style={{
+            <div className="text-[10px] font-mono p-2 rounded-xl" style={{
               background: 'var(--rc-overlay-subtle)',
               color: 'var(--rc-text-muted)',
             }}>
@@ -580,7 +580,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
             </div>
             <button
               onClick={onClose}
-              className="px-6 py-2 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+              className="px-6 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
               style={{
                 borderColor: 'var(--rc-cyan)',
                 color: 'var(--rc-cyan)',

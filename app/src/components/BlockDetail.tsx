@@ -18,22 +18,21 @@ export function BlockDetail({ block }: Props) {
   const subs = block.subComponents || [];
 
   return (
-    <div
-      className="h-full p-6 rounded-lg border"
-      style={{
-        background: 'var(--rc-surface)',
-        borderColor: 'var(--rc-cyan)',
-        boxShadow: '0 0 20px var(--rc-cyan-dim), inset 0 0 20px var(--rc-overlay-subtle)',
-      }}
-    >
+    <div className="h-full">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <span className="text-3xl" style={{ color: 'var(--rc-cyan)' }}>
+      <div className="flex items-center gap-4 mb-8">
+        <div 
+          className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
+          style={{ 
+            background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 240, 255, 0.05))',
+            border: '1px solid rgba(0, 240, 255, 0.3)'
+          }}
+        >
           {block.icon}
-        </span>
+        </div>
         <div>
           <h2
-            className="text-xl font-bold uppercase tracking-wider"
+            className="text-2xl font-bold mb-1"
             style={{ color: 'var(--rc-text)' }}
           >
             {block.label}
@@ -41,7 +40,7 @@ export function BlockDetail({ block }: Props) {
           <p className="text-sm" style={{ color: 'var(--rc-cyan)' }}>
             {block.component}
             {block.version && (
-              <span style={{ color: 'var(--rc-text-dim)' }}> v{block.version}</span>
+              <span style={{ color: 'var(--rc-text-dim)' }}> · v{block.version}</span>
             )}
           </p>
         </div>
@@ -49,29 +48,29 @@ export function BlockDetail({ block }: Props) {
 
       {/* Sub-components */}
       {subs.length > 0 && (
-        <div className="mb-6">
+        <div className="mb-8">
           <h3
-            className="text-xs font-semibold uppercase tracking-widest mb-3"
-            style={{ color: 'var(--rc-text-muted)' }}
+            className="text-sm font-semibold mb-4"
+            style={{ color: 'var(--rc-text-dim)' }}
           >
             Components
           </h3>
-          <div className="space-y-1">
+          <div className="space-y-2">
             {subs.map((sub, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between py-2 px-3 rounded"
-                style={{ background: 'var(--rc-overlay-subtle)' }}
+                className="flex items-center justify-between p-4 rounded-xl transition-all hover:bg-white/[0.02]"
+                style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--rc-border)' }}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <div
-                    className="w-1.5 h-1.5 rounded-full"
+                    className="w-2 h-2 rounded-full"
                     style={{ backgroundColor: statusColor[sub.status] || 'var(--rc-text-muted)' }}
                   />
                   {sub.icon && (
-                    <span className="text-xs">{sub.icon}</span>
+                    <span className="text-sm">{sub.icon}</span>
                   )}
-                  <span className="text-xs font-medium" style={{ color: 'var(--rc-text)' }}>
+                  <span className="text-sm font-medium" style={{ color: 'var(--rc-text)' }}>
                     {sub.name}
                   </span>
                 </div>
@@ -85,33 +84,37 @@ export function BlockDetail({ block }: Props) {
       )}
 
       {/* Specifications */}
-      <div className="space-y-3">
-        <h3
-          className="text-xs font-semibold uppercase tracking-widest mb-3"
-          style={{ color: 'var(--rc-text-muted)' }}
-        >
-          Raw Data
-        </h3>
-        {Object.entries(block.details)
-          .filter(([, v]) => v !== null && v !== undefined)
-          .map(([key, value]) => (
-          <div
-            key={key}
-            className="flex justify-between items-center py-2 px-3 rounded"
-            style={{ background: 'var(--rc-overlay-subtle)' }}
+      {Object.keys(block.details).length > 0 && (
+        <div className="space-y-4">
+          <h3
+            className="text-sm font-semibold"
+            style={{ color: 'var(--rc-text-dim)' }}
           >
-            <span
-              className="text-xs uppercase tracking-wider"
-              style={{ color: 'var(--rc-text-dim)' }}
-            >
-              {key.replace(/_/g, ' ')}
-            </span>
-            <span className="text-xs font-mono max-w-[60%] text-right truncate" style={{ color: 'var(--rc-text)' }}>
-              {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-            </span>
+            Configuration
+          </h3>
+          <div className="space-y-2">
+            {Object.entries(block.details)
+              .filter(([, v]) => v !== null && v !== undefined)
+              .map(([key, value]) => (
+              <div
+                key={key}
+                className="flex justify-between items-center p-4 rounded-xl"
+                style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--rc-border)' }}
+              >
+                <span
+                  className="text-sm font-medium capitalize"
+                  style={{ color: 'var(--rc-text-dim)' }}
+                >
+                  {key.replace(/_/g, ' ')}
+                </span>
+                <span className="text-sm font-mono max-w-[60%] text-right truncate" style={{ color: 'var(--rc-text)' }}>
+                  {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
