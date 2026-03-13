@@ -8,7 +8,6 @@ Privacy-first. Decentralized. Open source. Think DuckDuckGo for OpenClaw configu
 
 ![v0.2.2](https://img.shields.io/badge/version-0.2.2-green.svg)
 ![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Tauri v2](https://img.shields.io/badge/tauri-v2-orange.svg)
 ![Nostr](https://img.shields.io/badge/nostr-kind_38333-purple.svg)
 
 ## What is it?
@@ -53,48 +52,6 @@ Builds declare what they need. On apply, ClawClawGo checks your system and repor
 - **Setup guides** - integrations link to external setup docs; URLs validated at publish, fetched at apply
 
 Skip checks with `--skip-deps`. See `specs/dependencies.md` for the full spec.
-
-## Desktop App
-
-Built with Tauri v2 (React + Rust). Native, fast, ~8MB.
-
-```bash
-cd app
-npm install
-npm run tauri dev
-```
-
-### Features
-
-- **Live config visualization**: reads your OpenClaw config in real-time
-- **Multi-agent support**: switch between agents if you run more than one
-- **The Feed**: browse and clone builds published on Nostr
-- **Compare view**: side-by-side diff of any build against yours
-- **Apply wizard**: step-by-step review with security scan, dependency check, and setup guides
-- **Security scanning**: trust score and badge shown before you apply anything
-- **PII scrubber**: strips 12+ pattern types before publishing
-- **Publish flow**: review scrubbed output, sign with Nostr keys, push to relays
-
-### Opening Unsigned Builds
-
-The app is not code-signed. Your OS will show security warnings on first launch.
-
-**macOS:**
-```bash
-xattr -cr /Applications/ClawClawGo.app
-```
-Or right-click the app → Open → confirm the security prompt.
-
-**Windows:**
-When Windows SmartScreen shows "Windows protected your PC", click "More info" then "Run anyway". Or right-click the .exe → Properties → check "Unblock" → Apply.
-
-**Linux:**
-Make the AppImage executable:
-```bash
-chmod +x ClawClawGo_*.AppImage
-./ClawClawGo_*.AppImage
-```
-No signing workarounds needed on Linux.
 
 ## Apply Flow
 
@@ -183,15 +140,6 @@ clawclawgo/
 │   ├── validate.ts   # Ajv schema validation
 │   ├── diff.ts       # Build comparison
 │   └── display.ts    # Terminal formatting
-├── app/              # Desktop app (Tauri v2 + React)
-│   ├── src/          # React frontend
-│   │   ├── components/   # BlockCard, FeedView, CompareView, ApplyWizard
-│   │   └── hooks/        # useTauri, useNostr
-│   └── src-tauri/    # Rust backend
-│       └── src/
-│           ├── lib.rs    # OpenClaw data reading, config parsing, apply
-│           ├── nostr.rs  # Nostr protocol (keys, publish, subscribe)
-│           └── scrub.rs  # PII scrubber
 ├── specs/            # Schema (build.schema.json), security, dependencies, setup guides
 ├── site/             # Landing page (clawclawgo.com)
 ├── docs/             # Full documentation (VitePress, served at /docs)
@@ -201,9 +149,8 @@ clawclawgo/
 
 ## Built With
 
-- [Tauri v2](https://v2.tauri.app/): native desktop runtime
 - [React](https://react.dev/) + [Tailwind CSS](https://tailwindcss.com/): frontend
-- [nostr-sdk](https://github.com/rust-nostr/nostr): Nostr protocol (Rust)
+- [Nostr](https://nostr.com/): decentralized protocol for builds
 - [OpenClaw](https://openclaw.ai/): the agent platform this is built for
 
 ## License

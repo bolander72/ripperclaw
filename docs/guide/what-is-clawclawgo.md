@@ -1,6 +1,6 @@
 # What is ClawClawGo?
 
-ClawClawGo is a desktop app and CLI for building, sharing, and remixing AI agent configurations called **builds**.
+ClawClawGo is a web app and CLI for building, sharing, and remixing AI agent configurations called **builds**.
 
 Think of it like dotfiles for AI agents. Your agent has a model, a persona, skills, integrations, automations, and memory. ClawClawGo packages all of that into a portable format that anyone can browse, copy, and apply to their own setup.
 
