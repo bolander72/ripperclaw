@@ -45,9 +45,6 @@ function Nav({ minimal }) {
             <IconLivePhoto size={14} /> Feed
           </Link>
           <Link to="/community" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Community</Link>
-          <Link to="/about" className="text-rc-text-dim hover:text-rc-cyan transition-colors">About</Link>
-          <Link to="/faq" className="text-rc-text-dim hover:text-rc-cyan transition-colors">FAQ</Link>
-          <a href="/docs" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Docs</a>
         </nav>
       </div>
     </header>
@@ -86,9 +83,6 @@ function Home() {
               <IconLivePhoto size={14} /> Feed
             </Link>
             <Link to="/community" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Community</Link>
-            <Link to="/about" className="text-rc-text-dim hover:text-rc-cyan transition-colors">About</Link>
-            <Link to="/faq" className="text-rc-text-dim hover:text-rc-cyan transition-colors">FAQ</Link>
-            <a href="/docs" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Docs</a>
           </nav>
         </div>
       </header>
@@ -137,15 +131,7 @@ function Home() {
             </div>
           </form>
 
-          {/* Sub-links */}
-          <div className="flex items-center justify-center gap-6 mt-8 text-sm">
-            <Link to="/explore" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1.5">
-              Live feed <IconLivePhoto size={14} />
-            </Link>
-            <a href="https://github.com/bolander72/clawclawgo" target="_blank" rel="noopener" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1.5">
-              GitHub <IconBrandGithub size={14} />
-            </a>
-          </div>
+
         </motion.div>
       </div>
     </div>
