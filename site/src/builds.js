@@ -9,60 +9,24 @@ export const builds = [
     creator: '@Bolander72',
     createdAt: '2026-03-11',
     isNew: true,
-    blocks: [
-      {
-        name: 'Model',
-        items: [
-          { name: 'Claude Opus', color: 'text-purple-400' },
-          { name: 'Claude Sonnet', color: 'text-blue-400' },
-          { name: 'Qwen 3.5:4b', color: 'text-rc-green' },
-          { name: 'Whisper (local)', color: 'text-rc-text-dim' },
-        ],
-      },
-      {
-        name: 'Persona',
-        items: [
-          { name: 'Calm & direct', color: 'text-rc-cyan' },
-          { name: 'Anti-AI-slop tone', color: 'text-rc-green' },
-          { name: 'Action-biased', color: 'text-orange-400' },
-        ],
-      },
-      {
-        name: 'Skills',
-        items: [
-          { name: 'Voice Chat', color: 'text-pink-400' },
-          { name: 'Frontend Design', color: 'text-violet-400' },
-          { name: 'Coding Agent', color: 'text-rc-green' },
-          { name: 'Web Research', color: 'text-rc-cyan' },
-        ],
-      },
-      {
-        name: 'Integrations',
-        items: [
-          { name: 'iMessage', color: 'text-green-400' },
-          { name: 'Calendar', color: 'text-rc-red' },
-          { name: 'Email', color: 'text-blue-400' },
-          { name: 'Smart Home', color: 'text-rc-yellow' },
-          { name: 'GitHub', color: 'text-rc-text' },
-        ],
-      },
-      {
-        name: 'Automations',
-        items: [
-          { name: 'Heartbeats', color: 'text-rose-400' },
-          { name: 'Cron Jobs', color: 'text-blue-400' },
-          { name: 'Reminders', color: 'text-rc-yellow' },
-        ],
-      },
-      {
-        name: 'Memory',
-        items: [
-          { name: 'LCM (lossless)', color: 'text-rc-green' },
-          { name: 'Daily Notes', color: 'text-amber-400' },
-          { name: 'Handoff', color: 'text-rc-cyan' },
-          { name: 'Facts DB', color: 'text-rc-red' },
-        ],
-      },
+    items: [
+      { name: 'Claude Opus', color: 'text-purple-400' },
+      { name: 'Claude Sonnet', color: 'text-blue-400' },
+      { name: 'Qwen 3.5:4b', color: 'text-rc-green' },
+      { name: 'Whisper (local)', color: 'text-rc-text-dim' },
+      { name: 'Voice Chat', color: 'text-pink-400' },
+      { name: 'Frontend Design', color: 'text-violet-400' },
+      { name: 'Coding Agent', color: 'text-rc-green' },
+      { name: 'Web Research', color: 'text-rc-cyan' },
+      { name: 'iMessage', color: 'text-green-400' },
+      { name: 'Calendar', color: 'text-rc-red' },
+      { name: 'Email', color: 'text-blue-400' },
+      { name: 'Smart Home', color: 'text-rc-yellow' },
+      { name: 'GitHub', color: 'text-rc-text' },
+      { name: 'Heartbeats', color: 'text-rose-400' },
+      { name: 'Cron Jobs', color: 'text-blue-400' },
+      { name: 'LCM (lossless)', color: 'text-rc-green' },
+      { name: 'Daily Notes', color: 'text-amber-400' },
     ],
   },
   {
@@ -72,55 +36,22 @@ export const builds = [
     creator: '@synthwave_dev',
     createdAt: '2026-03-10',
     isNew: true,
-    blocks: [
-      {
-        name: 'Model',
-        items: [
-          { name: 'Claude Sonnet', color: 'text-blue-400' },
-          { name: 'Codex', color: 'text-rc-green' },
-          { name: 'GPT-5.2', color: 'text-emerald-400' },
-        ],
-      },
-      {
-        name: 'Persona',
-        items: [
-          { name: 'Senior engineer', color: 'text-rc-cyan' },
-          { name: 'Terse, no fluff', color: 'text-rc-green' },
-        ],
-      },
-      {
-        name: 'Skills',
-        items: [
-          { name: 'Coding Agent', color: 'text-rc-green' },
-          { name: 'PR Review', color: 'text-orange-400' },
-          { name: 'CI/CD Monitor', color: 'text-blue-400' },
-          { name: 'DB Migrations', color: 'text-rc-yellow' },
-        ],
-      },
-      {
-        name: 'Integrations',
-        items: [
-          { name: 'GitHub', color: 'text-rc-text' },
-          { name: 'Linear', color: 'text-violet-400' },
-          { name: 'Slack', color: 'text-purple-400' },
-          { name: 'Vercel', color: 'text-rc-text' },
-        ],
-      },
-      {
-        name: 'Memory',
-        items: [
-          { name: 'Codebase Map', color: 'text-rc-cyan' },
-          { name: 'Architecture Decisions', color: 'text-amber-400' },
-          { name: 'Sprint History', color: 'text-rc-green' },
-        ],
-      },
-      {
-        name: 'Automations',
-        items: [
-          { name: 'CI Watcher', color: 'text-rc-red' },
-          { name: 'Nightly Tests', color: 'text-blue-400' },
-        ],
-      },
+    items: [
+      { name: 'Claude Sonnet', color: 'text-blue-400' },
+      { name: 'Codex', color: 'text-rc-green' },
+      { name: 'GPT-5.2', color: 'text-emerald-400' },
+      { name: 'Coding Agent', color: 'text-rc-green' },
+      { name: 'PR Review', color: 'text-orange-400' },
+      { name: 'CI/CD Monitor', color: 'text-blue-400' },
+      { name: 'DB Migrations', color: 'text-rc-yellow' },
+      { name: 'GitHub', color: 'text-rc-text' },
+      { name: 'Linear', color: 'text-violet-400' },
+      { name: 'Slack', color: 'text-purple-400' },
+      { name: 'Vercel', color: 'text-rc-text' },
+      { name: 'CI Watcher', color: 'text-rc-red' },
+      { name: 'Nightly Tests', color: 'text-blue-400' },
+      { name: 'Codebase Map', color: 'text-rc-cyan' },
+      { name: 'Architecture Decisions', color: 'text-amber-400' },
     ],
   },
   {
@@ -130,54 +61,21 @@ export const builds = [
     creator: '@homelab_nick',
     createdAt: '2026-03-08',
     isNew: false,
-    blocks: [
-      {
-        name: 'Model',
-        items: [
-          { name: 'Qwen 3.5:4b', color: 'text-rc-green' },
-          { name: 'Whisper (local)', color: 'text-rc-text-dim' },
-        ],
-      },
-      {
-        name: 'Persona',
-        items: [
-          { name: 'Home concierge', color: 'text-rc-cyan' },
-          { name: 'Minimal chatter', color: 'text-rc-text-dim' },
-        ],
-      },
-      {
-        name: 'Skills',
-        items: [
-          { name: 'Security Alerts', color: 'text-rc-red' },
-          { name: 'Energy Monitor', color: 'text-rc-green' },
-          { name: 'Climate Control', color: 'text-rc-yellow' },
-          { name: 'Voice Control', color: 'text-pink-400' },
-        ],
-      },
-      {
-        name: 'Integrations',
-        items: [
-          { name: 'Home Assistant', color: 'text-blue-400' },
-          { name: 'HomeKit', color: 'text-rc-text' },
-          { name: 'Telegram', color: 'text-sky-400' },
-          { name: 'UniFi Protect', color: 'text-violet-400' },
-        ],
-      },
-      {
-        name: 'Automations',
-        items: [
-          { name: 'Routines', color: 'text-rc-cyan' },
-          { name: 'Motion Alerts', color: 'text-rose-400' },
-          { name: 'Night Mode', color: 'text-purple-400' },
-        ],
-      },
-      {
-        name: 'Memory',
-        items: [
-          { name: 'Device Registry', color: 'text-rc-green' },
-          { name: 'Usage Patterns', color: 'text-amber-400' },
-        ],
-      },
+    items: [
+      { name: 'Qwen 3.5:4b', color: 'text-rc-green' },
+      { name: 'Whisper (local)', color: 'text-rc-text-dim' },
+      { name: 'Security Alerts', color: 'text-rc-red' },
+      { name: 'Energy Monitor', color: 'text-rc-green' },
+      { name: 'Climate Control', color: 'text-rc-yellow' },
+      { name: 'Voice Control', color: 'text-pink-400' },
+      { name: 'Home Assistant', color: 'text-blue-400' },
+      { name: 'HomeKit', color: 'text-rc-text' },
+      { name: 'Telegram', color: 'text-sky-400' },
+      { name: 'UniFi Protect', color: 'text-violet-400' },
+      { name: 'Routines', color: 'text-rc-cyan' },
+      { name: 'Motion Alerts', color: 'text-rose-400' },
+      { name: 'Night Mode', color: 'text-purple-400' },
+      { name: 'Device Registry', color: 'text-rc-green' },
     ],
   },
   {
@@ -187,55 +85,21 @@ export const builds = [
     creator: '@deep_research',
     createdAt: '2026-03-06',
     isNew: false,
-    blocks: [
-      {
-        name: 'Model',
-        items: [
-          { name: 'Claude Opus', color: 'text-purple-400' },
-          { name: 'Perplexity', color: 'text-sky-400' },
-          { name: 'GPT-5.2', color: 'text-emerald-400' },
-        ],
-      },
-      {
-        name: 'Persona',
-        items: [
-          { name: 'Academic rigor', color: 'text-rc-cyan' },
-          { name: 'Citation-first', color: 'text-amber-400' },
-        ],
-      },
-      {
-        name: 'Skills',
-        items: [
-          { name: 'Deep Research', color: 'text-rc-cyan' },
-          { name: 'PDF Analysis', color: 'text-rc-red' },
-          { name: 'Web Scraping', color: 'text-rc-green' },
-          { name: 'Citation Manager', color: 'text-amber-400' },
-        ],
-      },
-      {
-        name: 'Integrations',
-        items: [
-          { name: 'Notion', color: 'text-rc-text' },
-          { name: 'Zotero', color: 'text-rc-red' },
-          { name: 'Google Scholar', color: 'text-blue-400' },
-        ],
-      },
-      {
-        name: 'Memory',
-        items: [
-          { name: 'Source Index', color: 'text-rc-green' },
-          { name: 'Finding Logs', color: 'text-rc-cyan' },
-          { name: 'Paper Summaries', color: 'text-violet-400' },
-          { name: 'Knowledge Graph', color: 'text-rc-yellow' },
-        ],
-      },
-      {
-        name: 'Automations',
-        items: [
-          { name: 'ArXiv Watch', color: 'text-orange-400' },
-          { name: 'Weekly Digest', color: 'text-blue-400' },
-        ],
-      },
+    items: [
+      { name: 'Claude Opus', color: 'text-purple-400' },
+      { name: 'Perplexity', color: 'text-sky-400' },
+      { name: 'GPT-5.2', color: 'text-emerald-400' },
+      { name: 'Deep Research', color: 'text-rc-cyan' },
+      { name: 'PDF Analysis', color: 'text-rc-red' },
+      { name: 'Web Scraping', color: 'text-rc-green' },
+      { name: 'Citation Manager', color: 'text-amber-400' },
+      { name: 'Notion', color: 'text-rc-text' },
+      { name: 'Zotero', color: 'text-rc-red' },
+      { name: 'Google Scholar', color: 'text-blue-400' },
+      { name: 'ArXiv Watch', color: 'text-orange-400' },
+      { name: 'Weekly Digest', color: 'text-blue-400' },
+      { name: 'Source Index', color: 'text-rc-green' },
+      { name: 'Knowledge Graph', color: 'text-rc-yellow' },
     ],
   },
   {
@@ -245,53 +109,19 @@ export const builds = [
     creator: '@growthcraft',
     createdAt: '2026-03-05',
     isNew: false,
-    blocks: [
-      {
-        name: 'Model',
-        items: [
-          { name: 'Claude Sonnet', color: 'text-blue-400' },
-          { name: 'GPT-5.2', color: 'text-emerald-400' },
-        ],
-      },
-      {
-        name: 'Persona',
-        items: [
-          { name: 'Brand voice', color: 'text-rc-cyan' },
-          { name: 'Conversion-focused', color: 'text-orange-400' },
-        ],
-      },
-      {
-        name: 'Skills',
-        items: [
-          { name: 'Copywriting', color: 'text-pink-400' },
-          { name: 'SEO Audit', color: 'text-rc-green' },
-          { name: 'A/B Testing', color: 'text-rc-yellow' },
-          { name: 'Social Content', color: 'text-violet-400' },
-        ],
-      },
-      {
-        name: 'Integrations',
-        items: [
-          { name: 'Google Analytics', color: 'text-rc-yellow' },
-          { name: 'Stripe', color: 'text-purple-400' },
-          { name: 'Mailchimp', color: 'text-rc-yellow' },
-          { name: 'Twitter/X', color: 'text-rc-text' },
-        ],
-      },
-      {
-        name: 'Automations',
-        items: [
-          { name: 'Campaign Reports', color: 'text-rc-cyan' },
-          { name: 'Competitor Watch', color: 'text-rc-red' },
-        ],
-      },
-      {
-        name: 'Memory',
-        items: [
-          { name: 'Campaign History', color: 'text-amber-400' },
-          { name: 'Audience Segments', color: 'text-rc-green' },
-        ],
-      },
+    items: [
+      { name: 'Claude Sonnet', color: 'text-blue-400' },
+      { name: 'GPT-5.2', color: 'text-emerald-400' },
+      { name: 'Copywriting', color: 'text-pink-400' },
+      { name: 'SEO Audit', color: 'text-rc-green' },
+      { name: 'A/B Testing', color: 'text-rc-yellow' },
+      { name: 'Social Content', color: 'text-violet-400' },
+      { name: 'Google Analytics', color: 'text-rc-yellow' },
+      { name: 'Stripe', color: 'text-purple-400' },
+      { name: 'Mailchimp', color: 'text-rc-yellow' },
+      { name: 'Campaign Reports', color: 'text-rc-cyan' },
+      { name: 'Competitor Watch', color: 'text-rc-red' },
+      { name: 'Campaign History', color: 'text-amber-400' },
     ],
   },
   {
@@ -301,53 +131,19 @@ export const builds = [
     creator: '@money_moves',
     createdAt: '2026-02-28',
     isNew: false,
-    blocks: [
-      {
-        name: 'Model',
-        items: [
-          { name: 'Claude Sonnet', color: 'text-blue-400' },
-          { name: 'Qwen 3.5:4b', color: 'text-rc-green' },
-        ],
-      },
-      {
-        name: 'Persona',
-        items: [
-          { name: 'Conservative & precise', color: 'text-rc-cyan' },
-          { name: 'Numbers-first', color: 'text-amber-400' },
-        ],
-      },
-      {
-        name: 'Skills',
-        items: [
-          { name: 'Expense Tracking', color: 'text-rc-red' },
-          { name: 'Receipt OCR', color: 'text-rc-yellow' },
-          { name: 'Budget Alerts', color: 'text-orange-400' },
-          { name: 'Tax Prep', color: 'text-rc-cyan' },
-        ],
-      },
-      {
-        name: 'Integrations',
-        items: [
-          { name: 'Stripe', color: 'text-purple-400' },
-          { name: 'Plaid', color: 'text-rc-green' },
-          { name: 'Google Sheets', color: 'text-rc-green' },
-          { name: 'Telegram', color: 'text-sky-400' },
-        ],
-      },
-      {
-        name: 'Automations',
-        items: [
-          { name: 'Daily Summary', color: 'text-rc-cyan' },
-          { name: 'Bill Reminders', color: 'text-rc-yellow' },
-        ],
-      },
-      {
-        name: 'Memory',
-        items: [
-          { name: 'Transaction Log', color: 'text-rc-green' },
-          { name: 'Budget Targets', color: 'text-amber-400' },
-        ],
-      },
+    items: [
+      { name: 'Claude Sonnet', color: 'text-blue-400' },
+      { name: 'Qwen 3.5:4b', color: 'text-rc-green' },
+      { name: 'Expense Tracking', color: 'text-rc-red' },
+      { name: 'Receipt OCR', color: 'text-rc-yellow' },
+      { name: 'Budget Alerts', color: 'text-orange-400' },
+      { name: 'Tax Prep', color: 'text-rc-cyan' },
+      { name: 'Stripe', color: 'text-purple-400' },
+      { name: 'Plaid', color: 'text-rc-green' },
+      { name: 'Google Sheets', color: 'text-rc-green' },
+      { name: 'Daily Summary', color: 'text-rc-cyan' },
+      { name: 'Bill Reminders', color: 'text-rc-yellow' },
+      { name: 'Transaction Log', color: 'text-rc-green' },
     ],
   },
   {
@@ -357,54 +153,20 @@ export const builds = [
     creator: '@pm_sarah',
     createdAt: '2026-03-09',
     isNew: true,
-    blocks: [
-      {
-        name: 'Model',
-        items: [
-          { name: 'Claude Opus', color: 'text-purple-400' },
-          { name: 'Claude Sonnet', color: 'text-blue-400' },
-        ],
-      },
-      {
-        name: 'Persona',
-        items: [
-          { name: 'Team-aware', color: 'text-rc-cyan' },
-          { name: 'Status-obsessed', color: 'text-rc-green' },
-        ],
-      },
-      {
-        name: 'Skills',
-        items: [
-          { name: 'Standup Reports', color: 'text-rc-green' },
-          { name: 'Sprint Planning', color: 'text-rc-cyan' },
-          { name: 'Blocker Detection', color: 'text-rc-red' },
-          { name: 'Team Updates', color: 'text-rc-yellow' },
-        ],
-      },
-      {
-        name: 'Integrations',
-        items: [
-          { name: 'Linear', color: 'text-violet-400' },
-          { name: 'Slack', color: 'text-purple-400' },
-          { name: 'Google Calendar', color: 'text-blue-400' },
-          { name: 'Notion', color: 'text-rc-text' },
-        ],
-      },
-      {
-        name: 'Automations',
-        items: [
-          { name: 'Morning Standup', color: 'text-rc-green' },
-          { name: 'Deadline Alerts', color: 'text-rc-red' },
-        ],
-      },
-      {
-        name: 'Memory',
-        items: [
-          { name: 'Team Roster', color: 'text-rc-cyan' },
-          { name: 'Project Roadmap', color: 'text-rc-green' },
-          { name: 'Meeting Notes', color: 'text-amber-400' },
-        ],
-      },
+    items: [
+      { name: 'Claude Opus', color: 'text-purple-400' },
+      { name: 'Claude Sonnet', color: 'text-blue-400' },
+      { name: 'Standup Reports', color: 'text-rc-green' },
+      { name: 'Sprint Planning', color: 'text-rc-cyan' },
+      { name: 'Blocker Detection', color: 'text-rc-red' },
+      { name: 'Linear', color: 'text-violet-400' },
+      { name: 'Slack', color: 'text-purple-400' },
+      { name: 'Google Calendar', color: 'text-blue-400' },
+      { name: 'Notion', color: 'text-rc-text' },
+      { name: 'Morning Standup', color: 'text-rc-green' },
+      { name: 'Deadline Alerts', color: 'text-rc-red' },
+      { name: 'Team Roster', color: 'text-rc-cyan' },
+      { name: 'Project Roadmap', color: 'text-rc-green' },
     ],
   },
   {
@@ -414,54 +176,20 @@ export const builds = [
     creator: '@creative_ops',
     createdAt: '2026-03-07',
     isNew: false,
-    blocks: [
-      {
-        name: 'Model',
-        items: [
-          { name: 'Claude Opus', color: 'text-purple-400' },
-          { name: 'GPT-5.2', color: 'text-emerald-400' },
-        ],
-      },
-      {
-        name: 'Persona',
-        items: [
-          { name: 'Brand voice', color: 'text-rc-cyan' },
-          { name: 'Style guide', color: 'text-rc-green' },
-          { name: 'Audience profile', color: 'text-orange-400' },
-        ],
-      },
-      {
-        name: 'Skills',
-        items: [
-          { name: 'Blog Writing', color: 'text-rc-cyan' },
-          { name: 'Social Content', color: 'text-violet-400' },
-          { name: 'Newsletter', color: 'text-rc-yellow' },
-          { name: 'Video Scripts', color: 'text-pink-400' },
-        ],
-      },
-      {
-        name: 'Integrations',
-        items: [
-          { name: 'WordPress', color: 'text-blue-400' },
-          { name: 'Buffer', color: 'text-rc-text' },
-          { name: 'Figma', color: 'text-purple-400' },
-          { name: 'YouTube', color: 'text-rc-red' },
-        ],
-      },
-      {
-        name: 'Automations',
-        items: [
-          { name: 'Content Calendar', color: 'text-rc-yellow' },
-          { name: 'Publish Queue', color: 'text-rc-green' },
-        ],
-      },
-      {
-        name: 'Memory',
-        items: [
-          { name: 'Content Archive', color: 'text-amber-400' },
-          { name: 'Performance Data', color: 'text-rc-cyan' },
-        ],
-      },
+    items: [
+      { name: 'Claude Opus', color: 'text-purple-400' },
+      { name: 'GPT-5.2', color: 'text-emerald-400' },
+      { name: 'Blog Writing', color: 'text-rc-cyan' },
+      { name: 'Social Content', color: 'text-violet-400' },
+      { name: 'Newsletter', color: 'text-rc-yellow' },
+      { name: 'Video Scripts', color: 'text-pink-400' },
+      { name: 'WordPress', color: 'text-blue-400' },
+      { name: 'Buffer', color: 'text-rc-text' },
+      { name: 'Figma', color: 'text-purple-400' },
+      { name: 'YouTube', color: 'text-rc-red' },
+      { name: 'Content Calendar', color: 'text-rc-yellow' },
+      { name: 'Publish Queue', color: 'text-rc-green' },
+      { name: 'Content Archive', color: 'text-amber-400' },
     ],
   },
 ]

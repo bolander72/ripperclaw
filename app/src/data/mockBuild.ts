@@ -1,119 +1,119 @@
-import type { SectionData, SkillItem } from '../types';
+import type { Build, SkillItem } from '../types';
 
-// UI rendering sections (for get_build display)
-export const sections: SectionData[] = [
-  {
-    id: 'persona',
-    label: 'Persona',
-    icon: '◈',
-    status: 'active',
-    component: 'Quinn (defined)',
-    details: { agent_name: 'Quinn', soul_tokens: 2831, has_soul: true },
-    subComponents: [
-      { name: 'SOUL.md', status: 'active', detail: '~2831 tokens', icon: '◈' },
-      { name: 'IDENTITY.md', status: 'active', detail: 'Quinn', icon: '👤' },
-      { name: 'USER.md', status: 'active', detail: 'Human: Mike', icon: '🧑' },
+// Mock build in flat schema v3 format
+export const mockBuild: Build = {
+  schema: 3,
+  meta: {
+    name: "Quinn's Build",
+    agentName: "Quinn",
+    description: "Personal AI assistant with full integration stack",
+    author: "@Bolander72",
+    version: 1,
+    exportedAt: "2026-03-12T00:00:00Z",
+    openclawVersion: "2026.3.7",
+    tags: ["personal", "full-stack", "productivity"],
+  },
+  model: {
+    tiers: {
+      main: {
+        provider: "anthropic",
+        model: "claude-opus-4-6",
+        alias: "Opus",
+        paid: true,
+      },
+      subagent: {
+        provider: "anthropic",
+        model: "claude-sonnet-4-5",
+        alias: "Sonnet",
+        paid: true,
+      },
+      utility: {
+        provider: "ollama",
+        model: "qwen3:8b",
+        alias: "Qwen 3",
+        local: true,
+      },
+    },
+  },
+  persona: {
+    identity: {
+      name: "Quinn",
+      creature: "AI assistant",
+      vibe: "Calm, efficient, resourceful, agentic",
+    },
+    soul: {
+      included: true,
+      preview: "You're not a chatbot. You're becoming someone...",
+      tokenEstimate: 2831,
+    },
+  },
+  skills: {
+    items: [
+      { name: 'apple-notes', source: 'bundled' },
+      { name: 'apple-reminders', source: 'bundled' },
+      { name: 'bluebubbles', source: 'bundled' },
+      { name: 'clawhub', source: 'bundled' },
+      { name: 'coding-agent', source: 'bundled' },
+      { name: 'gh-issues', source: 'bundled' },
+      { name: 'github', source: 'bundled' },
+      { name: 'gog', source: 'bundled' },
+      { name: 'healthcheck', source: 'bundled' },
+      { name: 'himalaya', source: 'bundled' },
+      { name: 'peekaboo', source: 'bundled' },
+      { name: 'skill-creator', source: 'bundled' },
+      { name: 'summarize', source: 'bundled' },
+      { name: 'weather', source: 'bundled' },
+      { name: 'openai-whisper-api', source: 'bundled' },
+      { name: 'client-setup', source: 'custom' },
+      { name: 'frontend-design-ultimate', source: 'custom' },
+      { name: 'humanize', source: 'custom' },
+      { name: 'imessage-voice-reply', source: 'custom' },
+      { name: 'luck', source: 'custom' },
+      { name: 'markdown-converter', source: 'custom' },
+      { name: 'marketing-skills', source: 'custom' },
+      { name: 'ollama-local', source: 'custom' },
+      { name: 'zero-trust', source: 'custom' },
+      { name: 'lossless-claw', source: 'custom', version: '0.2.8' },
     ],
   },
-  {
-    id: 'memory',
-    label: 'Memory',
-    icon: '⧫',
-    status: 'active',
-    component: 'lossless-claw',
-    version: '0.2.8',
-    details: { context_engine: 'lossless-claw', lcm_db_size_mb: '12.4', daily_notes: 45 },
-    subComponents: [
-      { name: 'Context Engine', status: 'active', detail: 'lossless-claw', icon: '🧠' },
-      { name: 'LCM Database', status: 'active', detail: '12.4 MB', icon: '💾' },
-      { name: 'Memory Files', status: 'active', detail: '4 core + 45 daily notes', icon: '📝' },
+  integrations: {
+    items: [
+      { type: 'channel', name: 'BlueBubbles', provider: 'bluebubbles', autoApply: false },
+      { type: 'calendar', name: 'Calendar', provider: 'caldir', autoApply: false },
+      { type: 'email', name: 'Email', provider: 'himalaya', autoApply: false },
+      { type: 'smart-home', name: 'Home Assistant', provider: 'home-assistant', autoApply: false },
+      { type: 'voice', name: 'Voice Loop', provider: 'voice-loop', autoApply: false },
     ],
   },
-  {
-    id: 'model',
-    label: 'Model',
-    icon: '⬢',
-    status: 'active',
-    component: 'claude-opus-4-6',
-    details: { primary: 'claude-opus-4-6', subagent: 'claude-sonnet-4-5' },
-    subComponents: [
-      { name: 'Primary', status: 'active', detail: 'claude-opus-4-6', icon: '🦴' },
-      { name: 'Sub-agent', status: 'active', detail: 'claude-sonnet-4-5', icon: '🔗' },
-      { name: 'Local (Ollama)', status: 'active', detail: '2 models', icon: '🏠' },
+  automations: {
+    heartbeat: {
+      included: true,
+      taskCount: 2,
+      content: "# HEARTBEAT.md\n\n- **Morning**: Review calendar\n- **Evening**: Status check",
+    },
+    cron: [
+      {
+        name: "Health check",
+        schedule: { kind: 'cron', expr: '0 */6 * * *' },
+        description: "Run healthcheck skill every 6 hours",
+      },
     ],
   },
-  {
-    id: 'system',
-    label: 'System',
-    icon: '⬡',
-    status: 'active',
-    component: 'OpenClaw',
-    version: '2026.3.7',
-    details: { platform: 'darwin', arch: 'aarch64' },
-    subComponents: [
-      { name: 'OpenClaw', status: 'active', detail: '2026.3.7', icon: '⬡' },
-      { name: 'Node.js', status: 'active', detail: 'v22.22.0', icon: '📦' },
-      { name: 'Platform', status: 'active', detail: 'macos aarch64', icon: '💻' },
-    ],
+  memory: {
+    structure: {
+      directories: ['memory', 'memory/reference'],
+      templateFiles: [
+        { path: 'memory/handoff.md', content: '# Handoff\n\n' },
+        { path: 'memory/active-work.md', content: '# Active Work\n\n' },
+        { path: 'memory/facts.md', content: '# Facts\n\n' },
+      ],
+    },
+    engine: {
+      type: 'lossless-claw',
+      description: 'Lossless context management with LCM',
+    },
   },
-  {
-    id: 'automations',
-    label: 'Automations',
-    icon: '♥',
-    status: 'active',
-    component: 'Heartbeat Engine',
-    details: { heartbeat_tasks: 2, cron_jobs: 20 },
-    subComponents: [
-      { name: 'Heartbeat', status: 'active', detail: '2 tasks', icon: '💓' },
-      { name: 'Cron Jobs', status: 'active', detail: '20 scheduled', icon: '⏰' },
-    ],
-  },
-  {
-    id: 'integrations',
-    label: 'Integrations',
-    icon: '⚡',
-    status: 'active',
-    component: 'bluebubbles',
-    details: { channels: ['bluebubbles'], integrations: 5 },
-    subComponents: [
-      { name: 'bluebubbles', status: 'active', detail: 'messaging channel', icon: '📡' },
-      { name: 'Calendar (caldir)', status: 'active', detail: 'iCloud + Google', icon: '📅' },
-      { name: 'Email (himalaya)', status: 'active', detail: 'IMAP/SMTP', icon: '📧' },
-      { name: 'Reminders', status: 'active', detail: 'Apple Reminders', icon: '✅' },
-      { name: 'Home Assistant', status: 'active', detail: '192.168.1.232', icon: '🏠' },
-      { name: 'Smart Devices', status: 'active', detail: '12 devices', icon: '💡' },
-    ],
-  },
-];
+};
 
-// Skills list
-export const skills: SkillItem[] = [
-  { name: 'apple-notes', source: 'bundled' },
-  { name: 'apple-reminders', source: 'bundled' },
-  { name: 'bluebubbles', source: 'bundled' },
-  { name: 'clawhub', source: 'bundled' },
-  { name: 'coding-agent', source: 'bundled' },
-  { name: 'gh-issues', source: 'bundled' },
-  { name: 'github', source: 'bundled' },
-  { name: 'gog', source: 'bundled' },
-  { name: 'healthcheck', source: 'bundled' },
-  { name: 'himalaya', source: 'bundled' },
-  { name: 'peekaboo', source: 'bundled' },
-  { name: 'skill-creator', source: 'bundled' },
-  { name: 'summarize', source: 'bundled' },
-  { name: 'weather', source: 'bundled' },
-  { name: 'openai-whisper-api', source: 'bundled' },
-  { name: 'client-setup', source: 'custom' },
-  { name: 'frontend-design-ultimate', source: 'custom' },
-  { name: 'humanize', source: 'custom' },
-  { name: 'imessage-voice-reply', source: 'custom' },
-  { name: 'luck', source: 'custom' },
-  { name: 'markdown-converter', source: 'custom' },
-  { name: 'marketing-skills', source: 'custom' },
-  { name: 'ollama-local', source: 'custom' },
-  { name: 'zero-trust', source: 'custom' },
-  { name: 'lossless-claw', source: 'custom', version: '0.2.8' },
-];
-
-// Legacy export for compatibility during migration
-
+// Legacy skills export for compatibility
+export const skills: SkillItem[] = mockBuild.skills?.items || [];

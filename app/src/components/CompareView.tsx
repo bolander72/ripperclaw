@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import type { Build, SectionData } from '../types';
+import type { Build } from '../types';
 
 interface Props {
-  currentSections: SectionData[];
+  currentBuild: Build;
   currentSkills: { name: string; source: string; enabled?: boolean; version?: string }[];
   currentName: string;
   initialBuild?: unknown;
@@ -12,48 +12,33 @@ interface Props {
 
 // Build a diff between current build and imported build
 function buildDiff(
-  currentSections: SectionData[],
+  currentBuild: Build,
   currentSkills: { name: string; source: string }[],
   imported: Build
 ) {
-  const sectionDiffs: {
-    id: string;
-    label: string;
-    yours: { component: string; status: string; details: Record<string, unknown> } | null;
-    theirs: { component: string; status: string; details: Record<string, unknown> } | null;
+  const keyDiffs: {
+    key: string;
+    yours: unknown;
+    theirs: unknown;
     match: boolean;
   }[] = [];
 
-  // All section IDs from both builds
-  const sectionKeys = ['model', 'persona', 'skills', 'integrations', 'automations', 'memory'];
-  const allSectionIds = new Set([
-    ...currentSections.map((s) => s.id),
-    ...sectionKeys.filter(k => imported[k] != null),
+  // All top-level keys from both builds (exclude schema/meta)
+  const allKeys = new Set([
+    ...Object.keys(currentBuild).filter(k => k !== 'schema' && k !== 'meta'),
+    ...Object.keys(imported).filter(k => k !== 'schema' && k !== 'meta'),
   ]);
 
-  for (const id of allSectionIds) {
-    const mine = currentSections.find((s) => s.id === id);
-    const theirs = imported[id];
+  for (const key of allKeys) {
+    const yours = (currentBuild as any)[key];
+    const theirs = (imported as any)[key];
+    
+    const match = JSON.stringify(yours) === JSON.stringify(theirs);
 
-    // Extract comparable data from imported build
-    const theirsData = theirs
-      ? {
-          component: (theirs as any).component || id,
-          status: (theirs as any).status || 'active',
-          label: (theirs as any).label || id,
-          details: (theirs as any).details || {},
-        }
-      : null;
-
-    const match = mine && theirsData
-      ? mine.component === theirsData.component && mine.status === theirsData.status
-      : !mine && !theirsData;
-
-    sectionDiffs.push({
-      id,
-      label: mine?.label || theirsData?.label || id,
-      yours: mine ? { component: mine.component, status: mine.status, details: mine.details } : null,
-      theirs: theirsData ? { component: theirsData.component, status: theirsData.status, details: theirsData.details } : null,
+    keyDiffs.push({
+      key,
+      yours,
+      theirs,
       match,
     });
   }
@@ -66,17 +51,10 @@ function buildDiff(
   const onlyTheirs = [...theirSkillNames].filter((n) => !mySkillNames.has(n));
   const shared = [...mySkillNames].filter((n) => theirSkillNames.has(n));
 
-  return { sectionDiffs, onlyYours, onlyTheirs, shared };
+  return { keyDiffs, onlyYours, onlyTheirs, shared };
 }
 
-const statusColor: Record<string, string> = {
-  active: 'var(--rc-green)',
-  degraded: 'var(--rc-yellow)',
-  offline: 'var(--rc-red)',
-  empty: 'var(--rc-text-muted)',
-};
-
-export function CompareView({ currentSections, currentSkills, currentName, initialBuild, onClear, onClone }: Props) {
+export function CompareView({ currentBuild, currentSkills, currentName, initialBuild, onClear, onClone }: Props) {
   const [imported, setImported] = useState<Build | null>(
     initialBuild ? (initialBuild as Build) : null
   );
@@ -163,7 +141,7 @@ export function CompareView({ currentSections, currentSkills, currentName, initi
     );
   }
 
-  const diff = buildDiff(currentSections, currentSkills, imported);
+  const diff = buildDiff(currentBuild, currentSkills, imported);
 
   return (
     <div className="flex-1 p-6 overflow-y-auto">
@@ -237,50 +215,42 @@ export function CompareView({ currentSections, currentSkills, currentName, initi
           </div>
         </div>
 
-        {/* Section comparisons */}
+        {/* Config key comparisons */}
         <div className="space-y-2 mb-8">
-          {diff.sectionDiffs.map((sd) => (
+          {diff.keyDiffs.map((kd) => (
             <div
-              key={sd.id}
+              key={kd.key}
               className="grid grid-cols-[1fr_1fr_1fr] gap-4 py-3 px-4 rounded-xl"
               style={{
-                background: sd.match ? 'var(--rc-overlay-subtle)' : 'var(--rc-overlay-subtle)',
-                border: sd.match ? 'none' : '1px solid var(--rc-border)',
+                background: kd.match ? 'var(--rc-overlay-subtle)' : 'var(--rc-overlay-subtle)',
+                border: kd.match ? 'none' : '1px solid var(--rc-border)',
               }}
             >
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold uppercase" style={{ color: 'var(--rc-text)' }}>
-                  {sd.label}
+                  {kd.key}
                 </span>
-                {sd.match && (
+                {kd.match && (
                   <span className="text-[10px]" style={{ color: 'var(--rc-green)' }}>✓</span>
                 )}
               </div>
               <div className="text-center">
-                {sd.yours ? (
+                {kd.yours ? (
                   <div>
-                    <span className="text-xs font-mono" style={{ color: 'var(--rc-cyan)' }}>
-                      {sd.yours.component}
+                    <span className="text-xs font-mono truncate" style={{ color: 'var(--rc-cyan)' }}>
+                      {typeof kd.yours === 'object' ? JSON.stringify(kd.yours).slice(0, 30) + '...' : String(kd.yours)}
                     </span>
-                    <div
-                      className="w-1.5 h-1.5 rounded-full mx-auto mt-1"
-                      style={{ backgroundColor: statusColor[sd.yours.status] || 'var(--rc-text-muted)' }}
-                    />
                   </div>
                 ) : (
                   <span className="text-xs" style={{ color: 'var(--rc-text-muted)' }}>·</span>
                 )}
               </div>
               <div className="text-center">
-                {sd.theirs ? (
+                {kd.theirs ? (
                   <div>
-                    <span className="text-xs font-mono" style={{ color: 'var(--rc-magenta)' }}>
-                      {sd.theirs.component}
+                    <span className="text-xs font-mono truncate" style={{ color: 'var(--rc-magenta)' }}>
+                      {typeof kd.theirs === 'object' ? JSON.stringify(kd.theirs).slice(0, 30) + '...' : String(kd.theirs)}
                     </span>
-                    <div
-                      className="w-1.5 h-1.5 rounded-full mx-auto mt-1"
-                      style={{ backgroundColor: statusColor[sd.theirs.status] || 'var(--rc-text-muted)' }}
-                    />
                   </div>
                 ) : (
                   <span className="text-xs" style={{ color: 'var(--rc-text-muted)' }}>·</span>

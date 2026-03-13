@@ -8,7 +8,7 @@ import {
   IconUser, IconFingerprint, IconUserCircle,
   IconDatabase, IconNotebook, IconHeartHandshake, IconPinned,
   IconHeartbeat, IconClock, IconBell,
-  IconCube, IconPlug, IconBolt, IconSparkles, IconServer, IconClockHour4,
+
   IconArrowDown, IconExternalLink, IconCopy, IconChevronRight,
   IconRefresh, IconPuzzle, IconMessages,
   IconChevronDown, IconBook2, IconBrandDiscord,
@@ -19,23 +19,15 @@ import Explore from './Explore'
 
 // ─── Helpers ───────────────────────────────────────────────
 
-const sectionColors = {
-  Model: 'from-purple-500/40 to-blue-500/40',
-  Persona: 'from-cyan-500/40 to-emerald-500/40',
-  Skills: 'from-pink-500/40 to-violet-500/40',
-  Integrations: 'from-green-500/40 to-cyan-500/40',
-  Automations: 'from-rose-500/40 to-blue-500/40',
-  Memory: 'from-amber-500/40 to-orange-500/40',
-}
-
-const sectionIcons = {
-  Model: IconCube,
-  Persona: IconSparkles,
-  Skills: IconBolt,
-  Integrations: IconPlug,
-  Automations: IconClockHour4,
-  Memory: IconServer,
-}
+// Item color palette for build cards (cycles through)
+const itemGradients = [
+  'from-purple-500/40 to-blue-500/40',
+  'from-cyan-500/40 to-emerald-500/40',
+  'from-pink-500/40 to-violet-500/40',
+  'from-green-500/40 to-cyan-500/40',
+  'from-rose-500/40 to-blue-500/40',
+  'from-amber-500/40 to-orange-500/40',
+]
 
 function formatDate(dateStr) {
   const d = new Date(dateStr + 'T00:00:00')
@@ -196,7 +188,6 @@ function Hero() {
 // ─── Build Card (Conveyor Item) ──────────────────────────
 
 function BuildCard({ build, index, onClick, dropped }) {
-  const totalItems = build.sections.reduce((sum, s) => sum + s.items.length, 0)
 
   return (
     <motion.div
@@ -222,23 +213,22 @@ function BuildCard({ build, index, onClick, dropped }) {
           </div>
         )}
 
-        {/* Mini section grid preview */}
+        {/* Items tag cloud preview */}
         <div className="p-5 pt-12">
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            {build.sections.slice(0, 6).map((section, si) => {
-              const Icon = sectionIcons[section.name] || IconCube
-              return (
-                <div
-                  key={si}
-                  className={`aspect-square rounded-xl bg-gradient-to-br ${sectionColors[section.name] || 'from-white/10 to-white/20'} border border-white/10 flex flex-col items-center justify-center gap-1.5 p-2`}
-                >
-                  <Icon size={22} stroke={1.5} className="text-rc-text" />
-                  <span className="text-xs font-mono font-semibold text-rc-text-dim truncate w-full text-center">
-                    {section.items.length}
-                  </span>
-                </div>
-              )
-            })}
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {build.items.slice(0, 8).map((item, ii) => (
+              <span
+                key={ii}
+                className={`px-2 py-1 rounded-lg bg-gradient-to-br ${itemGradients[ii % itemGradients.length]} border border-white/10 text-[11px] font-mono font-medium text-rc-text`}
+              >
+                {item.name}
+              </span>
+            ))}
+            {build.items.length > 8 && (
+              <span className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-mono text-rc-text-muted">
+                +{build.items.length - 8}
+              </span>
+            )}
           </div>
         </div>
 
@@ -263,7 +253,7 @@ function BuildCard({ build, index, onClick, dropped }) {
               {build.creator}
             </span>
             <span className="text-rc-text-muted text-[10px] font-mono">
-              {build.sections.length} sections · {totalItems} items
+              {build.items.length} items
             </span>
           </div>
         </div>
@@ -347,7 +337,7 @@ function ConveyorBelt({ onSelectBuild }) {
 // ─── Build Detail Modal ──────────────────────────────────
 
 function BuildDetail({ build, onClose }) {
-  const [expandedSection, setExpandedSection] = useState(null)
+
   const [toast, setToast] = useState(null)
 
   const showToast = (msg) => {
@@ -402,90 +392,23 @@ function BuildDetail({ build, onClose }) {
           </div>
         </div>
 
-        {/* Sections grid */}
+        {/* Build contents */}
         <div className="p-6 md:p-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {build.sections.map((section, si) => {
-              const Icon = sectionIcons[section.name] || IconCube
-              const isExpanded = expandedSection === si
-
-              return (
-                <motion.div
-                  key={si}
-                  layout
-                  onClick={() => setExpandedSection(isExpanded ? null : si)}
-                  className={`cursor-pointer rounded-2xl border transition-all duration-200 ${
-                    isExpanded
-                      ? 'col-span-2 md:col-span-3 bg-white/5 border-rc-cyan/30'
-                      : 'bg-rc-surface border-rc-border hover:border-rc-cyan/30'
-                  }`}
-                >
-                  <div className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="text-rc-cyan">
-                        <Icon size={18} stroke={1.5} />
-                      </div>
-                      <span className="font-grotesk font-semibold text-rc-text text-sm">
-                        {section.name}
-                      </span>
-                      <span className="text-rc-text-muted text-xs ml-auto font-mono">
-                        {section.items.length}
-                      </span>
-                      <motion.div
-                        animate={{ rotate: isExpanded ? 90 : 0 }}
-                        className="text-rc-text-muted"
-                      >
-                        <IconChevronRight size={14} />
-                      </motion.div>
-                    </div>
-
-                    {!isExpanded && (
-                      <div className="flex flex-wrap gap-1">
-                        {section.items.slice(0, 3).map((item, ii) => (
-                          <span
-                            key={ii}
-                            className="px-2 py-0.5 bg-white/5 rounded-md text-[10px] font-mono text-rc-text-dim"
-                          >
-                            {item.name}
-                          </span>
-                        ))}
-                        {section.items.length > 3 && (
-                          <span className="px-2 py-0.5 text-[10px] font-mono text-rc-text-muted">
-                            +{section.items.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="space-y-2 overflow-hidden"
-                        >
-                          {section.items.map((item, ii) => (
-                            <motion.div
-                              key={ii}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: ii * 0.04 }}
-                              className="flex items-center gap-3 p-3 bg-white/5 rounded-xl"
-                            >
-                              <div className={`w-2 h-2 rounded-full ${item.color?.replace('text-', 'bg-') || 'bg-rc-text-dim'}`} />
-                              <span className="font-grotesk text-sm text-rc-text">
-                                {item.name}
-                              </span>
-                            </motion.div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
-              )
-            })}
+          <div className="flex flex-wrap gap-2">
+            {build.items.map((item, ii) => (
+              <motion.div
+                key={ii}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: ii * 0.03 }}
+                className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-rc-border hover:border-rc-cyan/30 transition-colors"
+              >
+                <div className={`w-2 h-2 rounded-full ${item.color?.replace('text-', 'bg-') || 'bg-rc-text-dim'}`} />
+                <span className="font-grotesk text-sm text-rc-text">
+                  {item.name}
+                </span>
+              </motion.div>
+            ))}
           </div>
         </div>
 
@@ -529,7 +452,7 @@ function WhatIsSection() {
     {
       icon: IconPuzzle,
       title: 'Complete configurations',
-      desc: 'Every build is a full agent setup: models, skills, integrations, personality, automations, memory. The 6 sections that make an agent unique.',
+      desc: 'Every build is a full agent setup: models, skills, integrations, personality, automations, memory. Whatever your agent uses, it goes in the build.',
     },
     {
       icon: IconUserCircle,
@@ -596,7 +519,7 @@ function HowItWorks() {
     {
       num: '03',
       title: 'Apply',
-      desc: 'Copy a build and bootstrap your agent in seconds. Tweak the sections, swap models, adjust personality. Make it yours.',
+      desc: 'Copy a build and bootstrap your agent in seconds. Swap models, adjust personality, add skills. Make it yours.',
     },
   ]
 
@@ -641,44 +564,32 @@ function HowItWorks() {
 // ─── Anatomy of a Build ──────────────────────────────────
 
 function AnatomySection() {
-  const sections = [
-    { name: 'Model', icon: IconCube, desc: 'Which LLMs power it. Route Opus for deep thinking, Sonnet for speed, local Qwen for free, or one model for everything.', color: 'from-purple-500/30 to-blue-500/30' },
-    { name: 'Persona', icon: IconSparkles, desc: 'How it thinks, talks, and acts. Tone, opinions, boundaries, identity. The stuff that makes it feel like yours, not a chatbot.', color: 'from-cyan-500/30 to-emerald-500/30' },
-    { name: 'Skills', icon: IconBolt, desc: 'What it can do. Voice chat, coding, web research, marketing, home automation. Install from ClawHub or build your own.', color: 'from-pink-500/30 to-violet-500/30' },
-    { name: 'Integrations', icon: IconPlug, desc: 'What it connects to. iMessage, Calendar, Email, Smart Home, cameras, GitHub, voice I/O. Your life\'s APIs wired in.', color: 'from-green-500/30 to-cyan-500/30' },
-    { name: 'Automations', icon: IconClockHour4, desc: 'What it does on its own. Heartbeat checks, cron jobs, monitors, reminders. The autonomous layer.', color: 'from-rose-500/30 to-blue-500/30' },
-    { name: 'Memory', icon: IconServer, desc: 'How it remembers. Context engine, conversation history, facts, daily notes, handoff between sessions.', color: 'from-amber-500/30 to-orange-500/30' },
-  ]
-
   return (
     <section className="py-24 px-6">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
-            Anatomy of a build
+            What's in a build?
           </h2>
-          <p className="text-rc-text-dim text-lg max-w-xl mx-auto">
-            Modular slots. Infinite combinations. Every section is independent. Swap one without touching the rest.
+          <p className="text-rc-text-dim text-lg max-w-2xl mx-auto">
+            A build contains your agent's complete configuration: model routing, personality, skills, integrations, automations, memory, and any custom config. It's flat JSON - no fixed structure. If your agent uses it, it's in the build.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sections.map((section, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08, duration: 0.5 }}
-              className="p-5 rounded-2xl border border-rc-border hover:border-rc-cyan/20 transition-colors group"
-            >
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${section.color} flex items-center justify-center mb-4`}>
-                <section.icon size={22} className="text-rc-text" stroke={1.5} />
-              </div>
-              <h3 className="font-grotesk font-semibold text-rc-text text-base mb-1.5">{section.name}</h3>
-              <p className="text-rc-text-dim text-sm leading-relaxed">{section.desc}</p>
-            </motion.div>
-          ))}
+        <div className="max-w-3xl mx-auto">
+          <div className="p-8 rounded-2xl border border-rc-border bg-gradient-to-br from-purple-500/5 to-cyan-500/5">
+            <div className="space-y-4 text-rc-text-dim text-sm leading-relaxed">
+              <p>
+                Builds are config exports. You configure your agent how you want it (which models, which skills, how it talks, what it automates) and export that as a build. Share it, apply it to other agents, or use it as a starting point.
+              </p>
+              <p>
+                Every build is different. Some use model routing with multiple tiers. Others use a single model. Some have deep personality configs and memory systems. Others are minimal. The schema is flexible - builds contain whatever your agent has configured.
+              </p>
+              <p>
+                Browse builds to see how others configure their agents. Copy what works. Remix. The goal is fast iteration on agent configurations, not rigid templates.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -717,7 +628,7 @@ function FAQSection() {
     },
     {
       q: 'What\'s in a typical build?',
-      a: 'Core sections include Model (which LLMs), Persona (how it thinks and talks), Skills (what it can do), Integrations (what it connects to), Automations (what it does on its own), and Memory (how it remembers). The system is extensible, so custom sections can be added as needs evolve.',
+      a: 'Builds contain whatever config your agent uses. Common pieces include model routing (which LLMs), personality (how it talks), skills (what it can do), integrations (what it connects to), automations (heartbeat + cron), and memory config. But builds are flexible - they contain your agent's full configuration, not a fixed template.',
     },
     {
       q: 'Do I need OpenClaw to use a build?',

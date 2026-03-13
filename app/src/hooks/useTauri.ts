@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useState } from 'react';
-import type { SectionData, SkillItem } from '../types';
+import type { Build, SkillItem } from '../types';
 
 function useTauriCommand<T>(
   command: string,
@@ -38,10 +38,10 @@ function useTauriCommand<T>(
   return { data, loading, error, refresh: load };
 }
 
-export function useSections(agentId?: string) {
-  return useTauriCommand<SectionData[]>(
-    'get_sections',
-    [],
+export function useBuild(agentId?: string) {
+  return useTauriCommand<Build | null>(
+    'get_build',
+    null,
     agentId ? { agentId } : undefined,
     [agentId]
   );

@@ -66,7 +66,11 @@ interface ValidationResult {
 
 type Step = 'target' | 'security' | 'dependencies' | 'review' | 'applying' | 'done';
 
-import { getSectionMeta } from '../sectionMeta';
+// Inline label helper (no fixed categories)
+function getKeyLabel(key: string): { label: string; emoji: string } {
+  const label = key.charAt(0).toUpperCase() + key.slice(1).replace(/[-_]/g, ' ');
+  return { label, emoji: '📦' };
+}
 
 // ── Component ──
 
@@ -1029,7 +1033,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
             {Object.keys(actions.reduce((acc: Record<string, boolean>, a: { section?: string }) => { if (a.section) acc[a.section] = true; return acc; }, {})).map(sectionKey => {
               const sectionActions = previewActions.filter(a => a.section === sectionKey);
               if (sectionActions.length === 0) return null;
-              const meta = getSectionMeta(sectionKey);
+              const meta = getKeyLabel(sectionKey);
 
               return (
                 <div key={sectionKey}>

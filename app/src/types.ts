@@ -255,20 +255,13 @@ export interface SecurityReport {
 
 // ── Diff ────────────────────────────────────────────────────────────
 
-export type ConfigSection = "model" | "persona" | "skills" | "integrations" | "automations" | "memory";
-
-export interface SectionDiff {
-  section: ConfigSection;
-  changes: {
-    field: string;
+export interface BuildDiff {
+  /** Top-level keys that differ */
+  keyDiffs: {
+    key: string;
     yours: unknown;
     theirs: unknown;
   }[];
-}
-
-export interface BuildDiff {
-  /** Sections that differ */
-  sectionDiffs: SectionDiff[];
   /** Skills only in your build */
   skillsOnlyYours: string[];
   /** Skills only in theirs */
@@ -280,28 +273,5 @@ export interface BuildDiff {
   /** Integrations only in theirs */
   integrationsOnlyTheirs: string[];
 }
-
-// ── UI-specific Types (for rendering in app) ────────────────────────
-
-/** Rich section data for UI rendering (from get_build Rust command) */
-export interface SectionData {
-  id: string;
-  label: string;
-  icon: string;
-  status: 'active' | 'degraded' | 'offline' | 'empty';
-  component: string;
-  version?: string;
-  details: Record<string, unknown>;
-  subComponents: SubComponent[];
-}
-
-export interface SubComponent {
-  name: string;
-  status: string;
-  detail: string;
-  icon?: string;
-}
-
-/** Legacy compatibility - these will be removed once all components are updated */
 
 

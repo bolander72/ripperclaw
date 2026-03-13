@@ -309,7 +309,7 @@ export function BuildsView({ onCompare, onApply }: Props) {
                         {entry.name}
                       </span>
                       <span className="text-[10px]" style={{ color: 'var(--rc-text-muted)' }}>
-                        {entry.sections} sections · {entry.skills} skills
+                        {entry.skills} skills
                         {entry.exportedAt && (
                           <> · {new Date(entry.exportedAt).toLocaleDateString()}</>
                         )}
