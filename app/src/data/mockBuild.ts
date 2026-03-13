@@ -1,7 +1,7 @@
-import type { BlockData, SkillItem } from '../types';
+import type { SectionData, SkillItem } from '../types';
 
-// UI rendering blocks (for get_blocks display)
-export const blocks: BlockData[] = [
+// UI rendering sections (for get_build display)
+export const sections: SectionData[] = [
   {
     id: 'persona',
     label: 'Persona',
@@ -115,4 +115,5 @@ export const skills: SkillItem[] = [
   { name: 'lossless-claw', source: 'custom', version: '0.2.8' },
 ];
 
+// Legacy export for compatibility during migration
 

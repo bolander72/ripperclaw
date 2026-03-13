@@ -1,7 +1,7 @@
-import type { BlockData } from '../types';
+import type { SectionData } from '../types';
 
 interface Props {
-  block: BlockData;
+  section: SectionData;
   selected: boolean;
   onClick: () => void;
 }
@@ -13,10 +13,10 @@ const statusColor: Record<string, string> = {
   empty: 'var(--rc-text-muted)',
 };
 
-export function BlockCard({ block, selected, onClick }: Props) {
+export function SectionCard({ section, selected, onClick }: Props) {
   return (
     <div
-      className={`block-card ${selected ? 'active' : ''}`}
+      className={`section-card ${selected ? 'active' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-center justify-between mb-3">
@@ -28,25 +28,25 @@ export function BlockCard({ block, selected, onClick }: Props) {
               color: 'var(--rc-cyan)' 
             }}
           >
-            {block.icon}
+            {section.icon}
           </div>
           <div>
             <span className="text-sm font-semibold block" style={{ color: 'var(--rc-text)' }}>
-              {block.label}
+              {section.label}
             </span>
             <span className="text-xs block" style={{ color: 'var(--rc-cyan)' }}>
-              {block.component}
+              {section.component}
             </span>
           </div>
         </div>
         <div
           className="w-2 h-2 rounded-full shrink-0"
-          style={{ backgroundColor: statusColor[block.status] }}
+          style={{ backgroundColor: statusColor[section.status] }}
         />
       </div>
-      {block.version && (
+      {section.version && (
         <div className="text-xs font-mono mt-2" style={{ color: 'var(--rc-text-dim)' }}>
-          v{block.version}
+          v{section.version}
         </div>
       )}
     </div>

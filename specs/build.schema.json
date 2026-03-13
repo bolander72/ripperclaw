@@ -1,14 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://clawclawgo.com/schemas/build-v2.json",
-  "title": "Clawclawgo Build v2",
+  "$id": "https://clawclawgo.com/schemas/build-v3.json",
+  "title": "Clawclawgo Build v3",
   "description": "Canonical format for OpenClaw agent builds: export, share, and apply.",
   "type": "object",
-  "required": ["schema", "meta", "blocks"],
+  "required": ["schema", "meta"],
   "properties": {
     "schema": {
-      "const": 2,
-      "description": "Schema version. Must be 2."
+      "const": 3,
+      "description": "Schema version. Must be 3."
     },
     "meta": {
       "type": "object",
@@ -51,33 +51,13 @@
         }
       }
     },
-    "blocks": {
-      "type": "object",
-      "properties": {
-        "model": { "$ref": "#/definitions/modelSlot" },
-        "persona": { "$ref": "#/definitions/personaBlock" },
-        "skills": { "$ref": "#/definitions/skillsBlock" },
-        "integrations": { "$ref": "#/definitions/integrationsBlock" },
-        "automations": { "$ref": "#/definitions/automationsBlock" },
-        "memory": { "$ref": "#/definitions/memoryBlock" }
-      },
-      "additionalProperties": {
-        "type": "object",
-        "description": "Custom block types beyond the six defaults. Any string key is valid.",
-        "properties": {
-          "label": { "type": "string" },
-          "status": { "type": "string" },
-          "component": { "type": "string" },
-          "version": { "type": "string" },
-          "details": { "type": "object" },
-          "items": {
-            "type": "array",
-            "items": { "type": "object" }
-          }
-        }
-      }
-    },
-    "dependencies": { "$ref": "#/definitions/dependenciesBlock" }
+    "model": { "$ref": "#/definitions/modelConfig" },
+    "persona": { "$ref": "#/definitions/personaConfig" },
+    "skills": { "$ref": "#/definitions/skillsConfig" },
+    "integrations": { "$ref": "#/definitions/integrationsConfig" },
+    "automations": { "$ref": "#/definitions/automationsConfig" },
+    "memory": { "$ref": "#/definitions/memoryConfig" },
+    "dependencies": { "$ref": "#/definitions/dependenciesConfig" }
   },
   "definitions": {
     "modelTier": {
@@ -106,7 +86,7 @@
         }
       }
     },
-    "modelSlot": {
+    "modelConfig": {
       "type": "object",
       "required": ["tiers"],
       "properties": {
@@ -131,7 +111,7 @@
         }
       }
     },
-    "personaBlock": {
+    "personaConfig": {
       "type": "object",
       "properties": {
         "identity": {
@@ -208,7 +188,7 @@
         }
       }
     },
-    "skillsBlock": {
+    "skillsConfig": {
       "type": "object",
       "required": ["items"],
       "properties": {
@@ -251,7 +231,7 @@
         }
       }
     },
-    "integrationsBlock": {
+    "integrationsConfig": {
       "type": "object",
       "required": ["items"],
       "properties": {
@@ -291,7 +271,7 @@
         }
       }
     },
-    "automationsBlock": {
+    "automationsConfig": {
       "type": "object",
       "properties": {
         "heartbeat": {
@@ -325,7 +305,7 @@
         }
       }
     },
-    "memoryBlock": {
+    "memoryConfig": {
       "type": "object",
       "properties": {
         "structure": {
@@ -372,7 +352,7 @@
         "required": { "type": "boolean", "description": "Whether this is required" }
       }
     },
-    "dependenciesBlock": {
+    "dependenciesConfig": {
       "type": "object",
       "properties": {
         "bins": {

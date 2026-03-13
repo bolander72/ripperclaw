@@ -1,4 +1,4 @@
-# Build Schema v2
+# Build Schema v3
 
 The canonical format for exporting, sharing, and applying OpenClaw agent builds.
 
@@ -6,8 +6,8 @@ The canonical format for exporting, sharing, and applying OpenClaw agent builds.
 
 1. **Human-readable**: JSON with clear field names, no encoded blobs
 2. **Apply-safe**: no credentials, no PII, no absolute paths
-3. **Block-independent**: each block is self-contained, can be applied/skipped individually
-4. **Version-aware**: skills pin versions, models specify providers
+3. **Version-aware**: skills pin versions, models specify providers
+4. **Flat structure**: configuration sections are at the top level for simplicity
 
 ---
 
@@ -15,7 +15,7 @@ The canonical format for exporting, sharing, and applying OpenClaw agent builds.
 
 ```json
 {
-  "schema": 2,
+  "schema": 3,
   "meta": {
     "name": "Personal Assistant",
     "agentName": "Quinn",
@@ -26,14 +26,13 @@ The canonical format for exporting, sharing, and applying OpenClaw agent builds.
     "openclawVersion": "1.4.2",
     "tags": ["personal", "voice", "smart-home", "coding"]
   },
-  "blocks": {
-    "model": { ... },
-    "persona": { ... },
-    "skills": { ... },
-    "integrations": { ... },
-    "automations": { ... },
-    "memory": { ... }
-  }
+  "model": { ... },
+  "persona": { ... },
+  "skills": { ... },
+  "integrations": { ... },
+  "automations": { ... },
+  "memory": { ... },
+  "dependencies": { ... }
 }
 ```
 
@@ -52,7 +51,7 @@ The canonical format for exporting, sharing, and applying OpenClaw agent builds.
 
 ---
 
-## Block: `model`
+## Section: `model`
 
 ```json
 {
@@ -95,7 +94,7 @@ The canonical format for exporting, sharing, and applying OpenClaw agent builds.
 **Apply behavior:**
 - Show each tier with paid/local flags
 - If user doesn't have the provider configured: warn "requires [provider] API key"
-- **"Use my models instead"** toggle → maps tiers to user's existing config:
+- **"Use my models instead"** toggle maps tiers to user's existing config:
   - `main` → user's default model
   - `subagent` → user's subagent model (or default)
   - `heartbeat` → user's cheapest/local model (or skip)
@@ -104,7 +103,7 @@ The canonical format for exporting, sharing, and applying OpenClaw agent builds.
 
 ---
 
-## Block: `persona`
+## Section: `persona`
 
 ```json
 {
@@ -141,7 +140,7 @@ The canonical format for exporting, sharing, and applying OpenClaw agent builds.
 
 ---
 
-## Block: `skills`
+## Section: `skills`
 
 ```json
 {
@@ -177,13 +176,13 @@ The canonical format for exporting, sharing, and applying OpenClaw agent builds.
 **Apply behavior:**
 - Auto-install from ClawHub via `clawhub install <name>@<version>`
 - If already installed at same version: ✅ skip
-- If already installed at different version: show "weather v1.2.0 installed (build uses v1.4.0) [Update →]": default: keep user's version
+- If already installed at different version: show "weather v1.2.0 installed (build uses v1.4.0) [Update →]" (default: keep user's version)
 - If `requiresConfig: true`: flag after install with `configHint`
 - Skills not on ClawHub (`source: "local"` or `source: "custom"`): show "manual install needed" with description
 
 ---
 
-## Block: `integrations`
+## Section: `integrations`
 
 ```json
 {
@@ -236,7 +235,7 @@ The canonical format for exporting, sharing, and applying OpenClaw agent builds.
 
 ---
 
-## Block: `automations`
+## Section: `automations`
 
 ```json
 {
@@ -272,7 +271,7 @@ The canonical format for exporting, sharing, and applying OpenClaw agent builds.
 
 ---
 
-## Block: `memory`
+## Section: `memory`
 
 ```json
 {
@@ -308,7 +307,7 @@ The canonical format for exporting, sharing, and applying OpenClaw agent builds.
 **Apply behavior:**
 - Create directory structure if missing
 - Write template files only if they don't already exist (never overwrite memory)
-- In replace mode: still never overwrite: memory is sacred
+- In replace mode: still never overwrite (memory is sacred)
 - `engine` field is informational only (LCM is an OpenClaw feature, not configurable per-build)
 
 ---
@@ -319,9 +318,9 @@ The canonical format for exporting, sharing, and applying OpenClaw agent builds.
 1. Load build JSON
 2. Select target agent(s)
 3. Choose global mode: Merge (default) | Replace
-4. Per-block review:
+4. Review each section:
    ┌─────────────────┬──────────┬─────────────────────────────────┐
-   │ Block            │ Action   │ Notes                           │
+   │ Section          │ Action   │ Notes                           │
    ├─────────────────┼──────────┼─────────────────────────────────┤
    │ Model           │ Apply    │ "Use my models" toggle          │
    │ Persona         │ Confirm  │ "Change persona? Are you sure?" │
@@ -351,11 +350,20 @@ Before a build is shared, the PII scrubber (`scrub::scrub_build`) must:
 
 ## Migration
 
-Schema v1 (current Tauri export) → v2:
-- Map 9 diagnostic blocks to 6 core blocks (extensible, custom block types supported)
-- Restructure flat `details` into typed block objects
-- Add `tiers` to model block
-- Add `items` array to skills/integrations
-- Preserve `meta` fields, bump `schema: 2`
+### Schema v2 → v3
 
-A `migrate_v1_to_v2(build)` function handles this automatically.
+- Remove the `blocks` wrapper object
+- Promote all config sections to the top level: `model`, `persona`, `skills`, `integrations`, `automations`, `memory`, `dependencies`
+- The data structure within each section remains unchanged
+- Bump `schema: 3`
+
+A `migrate_v2_to_v3(build)` function handles this automatically.
+
+### Schema v1 → v3
+
+- Map 9 diagnostic sections to 6 core config sections
+- Restructure flat `details` into typed config objects
+- Add `tiers` to model section
+- Add `items` array to skills/integrations sections
+- Remove `blocks` wrapper
+- Preserve `meta` fields, bump `schema: 3`

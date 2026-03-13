@@ -309,7 +309,7 @@ fn get_cron_jobs() -> Result<Vec<CronJob>, String> {
 // ─── Rich Slot Builder ───
 
 #[derive(Serialize, Clone)]
-struct BlockData {
+struct SectionData {
     id: String,
     label: String,
     icon: String,
@@ -330,12 +330,12 @@ struct SubComponent {
 }
 
 #[tauri::command]
-fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
+fn get_sections(agent_id: Option<String>) -> Vec<SectionData> {
     let config = read_config();
     let ws = agent_id.as_ref()
         .map(|id| resolve_agent_workspace(id))
         .unwrap_or_else(|| workspace_dir());
-    let mut blocks_list = Vec::new();
+    let mut sections_list = Vec::new();
 
     // ── MODEL ──
     let primary_model = config.pointer("/model/default")
@@ -384,7 +384,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         });
     }
 
-    blocks_list.push(BlockData {
+    sections_list.push(SectionData {
         id: "model".to_string(),
         label: "Model".to_string(),
         icon: "⬢".to_string(),
@@ -441,7 +441,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         });
     }
 
-    blocks_list.push(BlockData {
+    sections_list.push(SectionData {
         id: "persona".to_string(),
         label: "Persona".to_string(),
         icon: "◈".to_string(),
@@ -498,7 +498,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         });
     }
 
-    blocks_list.push(BlockData {
+    sections_list.push(SectionData {
         id: "skills".to_string(),
         label: "Skills".to_string(),
         icon: "⚡".to_string(),
@@ -713,7 +713,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         });
     }
 
-    blocks_list.push(BlockData {
+    sections_list.push(SectionData {
         id: "integrations".to_string(),
         label: "Integrations".to_string(),
         icon: "⚡".to_string(),
@@ -772,7 +772,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         });
     }
 
-    blocks_list.push(BlockData {
+    sections_list.push(SectionData {
         id: "automations".to_string(),
         label: "Automations".to_string(),
         icon: "⏱".to_string(),
@@ -794,7 +794,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
     } else {
         0
     };
-    let context_engine = config.pointer("/plugins/blocks/contextEngine")
+    let context_engine = config.pointer("/plugins/memory/contextEngine")
         .or(config.pointer("/plugins/slots/contextEngine")) // fallback for old configs
         .and_then(|v| v.as_str())
         .unwrap_or("legacy");
@@ -854,7 +854,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         });
     }
 
-    blocks_list.push(BlockData {
+    sections_list.push(SectionData {
         id: "memory".to_string(),
         label: "Memory".to_string(),
         icon: "◉".to_string(),
@@ -872,7 +872,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         sub_components: mem_subs,
     });
 
-    blocks_list
+    sections_list
 }
 
 // ─── Build import for diff ───
@@ -896,15 +896,15 @@ fn import_build(path: String) -> Result<Value, String> {
 
 #[tauri::command]
 fn export_build() -> Result<Value, String> {
-    // Build a build (schema v2) from current state
+    // Build a build (schema v3) from current state
     let _config = read_config();
-    let _blocks_data = get_blocks(None);
+    let _sections_data = get_sections(None);
     let skills = get_skills();
     let _status = get_system_status();
 
     let ws = workspace_dir();
 
-    // Skills block
+    // Skills config
     let skills_items: Vec<Value> = skills.iter().map(|s| {
         serde_json::json!({
             "name": s.name,
@@ -923,7 +923,7 @@ fn export_build() -> Result<Value, String> {
         .unwrap_or_else(|| "Agent".to_string());
 
     let build = serde_json::json!({
-        "schema": 2,
+        "schema": 3,
         "meta": {
             "name": identity_name.clone(),
             "agentName": identity_name,
@@ -931,10 +931,8 @@ fn export_build() -> Result<Value, String> {
             "version": 1,
             "exportedAt": chrono_now(),
         },
-        "blocks": {
-            "skills": {
-                "items": skills_items
-            }
+        "skills": {
+            "items": skills_items
         }
     });
 
@@ -966,7 +964,7 @@ fn export_build_safe(
 struct CloneResult {
     applied_skills: Vec<String>,
     skipped_skills: Vec<String>,
-    block_changes: Vec<String>,
+    section_changes: Vec<String>,
     backup_path: Option<String>,
 }
 
@@ -996,7 +994,7 @@ fn clone_build(build_json: String, mode: String, agent_id: Option<String>) -> Re
         return Ok(CloneResult {
             applied_skills: vec![],
             skipped_skills: vec![],
-            block_changes: vec![format!("Saved as {}", filename)],
+            section_changes: vec![format!("Saved as {}", filename)],
             backup_path: Some(path.to_string_lossy().to_string()),
         });
     }
@@ -1017,10 +1015,10 @@ fn clone_build(build_json: String, mode: String, agent_id: Option<String>) -> Re
 
     let mut applied_skills: Vec<String> = Vec::new();
     let mut skipped_skills: Vec<String> = Vec::new();
-    let mut block_changes: Vec<String> = Vec::new();
+    let mut section_changes: Vec<String> = Vec::new();
 
     // ── Persona: write SOUL.md, IDENTITY.md, AGENTS.md if included ──
-    if let Some(persona) = build_cfg.pointer("/blocks/persona") {
+    if let Some(persona) = build_cfg.pointer("/persona") {
         if let Some(identity) = persona.get("identity") {
             let name = identity.get("name").and_then(|v| v.as_str()).unwrap_or("Agent");
             let creature = identity.get("creature").and_then(|v| v.as_str()).unwrap_or("AI assistant");
@@ -1031,7 +1029,7 @@ fn clone_build(build_json: String, mode: String, agent_id: Option<String>) -> Re
             );
             fs::write(target_workspace.join("IDENTITY.md"), &content)
                 .map_err(|e| format!("Write IDENTITY.md: {}", e))?;
-            block_changes.push(format!("persona: wrote IDENTITY.md ({})", name));
+            section_changes.push(format!("persona: wrote IDENTITY.md ({})", name));
         }
 
         if let Some(soul) = persona.get("soul") {
@@ -1039,7 +1037,7 @@ fn clone_build(build_json: String, mode: String, agent_id: Option<String>) -> Re
                 if let Some(content) = soul.get("content").and_then(|v| v.as_str()) {
                     fs::write(target_workspace.join("SOUL.md"), content)
                         .map_err(|e| format!("Write SOUL.md: {}", e))?;
-                    block_changes.push("persona: wrote SOUL.md".to_string());
+                    section_changes.push("persona: wrote SOUL.md".to_string());
                 }
             }
         }
@@ -1049,14 +1047,14 @@ fn clone_build(build_json: String, mode: String, agent_id: Option<String>) -> Re
                 if let Some(content) = agents_md.get("content").and_then(|v| v.as_str()) {
                     fs::write(target_workspace.join("AGENTS.md"), content)
                         .map_err(|e| format!("Write AGENTS.md: {}", e))?;
-                    block_changes.push("persona: wrote AGENTS.md".to_string());
+                    section_changes.push("persona: wrote AGENTS.md".to_string());
                 }
             }
         }
     }
 
     // ── Skills: install from ClawHub, track bundled ──
-    if let Some(skills) = build_cfg.pointer("/blocks/skills/items").and_then(|v| v.as_array()) {
+    if let Some(skills) = build_cfg.pointer("/skills/items").and_then(|v| v.as_array()) {
         let skills_dir = target_workspace.join("skills");
         let _ = fs::create_dir_all(&skills_dir);
 
@@ -1091,7 +1089,7 @@ fn clone_build(build_json: String, mode: String, agent_id: Option<String>) -> Re
             }
         }
         if !applied_skills.is_empty() || !skipped_skills.is_empty() {
-            block_changes.push(format!("skills: {} installed, {} skipped", applied_skills.len(), skipped_skills.len()));
+            section_changes.push(format!("skills: {} installed, {} skipped", applied_skills.len(), skipped_skills.len()));
         }
     } else if let Some(mods) = build_cfg.get("mods").and_then(|m| m.as_array()) {
         // Legacy format: check mods array
@@ -1128,18 +1126,18 @@ fn clone_build(build_json: String, mode: String, agent_id: Option<String>) -> Re
     }
 
     // ── Automations: write HEARTBEAT.md ──
-    if let Some(hb) = build_cfg.pointer("/blocks/automations/heartbeat") {
+    if let Some(hb) = build_cfg.pointer("/automations/heartbeat") {
         if hb.get("included").and_then(|v| v.as_bool()).unwrap_or(false) {
             if let Some(content) = hb.get("content").and_then(|v| v.as_str()) {
                 fs::write(target_workspace.join("HEARTBEAT.md"), content)
                     .map_err(|e| format!("Write HEARTBEAT.md: {}", e))?;
-                block_changes.push("automations: wrote HEARTBEAT.md".to_string());
+                section_changes.push("automations: wrote HEARTBEAT.md".to_string());
             }
         }
     }
 
     // ── Memory: create directory structure and templates ──
-    if let Some(structure) = build_cfg.pointer("/blocks/memory/structure") {
+    if let Some(structure) = build_cfg.pointer("/memory/structure") {
         if let Some(dirs) = structure.get("directories").and_then(|v| v.as_array()) {
             for dir in dirs {
                 if let Some(d) = dir.as_str() {
@@ -1162,11 +1160,11 @@ fn clone_build(build_json: String, mode: String, agent_id: Option<String>) -> Re
                 }
             }
         }
-        block_changes.push("memory: created directory structure".to_string());
+        section_changes.push("memory: created directory structure".to_string());
     }
 
     // ── Model: update agent config if build_cfg has model tiers ──
-    if let Some(tiers) = build_cfg.pointer("/blocks/model/tiers") {
+    if let Some(tiers) = build_cfg.pointer("/model/tiers") {
         if let Some(main_tier) = tiers.get("main") {
             let model = format!(
                 "{}/{}",
@@ -1187,7 +1185,7 @@ fn clone_build(build_json: String, mode: String, agent_id: Option<String>) -> Re
                                 "model".to_string(),
                                 serde_json::json!({ "primary": model }),
                             );
-                            block_changes.push(format!("model: set primary to {}", model));
+                            section_changes.push(format!("model: set primary to {}", model));
                             break;
                         }
                     }
@@ -1206,7 +1204,7 @@ fn clone_build(build_json: String, mode: String, agent_id: Option<String>) -> Re
     Ok(CloneResult {
         applied_skills,
         skipped_skills,
-        block_changes,
+        section_changes,
         backup_path: Some(backup_path.to_string_lossy().to_string()),
     })
 }
@@ -1288,7 +1286,7 @@ fn apply_build(
             .and_then(|v| v.as_str())
             .unwrap_or("anthropic/claude-sonnet-4-5")
             .to_string()
-    } else if let Some(tiers) = build_cfg.pointer("/blocks/model/tiers") {
+    } else if let Some(tiers) = build_cfg.pointer("/model/tiers") {
         if let Some(main_tier) = tiers.get("main") {
             format!(
                 "{}/{}",
@@ -1309,7 +1307,7 @@ fn apply_build(
     }));
 
     // Persona files
-    if let Some(persona) = build_cfg.pointer("/blocks/persona") {
+    if let Some(persona) = build_cfg.pointer("/persona") {
         // IDENTITY.md
         if let Some(identity) = persona.get("identity") {
             let name = identity.get("name").and_then(|v| v.as_str()).unwrap_or("Agent");
@@ -1355,7 +1353,7 @@ fn apply_build(
     }
 
     // Skills
-    if let Some(skills) = build_cfg.pointer("/blocks/skills/items").and_then(|v| v.as_array()) {
+    if let Some(skills) = build_cfg.pointer("/skills/items").and_then(|v| v.as_array()) {
         let bundled: Vec<&str> = skills.iter()
             .filter(|s| s.get("source").and_then(|v| v.as_str()) == Some("bundled"))
             .filter_map(|s| s.get("name").and_then(|v| v.as_str()))
@@ -1400,7 +1398,7 @@ fn apply_build(
     }
 
     // Integrations: always manual
-    if let Some(items) = build_cfg.pointer("/blocks/integrations/items").and_then(|v| v.as_array()) {
+    if let Some(items) = build_cfg.pointer("/integrations/items").and_then(|v| v.as_array()) {
         for item in items {
             let name = item.get("name").and_then(|v| v.as_str()).unwrap_or("?");
             warnings.push(format!("🔧 Integration \"{}\" - manual setup required", name));
@@ -1413,7 +1411,7 @@ fn apply_build(
     }
 
     // Automations: write HEARTBEAT.md
-    if let Some(hb) = build_cfg.pointer("/blocks/automations/heartbeat") {
+    if let Some(hb) = build_cfg.pointer("/automations/heartbeat") {
         if hb.get("included").and_then(|v| v.as_bool()).unwrap_or(false) {
             if let Some(content) = hb.get("content").and_then(|v| v.as_str()) {
                 fs::write(agent_workspace.join("HEARTBEAT.md"), content)
@@ -1424,7 +1422,7 @@ fn apply_build(
     }
 
     // Memory structure
-    if let Some(structure) = build_cfg.pointer("/blocks/memory/structure") {
+    if let Some(structure) = build_cfg.pointer("/memory/structure") {
         if let Some(dirs) = structure.get("directories").and_then(|v| v.as_array()) {
             for dir in dirs {
                 if let Some(d) = dir.as_str() {
@@ -1531,8 +1529,15 @@ fn list_builds() -> Vec<Value> {
                                 "name": name,
                                 "exportedAt": exported_at,
                                 "path": path.to_string_lossy(),
-                                "blocks": build_cfg.get("blocks").and_then(|s| s.as_object()).map(|o| o.len()).unwrap_or(0),
-                                "skills": build_cfg.get("blocks").and_then(|b| b.get("skills")).and_then(|s| s.get("items")).and_then(|i| i.as_array()).map(|a| a.len()).unwrap_or(0),
+                                "sections": ["model", "persona", "skills", "integrations", "automations", "memory"]
+                                    .iter()
+                                    .filter(|k| build_cfg.get(*k).is_some())
+                                    .count(),
+                                "skills": build_cfg.get("skills")
+                                    .and_then(|s| s.get("items"))
+                                    .and_then(|i| i.as_array())
+                                    .map(|a| a.len())
+                                    .unwrap_or(0),
                             }));
                         }
                     }
@@ -1552,8 +1557,12 @@ fn import_build_file(path: String) -> Result<Value, String> {
         .map_err(|e| format!("Invalid JSON: {}", e))?;
 
     // Validate it looks like a build
-    if build_cfg.get("blocks").is_none() && build_cfg.get("mods").is_none() {
-        return Err("File doesn't look like a valid build (missing blocks)".to_string());
+    // Check for v3 (top-level sections), v2 (blocks wrapper), or legacy (mods)
+    let has_sections = ["model", "persona", "skills", "integrations", "automations", "memory"]
+        .iter()
+        .any(|k| build_cfg.get(*k).is_some());
+    if !has_sections && build_cfg.get("blocks").is_none() && build_cfg.get("mods").is_none() {
+        return Err("File doesn't look like a valid build".to_string());
     }
 
     // Schema v2 builds get full JSON Schema validation
@@ -1643,7 +1652,7 @@ pub fn run() {
             get_skills,
             get_system_status,
             get_cron_jobs,
-            get_blocks,
+            get_sections,
             get_agents,
             import_build,
             import_build_file,

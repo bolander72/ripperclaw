@@ -47,4 +47,4 @@ Exports automatically scrub phone numbers, emails, API keys, and personal data. 
 Applying a build never deletes existing config. It creates new agents in isolated workspaces or merges changes with explicit confirmation.
 
 ### Modular
-Each block is independent. You can apply just the skills from one build and the persona from another.
+Each section is independent. You can take inspiration from one build's skills and another's persona.

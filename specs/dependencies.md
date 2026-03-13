@@ -74,9 +74,14 @@ On export, ClawClawGo:
 
 ```json
 {
-  "schema": 2,
+  "schema": 3,
   "meta": { ... },
-  "blocks": { ... },
+  "model": { ... },
+  "persona": { ... },
+  "skills": { ... },
+  "integrations": { ... },
+  "automations": { ... },
+  "memory": { ... },
   "dependencies": {
     "bins": ["python3", "ffmpeg", "caldir", "himalaya", "gh"],
     "brew": ["portaudio"],

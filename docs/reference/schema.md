@@ -1,14 +1,19 @@
 # Build Schema
 
-The build format is a JSON document with three top-level sections: `schema`, `meta`, `blocks`, and `dependencies`.
+The build format is a JSON document with configuration sections at the top level.
 
 ## Structure
 
 ```json
 {
-  "schema": 2,
+  "schema": 3,
   "meta": { ... },
-  "blocks": { ... },
+  "model": { ... },
+  "persona": { ... },
+  "skills": { ... },
+  "integrations": { ... },
+  "automations": { ... },
+  "memory": { ... },
   "dependencies": { ... }
 }
 ```
@@ -17,11 +22,11 @@ The build format is a JSON document with three top-level sections: `schema`, `me
 
 ```json
 {
-  "schema": 2
+  "schema": 3
 }
 ```
 
-The schema version is always `2`. Older version 1 builds used a different structure with a `mods` array instead of the `blocks.skills` structure.
+The schema version is always `3`. Schema v2 wrapped configuration in a `blocks` object; v3 uses a flat structure for simplicity.
 
 ## Meta
 
@@ -49,9 +54,9 @@ The schema version is always `2`. Older version 1 builds used a different struct
 | `description` | string | no | Short description of what this agent does |
 | `tags` | string[] | no | Searchable tags for categorization |
 
-## Blocks
+## Configuration Sections
 
-The `blocks` object contains six core block types. Each block has a specific structure.
+The build contains six core configuration sections. Each section has a specific structure.
 
 ### `model`
 
@@ -351,35 +356,35 @@ System-level requirements for the build. Populated during export by walking skil
 | `description` | string | What this config is for |
 | `required` | boolean | Whether this is required |
 
-## Custom Blocks
+## Custom Sections
 
-Builds can include custom block types beyond the six defaults. Any string key in `blocks` is valid.
+Builds can include custom section types beyond the six defaults. Any string key at the top level is valid.
 
 ```json
 {
-  "blocks": {
-    "model": { ... },
-    "persona": { ... },
-    "customBlock": {
-      "label": "My Custom Block",
-      "status": "active",
-      "component": "CustomComponent",
-      "version": "1.0",
-      "details": { "foo": "bar" },
-      "items": [ { "name": "item1" } ]
-    }
+  "schema": 3,
+  "meta": { ... },
+  "model": { ... },
+  "persona": { ... },
+  "myCustomSection": {
+    "label": "My Custom Section",
+    "status": "active",
+    "component": "CustomComponent",
+    "version": "1.0",
+    "details": { "foo": "bar" },
+    "items": [ { "name": "item1" } ]
   }
 }
 ```
 
-Custom blocks can contain any structure. Common properties:
+Custom sections can contain any structure. Common properties:
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `label` | string | Display label |
 | `status` | string | Status indicator |
 | `component` | string | UI component name |
-| `version` | string | Block version |
+| `version` | string | Section version |
 | `details` | object | Arbitrary metadata |
 | `items` | array | List of items |
 

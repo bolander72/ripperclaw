@@ -102,7 +102,6 @@ interface DisplayBuild {
   forkAuthor?: string;
   remixCount: number;
   publishType?: string;
-  blockType?: string;
 }
 
 const templateColors: Record<string, string> = {
@@ -143,12 +142,11 @@ function parseFeedBuild(entry: FeedBuild, allEntries: FeedBuild[]): DisplayBuild
     description: (meta.description as string) || `${entry.tags.length} tags · Published via ClawClawGo`,
     tags: entry.tags,
     publishedAt: entry.published_at,
-    model: ((parsed.blocks as Record<string, unknown>)?.model as Record<string, unknown>)?.component as string | undefined,
+    model: ((parsed.model || (parsed.blocks as Record<string, unknown>)?.model) as Record<string, unknown>)?.component as string | undefined,
     forkOf: entry.fork_of || undefined,
     forkAuthor: entry.fork_author || undefined,
     remixCount,
     publishType: entry.publish_type || 'build',
-    blockType: entry.block_type || undefined,
   };
 }
 
@@ -158,7 +156,7 @@ interface FeedViewProps {
 
 export function FeedView({ onCompare }: FeedViewProps) {
   const [filter, setFilter] = useState<string | null>(null);
-  const [typeFilter, setTypeFilter] = useState<'all' | 'build' | 'block'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'build'>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'remixes'>('recent');
   const [selectedBuild, setSelectedBuild] = useState<DisplayBuild | null>(null);
   const [showKeySetup, setShowKeySetup] = useState(false);
@@ -343,23 +341,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
             </div>
           )}
 
-          {/* Type + template filters + sort */}
-          <div className="flex gap-2 mb-3 flex-wrap">
-            {(['all', 'build', 'block'] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTypeFilter(t)}
-                className="px-3 py-1 rounded-xl text-[10px] font-semibold uppercase tracking-wider border transition-all"
-                style={{
-                  borderColor: typeFilter === t ? 'var(--rc-magenta)' : 'var(--rc-border)',
-                  color: typeFilter === t ? 'var(--rc-magenta)' : 'var(--rc-text-muted)',
-                  background: typeFilter === t ? 'rgba(255,0,170,0.1)' : 'transparent',
-                }}
-              >
-                {t === 'all' ? '📋 All' : t === 'build' ? '📦 Builds' : '🧩 Blocks'}
-              </button>
-            ))}
-          </div>
+          {/* Template filters + sort */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex gap-2 flex-wrap">
               <button
@@ -433,18 +415,6 @@ export function FeedView({ onCompare }: FeedViewProps) {
                     >
                       {entry.template}
                     </span>
-                    {entry.publishType === 'block' && entry.blockType && (
-                      <span
-                        className="text-[9px] px-1.5 py-0.5 rounded-xl font-semibold"
-                        style={{
-                          color: 'var(--rc-cyan)',
-                          background: 'rgba(0,240,255,0.1)',
-                          border: '1px solid rgba(0,240,255,0.2)',
-                        }}
-                      >
-                        🧩 {entry.blockType}
-                      </span>
-                    )}
                     {entry.remixCount > 0 && (
                       <span
                         className="text-[9px] px-1.5 py-0.5 rounded-xl font-semibold"
@@ -708,14 +678,13 @@ export function FeedView({ onCompare }: FeedViewProps) {
                   } catch { /* use mock structure */ }
 
                   const build = parsed.schema ? parsed : {
-                    schema: 1,
+                    schema: 3,
                     meta: {
                       name: selectedBuild.name,
                       author: selectedBuild.author,
                       template: selectedBuild.template,
                     },
-                    blocks: (parsed.blocks as Record<string, unknown>) || {},
-                    skills: (parsed.skills as unknown[]) || [],
+                    ...(parsed as Record<string, unknown>),
                   };
                   onCompare(build);
                 }}

@@ -19,9 +19,9 @@ ClawClawGo gives you:
 
 ## How It Works
 
-Every AI agent (specifically [OpenClaw](https://github.com/openclaw/openclaw) agents) breaks down into modular **blocks**:
+Every AI agent (specifically [OpenClaw](https://github.com/openclaw/openclaw) agents) breaks down into modular **sections**:
 
-| Block | What It Covers |
+| Section | What It Covers |
 |------|---------------|
 | **Model** | Which LLMs to use, routing rules between tiers |
 | **Persona** | SOUL.md, IDENTITY.md, USER.md: who the agent is |
@@ -30,7 +30,7 @@ Every AI agent (specifically [OpenClaw](https://github.com/openclaw/openclaw) ag
 | **Automations** | Heartbeat tasks, cron jobs, scheduled work |
 | **Memory** | Context engine, LCM config, memory file structure |
 
-A build captures the state of all blocks, scrubs sensitive data, and produces a JSON file that's portable across machines.
+A build captures the state of all sections, scrubs sensitive data, and produces a JSON file that's portable across machines.
 
 ## What ClawClawGo Is Not
 
@@ -42,4 +42,4 @@ A build captures the state of all blocks, scrubs sensitive data, and produces a 
 
 - [Quick Start](/guide/quickstart): get up and running in 5 minutes
 - [Installation](/guide/installation): download the app
-- [Blocks](/guide/blocks): understand the block system
+- 

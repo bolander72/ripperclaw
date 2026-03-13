@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useState } from 'react';
-import type { BlockData, SkillItem } from '../types';
+import type { SectionData, SkillItem } from '../types';
 
 function useTauriCommand<T>(
   command: string,
@@ -38,9 +38,9 @@ function useTauriCommand<T>(
   return { data, loading, error, refresh: load };
 }
 
-export function useBlocks(agentId?: string) {
-  return useTauriCommand<BlockData[]>(
-    'get_blocks',
+export function useSections(agentId?: string) {
+  return useTauriCommand<SectionData[]>(
+    'get_sections',
     [],
     agentId ? { agentId } : undefined,
     [agentId]
@@ -124,7 +124,7 @@ export function useCloneBuild() {
   const [result, setResult] = useState<{
     applied_skills: string[];
     skipped_skills: string[];
-    block_changes: string[];
+    section_changes: string[];
     backup_path?: string;
   } | null>(null);
 
@@ -155,7 +155,7 @@ export function useBuilds() {
     name: string;
     exportedAt: string;
     path: string;
-    blocks: number;
+    sections: number;
     skills: number;
   }>>('list_builds', []);
 }

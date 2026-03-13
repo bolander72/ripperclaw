@@ -40,7 +40,7 @@ export interface FeedBuild {
   fork_of: string | null;
   fork_author: string | null;
   publish_type: string;
-  block_type: string | null;
+  section_type: string | null;
 }
 
 export interface RelayInfo {
@@ -153,8 +153,6 @@ export function useNostrPublish() {
     tags: string[],
     forkOf?: string,
     forkAuthor?: string,
-    publishType?: string,
-    blockType?: string,
   ) => {
     setPublishing(true);
     try {
@@ -164,8 +162,8 @@ export function useNostrPublish() {
         tags,
         forkOf: forkOf || null,
         forkAuthor: forkAuthor || null,
-        publishType: publishType || 'build',
-        blockType: blockType || null,
+        publishType: 'build',
+        blockType: null,
       });
       return result;
     } catch (err) {

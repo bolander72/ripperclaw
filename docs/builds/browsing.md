@@ -49,7 +49,7 @@ See the [Provenance guide](/guide/provenance) for details on how remix tracking 
 
 Click **Compare** on any build to see a side-by-side diff with your current agent:
 
-- Which blocks differ
+- Which sections differ
 - What models they use vs. yours
 - Skills they have that you don't (and vice versa)
 - Integration differences

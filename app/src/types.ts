@@ -1,9 +1,9 @@
 /**
- * Build Schema v2 - TypeScript definitions for the Tauri app
+ * Build Schema v3 - TypeScript definitions for the Tauri app
  * Canonical source: ~/ripperdoc/src/schema/build.ts
  */
 
-// ── Block Types ─────────────────────────────────────────────────────
+// ── Config Types ────────────────────────────────────────────────────
 
 export interface ModelTier {
   /** Provider name (anthropic, openai, ollama, google, etc.) */
@@ -18,7 +18,7 @@ export interface ModelTier {
   local?: boolean;
 }
 
-export interface ModelBlock {
+export interface ModelConfig {
   tiers: {
     main?: ModelTier;
     subagent?: ModelTier;
@@ -32,7 +32,7 @@ export interface ModelBlock {
   };
 }
 
-export interface PersonaBlock {
+export interface PersonaConfig {
   identity?: {
     name?: string;
     creature?: string;
@@ -73,7 +73,7 @@ export interface SkillItem {
   configHint?: string;
 }
 
-export interface SkillsBlock {
+export interface SkillsConfig {
   items: SkillItem[];
 }
 
@@ -92,7 +92,7 @@ export interface IntegrationItem {
   setupGuideUrl?: string;
 }
 
-export interface IntegrationsBlock {
+export interface IntegrationsConfig {
   items: IntegrationItem[];
 }
 
@@ -119,7 +119,7 @@ export interface CronItem {
   dependsOn?: string[];
 }
 
-export interface AutomationsBlock {
+export interface AutomationsConfig {
   heartbeat?: {
     included: boolean;
     /** HEARTBEAT.md content */
@@ -136,7 +136,7 @@ export interface TemplateFile {
   content: string;
 }
 
-export interface MemoryBlock {
+export interface MemoryConfig {
   structure?: {
     /** Directories to create */
     directories?: string[];
@@ -170,7 +170,7 @@ export interface ConfigRequirement {
   required?: boolean;
 }
 
-export interface DependenciesBlock {
+export interface DependenciesConfig {
   /** Required binaries on PATH */
   bins?: string[];
   /** Homebrew packages */
@@ -213,23 +213,24 @@ export interface BuildMeta {
 }
 
 export interface Build {
-  /** Schema version. Must be 2. */
-  schema: 2;
+  /** Schema version. Must be 3. */
+  schema: 3;
   /** Build metadata */
   meta: BuildMeta;
-  /** Configuration blocks */
-  blocks: {
-    model?: ModelBlock;
-    persona?: PersonaBlock;
-    skills?: SkillsBlock;
-    integrations?: IntegrationsBlock;
-    automations?: AutomationsBlock;
-    memory?: MemoryBlock;
-    /** Custom block types beyond the six defaults */
-    [key: string]: ModelBlock | PersonaBlock | SkillsBlock | IntegrationsBlock | AutomationsBlock | MemoryBlock | CustomBlock | undefined;
-  };
+  /** Model configuration */
+  model?: ModelConfig;
+  /** Persona configuration */
+  persona?: PersonaConfig;
+  /** Skills configuration */
+  skills?: SkillsConfig;
+  /** Integrations configuration */
+  integrations?: IntegrationsConfig;
+  /** Automations configuration */
+  automations?: AutomationsConfig;
+  /** Memory configuration */
+  memory?: MemoryConfig;
   /** Dependency manifest */
-  dependencies?: DependenciesBlock;
+  dependencies?: DependenciesConfig;
 }
 
 // ── Security Types ──────────────────────────────────────────────────
@@ -252,23 +253,12 @@ export interface SecurityReport {
   summary: string;
 }
 
-/** Custom block type for extensibility */
-export interface CustomBlock {
-  label?: string;
-  status?: string;
-  component?: string;
-  version?: string;
-  details?: Record<string, unknown>;
-  items?: unknown[];
-  [key: string]: unknown;
-}
-
 // ── Diff ────────────────────────────────────────────────────────────
 
-export type BlockName = "model" | "persona" | "skills" | "integrations" | "automations" | "memory" | string;
+export type ConfigSection = "model" | "persona" | "skills" | "integrations" | "automations" | "memory";
 
-export interface BlockDiff {
-  block: BlockName;
+export interface SectionDiff {
+  section: ConfigSection;
   changes: {
     field: string;
     yours: unknown;
@@ -277,8 +267,8 @@ export interface BlockDiff {
 }
 
 export interface BuildDiff {
-  /** Blocks that differ */
-  blockDiffs: BlockDiff[];
+  /** Sections that differ */
+  sectionDiffs: SectionDiff[];
   /** Skills only in your build */
   skillsOnlyYours: string[];
   /** Skills only in theirs */
@@ -293,8 +283,8 @@ export interface BuildDiff {
 
 // ── UI-specific Types (for rendering in app) ────────────────────────
 
-/** Rich block data for UI rendering (from get_blocks Rust command) */
-export interface BlockData {
+/** Rich section data for UI rendering (from get_build Rust command) */
+export interface SectionData {
   id: string;
   label: string;
   icon: string;
@@ -312,5 +302,6 @@ export interface SubComponent {
   icon?: string;
 }
 
-/** Legacy compatibility */
+/** Legacy compatibility - these will be removed once all components are updated */
+
 

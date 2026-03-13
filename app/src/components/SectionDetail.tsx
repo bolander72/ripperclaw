@@ -1,7 +1,7 @@
-import type { BlockData } from '../types';
+import type { SectionData } from '../types';
 
 interface Props {
-  block: BlockData;
+  section: SectionData;
 }
 
 const statusColor: Record<string, string> = {
@@ -14,8 +14,8 @@ const statusColor: Record<string, string> = {
   minimal: 'var(--rc-yellow)',
 };
 
-export function BlockDetail({ block }: Props) {
-  const subs = block.subComponents || [];
+export function SectionDetail({ section }: Props) {
+  const subs = section.subComponents || [];
 
   return (
     <div className="h-full">
@@ -28,19 +28,19 @@ export function BlockDetail({ block }: Props) {
             border: '1px solid rgba(0, 240, 255, 0.3)'
           }}
         >
-          {block.icon}
+          {section.icon}
         </div>
         <div>
           <h2
             className="text-2xl font-bold mb-1"
             style={{ color: 'var(--rc-text)' }}
           >
-            {block.label}
+            {section.label}
           </h2>
           <p className="text-sm" style={{ color: 'var(--rc-cyan)' }}>
-            {block.component}
-            {block.version && (
-              <span style={{ color: 'var(--rc-text-dim)' }}> · v{block.version}</span>
+            {section.component}
+            {section.version && (
+              <span style={{ color: 'var(--rc-text-dim)' }}> · v{section.version}</span>
             )}
           </p>
         </div>
@@ -84,7 +84,7 @@ export function BlockDetail({ block }: Props) {
       )}
 
       {/* Specifications */}
-      {Object.keys(block.details).length > 0 && (
+      {Object.keys(section.details).length > 0 && (
         <div className="space-y-4">
           <h3
             className="text-sm font-semibold"
@@ -93,7 +93,7 @@ export function BlockDetail({ block }: Props) {
             Configuration
           </h3>
           <div className="space-y-2">
-            {Object.entries(block.details)
+            {Object.entries(section.details)
               .filter(([, v]) => v !== null && v !== undefined)
               .map(([key, value]) => (
               <div

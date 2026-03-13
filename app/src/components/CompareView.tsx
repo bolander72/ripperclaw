@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import type { Build, BlockData } from '../types';
+import type { Build, SectionData } from '../types';
 
 interface Props {
-  currentBlocks: BlockData[];
+  currentSections: SectionData[];
   currentSkills: { name: string; source: string; enabled?: boolean; version?: string }[];
   currentName: string;
   initialBuild?: unknown;
@@ -12,11 +12,11 @@ interface Props {
 
 // Build a diff between current build and imported build
 function buildDiff(
-  currentBlocks: BlockData[],
+  currentSections: SectionData[],
   currentSkills: { name: string; source: string }[],
   imported: Build
 ) {
-  const blockDiffs: {
+  const sectionDiffs: {
     id: string;
     label: string;
     yours: { component: string; status: string; details: Record<string, unknown> } | null;
@@ -24,17 +24,18 @@ function buildDiff(
     match: boolean;
   }[] = [];
 
-  // All block IDs from both
-  const allBlockIds = new Set([
-    ...currentBlocks.map((s) => s.id),
-    ...Object.keys(imported.blocks || {}),
+  // All section IDs from both builds
+  const sectionKeys = ['model', 'persona', 'skills', 'integrations', 'automations', 'memory'];
+  const allSectionIds = new Set([
+    ...currentSections.map((s) => s.id),
+    ...sectionKeys.filter(k => imported[k] != null),
   ]);
 
-  for (const id of allBlockIds) {
-    const mine = currentBlocks.find((s) => s.id === id);
-    const theirs = imported.blocks?.[id];
+  for (const id of allSectionIds) {
+    const mine = currentSections.find((s) => s.id === id);
+    const theirs = imported[id];
 
-    // For schema v2 blocks, we need to extract comparable data
+    // Extract comparable data from imported build
     const theirsData = theirs
       ? {
           component: (theirs as any).component || id,
@@ -48,7 +49,7 @@ function buildDiff(
       ? mine.component === theirsData.component && mine.status === theirsData.status
       : !mine && !theirsData;
 
-    blockDiffs.push({
+    sectionDiffs.push({
       id,
       label: mine?.label || theirsData?.label || id,
       yours: mine ? { component: mine.component, status: mine.status, details: mine.details } : null,
@@ -59,13 +60,13 @@ function buildDiff(
 
   // Skill diffs
   const mySkillNames = new Set(currentSkills.map((s) => s.name));
-  const theirSkills = (imported.blocks?.skills as { items?: { name: string }[] })?.items || [];
+  const theirSkills = (imported.skills as { items?: { name: string }[] })?.items || [];
   const theirSkillNames = new Set(theirSkills.map((s) => s.name));
   const onlyYours = [...mySkillNames].filter((n) => !theirSkillNames.has(n));
   const onlyTheirs = [...theirSkillNames].filter((n) => !mySkillNames.has(n));
   const shared = [...mySkillNames].filter((n) => theirSkillNames.has(n));
 
-  return { blockDiffs, onlyYours, onlyTheirs, shared };
+  return { sectionDiffs, onlyYours, onlyTheirs, shared };
 }
 
 const statusColor: Record<string, string> = {
@@ -75,7 +76,7 @@ const statusColor: Record<string, string> = {
   empty: 'var(--rc-text-muted)',
 };
 
-export function CompareView({ currentBlocks, currentSkills, currentName, initialBuild, onClear, onClone }: Props) {
+export function CompareView({ currentSections, currentSkills, currentName, initialBuild, onClear, onClone }: Props) {
   const [imported, setImported] = useState<Build | null>(
     initialBuild ? (initialBuild as Build) : null
   );
@@ -96,7 +97,7 @@ export function CompareView({ currentBlocks, currentSkills, currentName, initial
     const text = await file.text();
     try {
       const build_entry = JSON.parse(text) as Build;
-      if (!build_entry.schema || !build_entry.blocks) {
+      if (!build_entry.schema) {
         throw new Error('Invalid build_entry format');
       }
       setImported(build_entry);
@@ -162,7 +163,7 @@ export function CompareView({ currentBlocks, currentSkills, currentName, initial
     );
   }
 
-  const diff = buildDiff(currentBlocks, currentSkills, imported);
+  const diff = buildDiff(currentSections, currentSkills, imported);
 
   return (
     <div className="flex-1 p-6 overflow-y-auto">
@@ -226,7 +227,7 @@ export function CompareView({ currentBlocks, currentSkills, currentName, initial
         {/* Column headers */}
         <div className="grid grid-cols-[1fr_1fr_1fr] gap-4 mb-4">
           <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--rc-text-muted)' }}>
-            Block
+            Section
           </div>
           <div className="text-xs font-semibold uppercase tracking-widest text-center" style={{ color: 'var(--rc-cyan)' }}>
             Active Build
@@ -236,9 +237,9 @@ export function CompareView({ currentBlocks, currentSkills, currentName, initial
           </div>
         </div>
 
-        {/* Block comparisons */}
+        {/* Section comparisons */}
         <div className="space-y-2 mb-8">
-          {diff.blockDiffs.map((sd) => (
+          {diff.sectionDiffs.map((sd) => (
             <div
               key={sd.id}
               className="grid grid-cols-[1fr_1fr_1fr] gap-4 py-3 px-4 rounded-xl"

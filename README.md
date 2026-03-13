@@ -17,11 +17,11 @@ ClawClawGo is a search engine and marketplace for complete AI agent configuratio
 
 Your AI agent is more than config files. It's a combination of models, skills, integrations, personality, memory, and automations that work together. ClawClawGo lets you search for existing builds, explore how they're configured, copy what works, and publish your own.
 
-### The 6 Blocks (Schema v2)
+### Build Sections (Schema v3)
 
-Every build is made of 6 blocks. The schema is defined in `specs/build.schema.json` with Ajv validation on import.
+Every build contains configuration for 6 core areas. The schema is defined in `specs/build.schema.json` with validation on import.
 
-| Block | What It Maps To |
+| Section | What It Maps To |
 |---|---|
 | **Model** | LLM routing: primary, sub-agent, local (Ollama), image models with tier support |
 | **Persona** | Personality, identity, behavioral rules (SOUL.md, IDENTITY.md, USER.md) |
@@ -66,14 +66,35 @@ npm run tauri dev
 
 ### Features
 
-- **Live block visualization**: reads your OpenClaw config in real-time
+- **Live section visualization**: reads your OpenClaw config in real-time
 - **Multi-agent support**: switch between agents if you run more than one
 - **The Feed**: browse and clone builds published on Nostr
 - **Compare view**: side-by-side diff of any build against yours
-- **Apply wizard**: block-by-block review with security scan, dependency check, and setup guides
+- **Apply wizard**: section-by-section review with security scan, dependency check, and setup guides
 - **Security scanning**: trust score and badge shown before you apply anything
 - **PII scrubber**: strips 12+ pattern types before publishing
 - **Publish flow**: review scrubbed output, sign with Nostr keys, push to relays
+
+### Opening Unsigned Builds
+
+The app is not code-signed. Your OS will show security warnings on first launch.
+
+**macOS:**
+```bash
+xattr -cr /Applications/ClawClawGo.app
+```
+Or right-click the app → Open → confirm the security prompt.
+
+**Windows:**
+When Windows SmartScreen shows "Windows protected your PC", click "More info" then "Run anyway". Or right-click the .exe → Properties → check "Unblock" → Apply.
+
+**Linux:**
+Make the AppImage executable:
+```bash
+chmod +x ClawClawGo_*.AppImage
+./ClawClawGo_*.AppImage
+```
+No signing workarounds needed on Linux.
 
 ## Apply Flow
 
@@ -81,7 +102,7 @@ Apply a build to create a new agent or configure an existing one:
 
 1. **Select build**: from the Feed, a file, or a saved build
 2. **Choose target**: pick an agent ID and name
-3. **Review blocks**: block-by-block preview with warnings and options
+3. **Review sections**: section-by-section preview with warnings and options
 4. **Apply**: workspace created, skills installed, config wired up
 
 Safety rules:
@@ -168,7 +189,7 @@ clawclawgo/
 │   │   └── hooks/        # useTauri, useNostr
 │   └── src-tauri/    # Rust backend
 │       └── src/
-│           ├── lib.rs    # OpenClaw data reading, block detection, apply
+│           ├── lib.rs    # OpenClaw data reading, section detection, apply
 │           ├── nostr.rs  # Nostr protocol (keys, publish, subscribe)
 │           └── scrub.rs  # PII scrubber
 ├── specs/            # Schema (build.schema.json), security, dependencies, setup guides
