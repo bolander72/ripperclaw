@@ -306,7 +306,7 @@ export function BuildsView({ onCompare, onApply }: Props) {
                         {entry.name}
                       </span>
                       <span className="text-[10px]" style={{ color: 'var(--rc-text-muted)' }}>
-                        {entry.blocks} blocks · {entry.skills} skills
+                        {entry.sections} sections · {entry.skills} skills
                         {entry.exportedAt && (
                           <> · {new Date(entry.exportedAt).toLocaleDateString()}</>
                         )}
@@ -327,7 +327,7 @@ export function BuildsView({ onCompare, onApply }: Props) {
                 {/* Expanded detail */}
                 {expanded && cached != null && (
                   <div className="px-4 pb-4 border-t" style={{ borderColor: 'var(--rc-border)' }}>
-                    {/* Block summary */}
+                    {/* Section summary */}
                     <div className="mt-3 mb-4">
                       <div className="flex flex-wrap gap-2">
                         {Object.entries((cached as Record<string, unknown>).blocks || {}).map(

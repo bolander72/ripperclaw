@@ -1529,7 +1529,7 @@ fn list_builds() -> Vec<Value> {
                                 "name": name,
                                 "exportedAt": exported_at,
                                 "path": path.to_string_lossy(),
-                                "blocks": build_cfg.get("blocks").and_then(|s| s.as_object()).map(|o| o.len()).unwrap_or(0),
+                                "sections": build_cfg.get("blocks").and_then(|s| s.as_object()).map(|o| o.len()).unwrap_or(0),
                                 "skills": build_cfg.get("blocks").and_then(|b| b.get("skills")).and_then(|s| s.get("items")).and_then(|i| i.as_array()).map(|a| a.len()).unwrap_or(0),
                             }));
                         }
