@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SimplePool, nip19 } from 'nostr-tools'
 import {
-  IconCube, IconPlug, IconBolt, IconSparkles, IconServer, IconClockHour4,
   IconChevronRight, IconRefresh, IconFilter, IconSortDescending,
   IconGitFork, IconUsers, IconClock, IconHash,
 } from '@tabler/icons-react'
@@ -15,39 +14,15 @@ const RELAYS = [
   'wss://relay.nostr.band',
 ]
 
-const sectionColors = {
-  Model: 'from-purple-500/40 to-blue-500/40',
-  model: 'from-purple-500/40 to-blue-500/40',
-  Persona: 'from-cyan-500/40 to-emerald-500/40',
-  persona: 'from-cyan-500/40 to-emerald-500/40',
-  Skills: 'from-pink-500/40 to-violet-500/40',
-  skills: 'from-pink-500/40 to-violet-500/40',
-  Integrations: 'from-green-500/40 to-cyan-500/40',
-  integrations: 'from-green-500/40 to-cyan-500/40',
-  Automations: 'from-rose-500/40 to-blue-500/40',
-  automations: 'from-rose-500/40 to-blue-500/40',
-  Memory: 'from-amber-500/40 to-orange-500/40',
-  memory: 'from-amber-500/40 to-orange-500/40',
-}
-
-const sectionIcons = {
-  Model: IconCube,
-  model: IconCube,
-  Persona: IconSparkles,
-  persona: IconSparkles,
-  Skills: IconBolt,
-  skills: IconBolt,
-  Integrations: IconPlug,
-  integrations: IconPlug,
-  Automations: IconClockHour4,
-  automations: IconClockHour4,
-  Memory: IconServer,
-  memory: IconServer,
-}
-
-// Fallback for custom/unknown slot types
-const defaultSectionColor = 'from-white/10 to-white/20'
-const DefaultSectionIcon = IconCube
+// Item color palette (cycles through)
+const itemGradients = [
+  'from-purple-500/40 to-blue-500/40',
+  'from-cyan-500/40 to-emerald-500/40',
+  'from-pink-500/40 to-violet-500/40',
+  'from-green-500/40 to-cyan-500/40',
+  'from-rose-500/40 to-blue-500/40',
+  'from-amber-500/40 to-orange-500/40',
+]
 
 // ─── Helpers ───────────────────────────────────────────────
 
@@ -61,6 +36,29 @@ function formatDate(timestamp) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+function extractItems(content) {
+  // Extract displayable items from flat build config
+  const items = []
+  if (content.model?.tiers) {
+    Object.values(content.model.tiers).forEach(tier => {
+      if (tier?.alias) items.push({ name: tier.alias })
+      else if (tier?.model) items.push({ name: tier.model.split('/').pop() })
+    })
+  }
+  if (content.skills?.items) {
+    content.skills.items.forEach(s => items.push({ name: s.name }))
+  }
+  if (content.integrations?.items) {
+    content.integrations.items.forEach(i => items.push({ name: i.name }))
+  }
+  if (content.automations?.heartbeat) items.push({ name: 'Heartbeat' })
+  if (content.automations?.cron?.length) items.push({ name: `${content.automations.cron.length} cron jobs` })
+  if (content.persona?.identity?.name) items.push({ name: content.persona.identity.name })
+  // Count top-level config keys
+  const configKeys = Object.keys(content).filter(k => !['schema', 'meta', 'dependencies'].includes(k))
+  return { items, keyCount: configKeys.length }
+}
+
 function parseBuildEvent(event) {
   try {
     const content = JSON.parse(event.content)
@@ -69,26 +67,25 @@ function parseBuildEvent(event) {
     const forkTag = event.tags.find(t => t[0] === 'e' && t[3] === 'fork')
     const authorTag = event.tags.find(t => t[0] === 'p')
 
-    const publishTypeTag = event.tags.find(t => t[0] === 'publish_type')
-    const sectionTypeTag = event.tags.find(t => t[0] === 'section_type')
+    const { items, keyCount } = extractItems(content)
 
     return {
       id: event.id,
       name: dTag,
-      agentName: content.agentName || dTag,
+      agentName: content.meta?.agentName || content.agentName || dTag,
       creator: nip19.npubEncode(event.pubkey).slice(0, 12) + '...',
       createdAt: event.created_at,
-      isNew: (Date.now() / 1000 - event.created_at) < 7 * 24 * 60 * 60, // 7 days
+      isNew: (Date.now() / 1000 - event.created_at) < 7 * 24 * 60 * 60,
       tags: tTags,
-      slots: content.slots || (content.slot ? { [sectionTypeTag?.[1] || 'unknown']: content.slot } : []),
+      items,
+      keyCount,
+      content,
       fork: forkTag ? {
         eventId: forkTag[1],
         relay: forkTag[2],
       } : null,
       originalAuthor: authorTag ? nip19.npubEncode(authorTag[1]).slice(0, 12) + '...' : null,
       remixCount: 0,
-      publishType: publishTypeTag?.[1] || 'build',
-      sectionType: sectionTypeTag?.[1] || null,
     }
   } catch (e) {
     console.error('Failed to parse build event:', e)
@@ -99,8 +96,6 @@ function parseBuildEvent(event) {
 // ─── Build Card ──────────────────────────────────────────
 
 function BuildCard({ build, index, onClick, dropped }) {
-  const totalItems = build.slots.reduce((sum, s) => sum + s.items?.length || 0, 0)
-
   return (
     <motion.div
       initial={dropped ? { y: -200, opacity: 0, scale: 0.95 } : { opacity: 0, y: 20 }}
@@ -114,21 +109,14 @@ function BuildCard({ build, index, onClick, dropped }) {
       onClick={onClick}
       className="relative cursor-pointer group"
     >
-      {/* Card */}
       <div className="bg-rc-surface rounded-2xl border border-rc-border group-hover:border-rc-cyan/40 transition-all duration-300 overflow-hidden">
-        {/* NEW badge + Fork badge */}
+        {/* Badges */}
         <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
           {build.isNew && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rc-cyan/15 border border-rc-cyan/30">
               <span className="w-1.5 h-1.5 rounded-full bg-rc-cyan animate-pulse" />
               <span className="text-[10px] font-mono font-bold text-rc-cyan tracking-wider">NEW</span>
               <span className="text-[10px] font-mono text-rc-cyan/60">{formatDate(build.createdAt)}</span>
-            </div>
-          )}
-          {build.publishType === 'section' && build.sectionType && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rc-cyan/15 border border-rc-cyan/30">
-              <span className="text-[10px]">🧩</span>
-              <span className="text-[10px] font-mono font-bold text-rc-cyan tracking-wider uppercase">{build.sectionType}</span>
             </div>
           )}
           {build.fork && (
@@ -139,29 +127,27 @@ function BuildCard({ build, index, onClick, dropped }) {
           )}
         </div>
 
-        {/* Mini slot grid preview */}
+        {/* Items tag cloud */}
         <div className="p-5 pt-12">
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            {build.slots.slice(0, 6).map((slot, si) => {
-              const Icon = sectionIcons[slot.name] || IconCube
-              return (
-                <div
-                  key={si}
-                  className={`aspect-square rounded-xl bg-gradient-to-br ${sectionColors[slot.name] || 'from-white/10 to-white/20'} border border-white/10 flex flex-col items-center justify-center gap-1.5 p-2`}
-                >
-                  <Icon size={22} stroke={1.5} className="text-rc-text" />
-                  <span className="text-xs font-mono font-semibold text-rc-text-dim truncate w-full text-center">
-                    {slot.items?.length || 0}
-                  </span>
-                </div>
-              )
-            })}
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {build.items.slice(0, 8).map((item, ii) => (
+              <span
+                key={ii}
+                className={`px-2 py-1 rounded-lg bg-gradient-to-br ${itemGradients[ii % itemGradients.length]} border border-white/10 text-[11px] font-mono font-medium text-rc-text`}
+              >
+                {item.name}
+              </span>
+            ))}
+            {build.items.length > 8 && (
+              <span className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-mono text-rc-text-muted">
+                +{build.items.length - 8}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Card footer */}
+        {/* Footer */}
         <div className="px-5 pb-5">
-          {/* Agent name + build type */}
           <div className="mb-2">
             <div className="flex items-center gap-2">
               <h3 className="font-grotesk font-bold text-rc-text text-base truncate">
@@ -174,17 +160,15 @@ function BuildCard({ build, index, onClick, dropped }) {
             </div>
           </div>
 
-          {/* Creator + stats */}
           <div className="flex items-center justify-between">
             <span className="text-rc-cyan/70 text-xs font-mono">
               {build.creator}
             </span>
             <span className="text-rc-text-muted text-[10px] font-mono">
-              {build.slots.length} slots · {totalItems} items
+              {build.items.length} items
             </span>
           </div>
 
-          {/* Tags */}
           {build.tags && build.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
               {build.tags.slice(0, 3).map((tag, i) => (
@@ -200,7 +184,6 @@ function BuildCard({ build, index, onClick, dropped }) {
           )}
         </div>
 
-        {/* Hover glow */}
         <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-t from-rc-cyan/5 via-transparent to-transparent" />
       </div>
     </motion.div>
@@ -210,7 +193,8 @@ function BuildCard({ build, index, onClick, dropped }) {
 // ─── Build Detail Modal ──────────────────────────────────
 
 function BuildDetail({ build, onClose }) {
-  const [expandedSlot, setExpandedSlot] = useState(null)
+  // Show all config keys from the raw content
+  const configKeys = Object.keys(build.content || {}).filter(k => !['schema', 'meta', 'dependencies'].includes(k))
 
   return (
     <motion.div
@@ -280,91 +264,41 @@ function BuildDetail({ build, onClose }) {
           </div>
         </div>
 
-        {/* Sections grid */}
+        {/* Build contents */}
         <div className="p-6 md:p-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {build.slots.map((slot, si) => {
-              const Icon = sectionIcons[slot.name] || IconCube
-              const isExpanded = expandedSlot === si
-
-              return (
-                <motion.div
-                  key={si}
-                  layout
-                  onClick={() => setExpandedSlot(isExpanded ? null : si)}
-                  className={`cursor-pointer rounded-2xl border transition-all duration-200 ${
-                    isExpanded
-                      ? 'col-span-2 md:col-span-3 bg-white/5 border-rc-cyan/30'
-                      : 'bg-rc-surface border-rc-border hover:border-rc-cyan/30'
-                  }`}
-                >
-                  <div className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="text-rc-cyan">
-                        <Icon size={18} stroke={1.5} />
-                      </div>
-                      <span className="font-grotesk font-semibold text-rc-text text-sm">
-                        {slot.name}
-                      </span>
-                      <span className="text-rc-text-muted text-xs ml-auto font-mono">
-                        {slot.items?.length || 0}
-                      </span>
-                      <motion.div
-                        animate={{ rotate: isExpanded ? 90 : 0 }}
-                        className="text-rc-text-muted"
-                      >
-                        <IconChevronRight size={14} />
-                      </motion.div>
-                    </div>
-
-                    {!isExpanded && (
-                      <div className="flex flex-wrap gap-1">
-                        {(slot.items || []).slice(0, 3).map((item, ii) => (
-                          <span
-                            key={ii}
-                            className="px-2 py-0.5 bg-white/5 rounded-md text-[10px] font-mono text-rc-text-dim"
-                          >
-                            {item.name}
-                          </span>
-                        ))}
-                        {(slot.items?.length || 0) > 3 && (
-                          <span className="px-2 py-0.5 text-[10px] font-mono text-rc-text-muted">
-                            +{slot.items.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="space-y-2 overflow-hidden"
-                        >
-                          {(slot.items || []).map((item, ii) => (
-                            <motion.div
-                              key={ii}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: ii * 0.04 }}
-                              className="flex items-center gap-3 p-3 bg-white/5 rounded-xl"
-                            >
-                              <div className={`w-2 h-2 rounded-full ${item.color?.replace('text-', 'bg-') || 'bg-rc-text-dim'}`} />
-                              <span className="font-grotesk text-sm text-rc-text">
-                                {item.name}
-                              </span>
-                            </motion.div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
-              )
-            })}
+          <div className="flex flex-wrap gap-2">
+            {build.items.map((item, ii) => (
+              <motion.div
+                key={ii}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: ii * 0.03 }}
+                className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-rc-border hover:border-rc-cyan/30 transition-colors"
+              >
+                <div className={`w-2 h-2 rounded-full bg-rc-cyan`} />
+                <span className="font-grotesk text-sm text-rc-text">
+                  {item.name}
+                </span>
+              </motion.div>
+            ))}
           </div>
+
+          {/* Config keys */}
+          {configKeys.length > 0 && (
+            <div className="mt-6 pt-6 border-t border-rc-border">
+              <p className="text-rc-text-muted text-xs font-mono mb-3">Config keys in this build:</p>
+              <div className="flex flex-wrap gap-2">
+                {configKeys.map((key, i) => (
+                  <span
+                    key={i}
+                    className="px-2.5 py-1 bg-white/5 rounded-lg text-xs font-mono text-rc-text-dim"
+                  >
+                    {key}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </motion.div>
     </motion.div>
@@ -377,12 +311,11 @@ export default function Explore() {
   const [builds, setBuilds] = useState([])
   const [selectedBuild, setSelectedBuild] = useState(null)
   const [isConnecting, setIsConnecting] = useState(true)
-  const [sortBy, setSortBy] = useState('newest') // newest, most-remixed
+  const [sortBy, setSortBy] = useState('newest')
   const poolRef = useRef(null)
   const seenIds = useRef(new Set())
 
   useEffect(() => {
-    // Initialize Nostr connection
     const pool = new SimplePool()
     poolRef.current = pool
 
@@ -393,19 +326,15 @@ export default function Explore() {
       },
     ]
 
-    // Subscribe to events
     const sub = pool.subscribeMany(RELAYS, filters, {
       onevent(event) {
-        // Skip duplicates
         if (seenIds.current.has(event.id)) return
         seenIds.current.add(event.id)
 
         const build = parseBuildEvent(event)
         if (build) {
           setBuilds(prev => {
-            // Check if already exists
             if (prev.find(l => l.id === build.id)) return prev
-            // Add to beginning (newest first)
             return [build, ...prev]
           })
         }
@@ -421,7 +350,6 @@ export default function Explore() {
     }
   }, [])
 
-  // Sort builds
   const sortedBuilds = [...builds].sort((a, b) => {
     if (sortBy === 'newest') {
       return b.createdAt - a.createdAt
@@ -445,7 +373,6 @@ export default function Explore() {
               <h1 className="font-grotesk font-semibold text-rc-text text-lg">Explore</h1>
             </div>
 
-            {/* Sort controls */}
             <div className="flex items-center gap-3">
               <select
                 value={sortBy}
@@ -456,7 +383,6 @@ export default function Explore() {
                 <option value="most-remixed">Most Remixed</option>
               </select>
 
-              {/* Connection status */}
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rc-surface border border-rc-border">
                 <div className={`w-2 h-2 rounded-full ${isConnecting ? 'bg-rc-yellow animate-pulse' : 'bg-rc-green'}`} />
                 <span className="text-xs font-mono text-rc-text-dim">
@@ -470,7 +396,6 @@ export default function Explore() {
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* Hero section */}
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
             Community Builds
@@ -484,7 +409,6 @@ export default function Explore() {
           </p>
         </div>
 
-        {/* Loading state */}
         {isConnecting && builds.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-12 h-12 border-2 border-rc-cyan/20 border-t-rc-cyan rounded-full animate-spin mb-4" />
@@ -492,7 +416,6 @@ export default function Explore() {
           </div>
         )}
 
-        {/* Empty state */}
         {!isConnecting && builds.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
@@ -505,7 +428,6 @@ export default function Explore() {
           </div>
         )}
 
-        {/* Builds grid */}
         {builds.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {sortedBuilds.map((build, i) => (
@@ -521,7 +443,6 @@ export default function Explore() {
         )}
       </main>
 
-      {/* Detail modal */}
       <AnimatePresence>
         {selectedBuild && (
           <BuildDetail

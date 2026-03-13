@@ -8,7 +8,7 @@ import {
   IconUser, IconFingerprint, IconUserCircle,
   IconDatabase, IconNotebook, IconHeartHandshake, IconPinned,
   IconHeartbeat, IconClock, IconBell,
-  IconCube, IconPlug, IconBolt, IconSparkles, IconServer, IconClockHour4,
+
   IconArrowDown, IconExternalLink, IconCopy, IconChevronRight,
   IconRefresh, IconPuzzle, IconMessages,
   IconChevronDown, IconBook2, IconBrandDiscord,
@@ -452,7 +452,7 @@ function WhatIsSection() {
     {
       icon: IconPuzzle,
       title: 'Complete configurations',
-      desc: 'Every build is a full agent setup: models, skills, integrations, personality, automations, memory. The 6 sections that make an agent unique.',
+      desc: 'Every build is a full agent setup: models, skills, integrations, personality, automations, memory. Whatever your agent uses, it goes in the build.',
     },
     {
       icon: IconUserCircle,
@@ -519,7 +519,7 @@ function HowItWorks() {
     {
       num: '03',
       title: 'Apply',
-      desc: 'Copy a build and bootstrap your agent in seconds. Tweak the sections, swap models, adjust personality. Make it yours.',
+      desc: 'Copy a build and bootstrap your agent in seconds. Swap models, adjust personality, add skills. Make it yours.',
     },
   ]
 
