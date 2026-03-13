@@ -303,7 +303,5 @@ export interface SubComponent {
 }
 
 /** Legacy compatibility - these will be removed once all components are updated */
-export type BlockData = SectionData;
-export type BlockName = ConfigSection | string;
-export interface BlockDiff extends SectionDiff {}
+
 

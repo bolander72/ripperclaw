@@ -121,7 +121,7 @@ Shows:
 - Security scan summary with trust score
 - Dependency report (installed vs missing)
 - Setup guide availability per integration
-- Block-by-block action plan
+- Section-by-section action plan
 
 **Example:**
 

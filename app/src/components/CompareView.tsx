@@ -24,15 +24,16 @@ function buildDiff(
     match: boolean;
   }[] = [];
 
-  // All section IDs from both (imported.blocks is legacy field name, contains sections)
+  // All section IDs from both builds
+  const sectionKeys = ['model', 'persona', 'skills', 'integrations', 'automations', 'memory'];
   const allSectionIds = new Set([
     ...currentSections.map((s) => s.id),
-    ...Object.keys(imported.blocks || {}),
+    ...sectionKeys.filter(k => imported[k] != null),
   ]);
 
   for (const id of allSectionIds) {
     const mine = currentSections.find((s) => s.id === id);
-    const theirs = imported.blocks?.[id];
+    const theirs = imported[id];
 
     // Extract comparable data from imported build
     const theirsData = theirs
@@ -57,9 +58,9 @@ function buildDiff(
     });
   }
 
-  // Skill diffs (skills are still in imported.blocks.skills for backward compat)
+  // Skill diffs
   const mySkillNames = new Set(currentSkills.map((s) => s.name));
-  const theirSkills = (imported.blocks?.skills as { items?: { name: string }[] })?.items || [];
+  const theirSkills = (imported.skills as { items?: { name: string }[] })?.items || [];
   const theirSkillNames = new Set(theirSkills.map((s) => s.name));
   const onlyYours = [...mySkillNames].filter((n) => !theirSkillNames.has(n));
   const onlyTheirs = [...theirSkillNames].filter((n) => !mySkillNames.has(n));
@@ -96,7 +97,7 @@ export function CompareView({ currentSections, currentSkills, currentName, initi
     const text = await file.text();
     try {
       const build_entry = JSON.parse(text) as Build;
-      if (!build_entry.schema || !build_entry.blocks) {
+      if (!build_entry.schema) {
         throw new Error('Invalid build_entry format');
       }
       setImported(build_entry);

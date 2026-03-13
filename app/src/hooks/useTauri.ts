@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useState } from 'react';
-import type { BlockData, SkillItem } from '../types';
+import type { SectionData, SkillItem } from '../types';
 
 function useTauriCommand<T>(
   command: string,
@@ -39,16 +39,13 @@ function useTauriCommand<T>(
 }
 
 export function useSections(agentId?: string) {
-  return useTauriCommand<BlockData[]>(
-    'get_blocks',
+  return useTauriCommand<SectionData[]>(
+    'get_sections',
     [],
     agentId ? { agentId } : undefined,
     [agentId]
   );
 }
-
-// Legacy alias
-export const useBlocks = useSections;
 
 export interface AgentInfo {
   id: string;

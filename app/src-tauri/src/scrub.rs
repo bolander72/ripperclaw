@@ -127,49 +127,47 @@ pub fn scrub_build(
         scrubbed_fields.push("meta.exportedAt".into());
     }
 
-    // Scrub block details
-    if let Some(blocks) = build_data.get_mut("blocks").and_then(|s| s.as_object_mut()) {
-        let block_ids: Vec<String> = blocks.keys().cloned().collect();
-        for block_id in block_ids {
-            if let Some(block_val) = blocks.get_mut(&block_id) {
-                if let Some(details) = block_val.get_mut("details").and_then(|d| d.as_object_mut()) {
-                    for key in REDACT_DETAIL_KEYS {
-                        if details.remove(*key).is_some() {
-                            scrubbed_fields.push(format!("blocks.{}.details.{}", block_id, key));
-                        }
+    // Scrub section details (v3: top-level sections)
+    let section_ids = ["model", "persona", "skills", "integrations", "automations", "memory"];
+    for section_id in &section_ids {
+        if let Some(section_val) = build_data.get_mut(*section_id) {
+            if let Some(details) = section_val.get_mut("details").and_then(|d| d.as_object_mut()) {
+                for key in REDACT_DETAIL_KEYS {
+                    if details.remove(*key).is_some() {
+                        scrubbed_fields.push(format!("{}.details.{}", section_id, key));
                     }
-                    for key in SANITIZE_DETAIL_KEYS {
-                        if let Some(val) = details.get(*key) {
-                            if val.is_array() {
-                                let len = val.as_array().map(|a| a.len()).unwrap_or(0);
-                                details.insert((*key).into(), Value::Number(len.into()));
-                            } else if val.is_string() {
-                                let s = val.as_str().unwrap_or("");
-                                if s.parse::<f64>().is_err() {
-                                    details.insert((*key).into(), Value::String("[redacted]".into()));
-                                    scrubbed_fields.push(format!("blocks.{}.details.{}", block_id, key));
-                                }
+                }
+                for key in SANITIZE_DETAIL_KEYS {
+                    if let Some(val) = details.get(*key) {
+                        if val.is_array() {
+                            let len = val.as_array().map(|a| a.len()).unwrap_or(0);
+                            details.insert((*key).into(), Value::Number(len.into()));
+                        } else if val.is_string() {
+                            let s = val.as_str().unwrap_or("");
+                            if s.parse::<f64>().is_err() {
+                                details.insert((*key).into(), Value::String("[redacted]".into()));
+                                scrubbed_fields.push(format!("{}.details.{}", section_id, key));
                             }
                         }
                     }
-                    let prefix = format!("blocks.{}.details", block_id);
-                    scrub_map_values(details, &patterns, &mut scrubbed_fields, &prefix);
                 }
+                let prefix = format!("{}.details", section_id);
+                scrub_map_values(details, &patterns, &mut scrubbed_fields, &prefix);
+            }
 
-                if let Some(comp) = block_val.get("component").and_then(|c| c.as_str()).map(String::from) {
-                    let scrubbed = scrub_string(&comp, &patterns);
-                    if scrubbed != comp {
-                        if let Some(c) = block_val.get_mut("component") {
-                            *c = Value::String(scrubbed);
-                        }
-                        scrubbed_fields.push(format!("blocks.{}.component", block_id));
+            if let Some(comp) = section_val.get("component").and_then(|c| c.as_str()).map(String::from) {
+                let scrubbed = scrub_string(&comp, &patterns);
+                if scrubbed != comp {
+                    if let Some(c) = section_val.get_mut("component") {
+                        *c = Value::String(scrubbed);
                     }
+                    scrubbed_fields.push(format!("{}.component", section_id));
                 }
             }
         }
     }
 
-    // Scrub skill descriptions (schema v2: blocks.skills.items, legacy: mods array)
+    // Scrub skill descriptions (v3: top-level skills.items, legacy: mods array)
     if let Some(skills) = build_data.pointer_mut("/skills/items").and_then(|v| v.as_array_mut()) {
         for (i, skill_val) in skills.iter_mut().enumerate() {
             if let Some(desc) = skill_val.get("description").and_then(|d| d.as_str()).map(String::from) {

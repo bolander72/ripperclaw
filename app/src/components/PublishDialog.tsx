@@ -1,8 +1,5 @@
-import { useState, useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { useState } from 'react';
 import { useNostrKeys, useNostrPublish, useSafeExport, type ScrubReport } from '../hooks/useNostr';
-import { getBlockMeta } from '../blockMeta';
-import type { BlockData } from '../types';
 
 const TEMPLATES = [
   { id: 'homelab', label: 'Homelab', color: 'var(--rc-cyan)', desc: 'Self-hosted, privacy-first' },
@@ -25,23 +22,11 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
   const [publishResult, setPublishResult] = useState<{ event_id: string; relays_sent: number } | null>(null);
   const [nsecInput, setNsecInput] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
-  const [publishMode, setPublishMode] = useState<'build' | 'block'>('build');
-  const [selectedBlock, setSelectedSlot] = useState<string>('');
-  const [blockValidationError, setBlockValidationError] = useState<string | null>(null);
-  const [agentBlocks, setAgentBlocks] = useState<BlockData[]>([]);
-
-  // Fetch actual blocks from the agent
-  useEffect(() => {
-    invoke<BlockData[]>('get_blocks', { agentId: null })
-      .then(setAgentBlocks)
-      .catch(() => {});
-  }, []);
 
   const { keys, generate, importKey, refresh } = useNostrKeys();
   const { publish, publishing } = useNostrPublish();
   const { exportSafe, exporting } = useSafeExport();
 
-  // Start on identity step if no keys, otherwise skip to configure
   const [step, setStep] = useState<Step>(keys.has_keys ? 'configure' : 'identity');
 
   const tags = tagInput
@@ -52,36 +37,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
   const handleReview = async () => {
     try {
       const [build, report] = await exportSafe(template, description, [...tags, template]);
-
-      if (publishMode === 'block') {
-        if (!selectedBlock) {
-          setBlockValidationError('Select a block to publish');
-          return;
-        }
-        // Extract the selected block from the build
-        const parsed = typeof build === 'string' ? JSON.parse(build) : build;
-        const blocks = parsed.blocks || {};
-        const blockData = blocks[selectedBlock];
-        if (!blockData) {
-          setBlockValidationError(`Block "${selectedBlock}" not found in your build`);
-          return;
-        }
-        // Count items (sub_components or items array)
-        const items = blockData.items || blockData.sub_components || [];
-        if (items.length < 2) {
-          setBlockValidationError(`This block has ${items.length} item${items.length === 1 ? '' : 's'}. Minimum 2 required.`);
-          return;
-        }
-        // Publish just the block content
-        const blockPublish = {
-          meta: { ...parsed.meta, block_type: selectedBlock },
-          block: blockData,
-        };
-        setScrubbedJson(JSON.stringify(blockPublish, null, 2));
-      } else {
-        setScrubbedJson(JSON.stringify(build, null, 2));
-      }
-
+      setScrubbedJson(JSON.stringify(build, null, 2));
       setScrubReport(report);
       setStep('review');
     } catch (err) {
@@ -98,12 +54,8 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
     try {
       const result = await publish(
         scrubbedJson,
-        buildName || (publishMode === 'block' ? `${selectedBlock} block` : 'My Build'),
-        [...tags, template, ...(publishMode === 'block' ? [selectedBlock] : [])],
-        undefined,
-        undefined,
-        publishMode,
-        publishMode === 'block' ? selectedBlock : undefined,
+        buildName || 'My Build',
+        [...tags, template],
       );
       setPublishResult(result);
       setStep('done');
@@ -131,7 +83,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-sm font-bold uppercase tracking-widest" style={{ color: 'var(--rc-text)' }}>
             {step === 'identity' && 'Your Identity'}
-            {step === 'configure' && (publishMode === 'block' ? 'Publish Block' : 'Publish Build')}
+            {step === 'configure' && 'Publish Build'}
             {step === 'review' && 'Review & Confirm'}
             {step === 'publishing' && 'Publishing...'}
             {step === 'done' && 'Published!'}
@@ -165,7 +117,6 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
               </p>
             </div>
 
-            {/* Generated key preview */}
             {keys.has_keys ? (
               <div
                 className="p-3 rounded-xl border text-xs font-mono"
@@ -190,9 +141,8 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            {/* Import existing key */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider block mb-2" style={{ color: 'var(--rc-text-muted)' }}>
+              <label className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--rc-text-muted)', display: 'block', marginBottom: '8px' }}>
                 Already on Nostr? Import your key
               </label>
               <div className="flex gap-2">
@@ -230,7 +180,6 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
               )}
             </div>
 
-            {/* Or stay anon */}
             <div className="text-[10px] text-center" style={{ color: 'var(--rc-text-muted)' }}>
               No Nostr account? No problem. Publish anonymously with a generated key.
               <br />Add a display name, avatar, and NIP-05 verification later in Settings.
@@ -268,7 +217,6 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
         {/* Step: Configure */}
         {step === 'configure' && (
           <div className="space-y-4">
-            {/* PII warning */}
             <div
               className="p-3 rounded-xl border text-xs"
               style={{
@@ -280,76 +228,10 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
               <span style={{ color: 'var(--rc-magenta)' }}>⚠ Privacy:</span> Your build will be scrubbed of phone numbers, emails, IP addresses, API keys, file paths, and other PII before publishing. You'll review the scrubbed version before it goes live.
             </div>
 
-            {/* Publish mode toggle */}
-            <div>
-              <label className="text-[10px] uppercase tracking-wider block mb-2" style={{ color: 'var(--rc-text-muted)' }}>
-                What to publish
-              </label>
-              <div className="flex gap-2">
-                {(['build', 'block'] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    onClick={() => { setPublishMode(mode); setBlockValidationError(null); }}
-                    className="flex-1 py-2 rounded-xl border text-xs font-semibold transition-all"
-                    style={{
-                      borderColor: publishMode === mode ? 'var(--rc-cyan)' : 'var(--rc-border)',
-                      background: publishMode === mode ? 'rgba(0,240,255,0.1)' : 'transparent',
-                      color: publishMode === mode ? 'var(--rc-cyan)' : 'var(--rc-text-dim)',
-                    }}
-                  >
-                    {mode === 'build' ? '📦 Full Build' : '🧩 Single Block'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Block picker (only when publishing a block) */}
-            {publishMode === 'block' && (
-              <div>
-                <label className="text-[10px] uppercase tracking-wider block mb-2" style={{ color: 'var(--rc-text-muted)' }}>
-                  Select Block
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {agentBlocks.map((s) => {
-                    const meta = getBlockMeta(s.id);
-                    const itemCount = s.subComponents?.length || 0;
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => { setSelectedSlot(s.id); setBlockValidationError(null); }}
-                        className="p-2 rounded-xl border text-center transition-all"
-                        style={{
-                          borderColor: selectedBlock === s.id ? meta.color : 'var(--rc-border)',
-                          background: selectedBlock === s.id ? `${meta.color}1a` : 'transparent',
-                          opacity: itemCount < 2 ? 0.4 : 1,
-                        }}
-                        disabled={itemCount < 2}
-                        title={itemCount < 2 ? `${itemCount} item${itemCount === 1 ? '' : 's'} (min 2)` : `${itemCount} items`}
-                      >
-                        <div className="text-base">{meta.emoji}</div>
-                        <div className="text-[10px] mt-0.5" style={{ color: selectedBlock === s.id ? meta.color : 'var(--rc-text-dim)' }}>
-                          {meta.label}
-                        </div>
-                        <div className="text-[9px]" style={{ color: 'var(--rc-text-muted)' }}>
-                          {itemCount} item{itemCount !== 1 ? 's' : ''}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-                {blockValidationError && (
-                  <div className="text-[10px] mt-1 px-1" style={{ color: 'var(--rc-red)' }}>{blockValidationError}</div>
-                )}
-                <div className="text-[10px] mt-1 px-1" style={{ color: 'var(--rc-text-muted)' }}>
-                  Minimum 2 items required per block
-                </div>
-              </div>
-            )}
-
             {/* Build name */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider block mb-1" style={{ color: 'var(--rc-text-muted)' }}>
-                {publishMode === 'block' ? 'Block Name' : 'Build Name'}
+              <label className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--rc-text-muted)', display: 'block', marginBottom: '4px' }}>
+                Build Name
               </label>
               <input
                 type="text"
@@ -367,7 +249,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
 
             {/* Template */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider block mb-2" style={{ color: 'var(--rc-text-muted)' }}>
+              <label className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--rc-text-muted)', display: 'block', marginBottom: '8px' }}>
                 Template
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -392,7 +274,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
 
             {/* Description */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider block mb-1" style={{ color: 'var(--rc-text-muted)' }}>
+              <label className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--rc-text-muted)', display: 'block', marginBottom: '4px' }}>
                 Description
               </label>
               <textarea
@@ -411,7 +293,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
 
             {/* Tags */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider block mb-1" style={{ color: 'var(--rc-text-muted)' }}>
+              <label className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--rc-text-muted)', display: 'block', marginBottom: '4px' }}>
                 Tags (comma or space separated)
               </label>
               <input
@@ -449,7 +331,7 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
 
             <button
               onClick={handleReview}
-              disabled={exporting || !buildName.trim() || (publishMode === 'block' && !selectedBlock)}
+              disabled={exporting || !buildName.trim()}
               className="w-full py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80 disabled:opacity-40"
               style={{
                 borderColor: 'var(--rc-cyan)',
@@ -465,7 +347,6 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
         {/* Step: Review */}
         {step === 'review' && scrubReport && (
           <div className="space-y-4">
-            {/* Scrub report */}
             <div
               className="p-3 rounded-xl border text-xs"
               style={{
@@ -488,7 +369,6 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
               )}
             </div>
 
-            {/* Warnings */}
             {scrubReport.warnings.length > 0 && (
               <div
                 className="p-3 rounded-xl border text-xs"
@@ -505,9 +385,8 @@ export function PublishDialog({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            {/* Preview */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider block mb-1" style={{ color: 'var(--rc-text-muted)' }}>
+              <label className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--rc-text-muted)', display: 'block', marginBottom: '4px' }}>
                 Scrubbed Build Preview
               </label>
               <pre

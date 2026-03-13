@@ -15,7 +15,7 @@ const RELAYS = [
   'wss://relay.nostr.band',
 ]
 
-const blockColors = {
+const sectionColors = {
   Model: 'from-purple-500/40 to-blue-500/40',
   model: 'from-purple-500/40 to-blue-500/40',
   Persona: 'from-cyan-500/40 to-emerald-500/40',
@@ -30,7 +30,7 @@ const blockColors = {
   memory: 'from-amber-500/40 to-orange-500/40',
 }
 
-const blockIcons = {
+const sectionIcons = {
   Model: IconCube,
   model: IconCube,
   Persona: IconSparkles,
@@ -46,8 +46,8 @@ const blockIcons = {
 }
 
 // Fallback for custom/unknown slot types
-const defaultBlockColor = 'from-white/10 to-white/20'
-const DefaultBlockIcon = IconCube
+const defaultSectionColor = 'from-white/10 to-white/20'
+const DefaultSectionIcon = IconCube
 
 // ─── Helpers ───────────────────────────────────────────────
 
@@ -70,7 +70,7 @@ function parseBuildEvent(event) {
     const authorTag = event.tags.find(t => t[0] === 'p')
 
     const publishTypeTag = event.tags.find(t => t[0] === 'publish_type')
-    const blockTypeTag = event.tags.find(t => t[0] === 'block_type')
+    const sectionTypeTag = event.tags.find(t => t[0] === 'section_type')
 
     return {
       id: event.id,
@@ -80,7 +80,7 @@ function parseBuildEvent(event) {
       createdAt: event.created_at,
       isNew: (Date.now() / 1000 - event.created_at) < 7 * 24 * 60 * 60, // 7 days
       tags: tTags,
-      slots: content.slots || (content.slot ? { [blockTypeTag?.[1] || 'unknown']: content.slot } : []),
+      slots: content.slots || (content.slot ? { [sectionTypeTag?.[1] || 'unknown']: content.slot } : []),
       fork: forkTag ? {
         eventId: forkTag[1],
         relay: forkTag[2],
@@ -88,7 +88,7 @@ function parseBuildEvent(event) {
       originalAuthor: authorTag ? nip19.npubEncode(authorTag[1]).slice(0, 12) + '...' : null,
       remixCount: 0,
       publishType: publishTypeTag?.[1] || 'build',
-      blockType: blockTypeTag?.[1] || null,
+      sectionType: sectionTypeTag?.[1] || null,
     }
   } catch (e) {
     console.error('Failed to parse build event:', e)
@@ -125,10 +125,10 @@ function BuildCard({ build, index, onClick, dropped }) {
               <span className="text-[10px] font-mono text-rc-cyan/60">{formatDate(build.createdAt)}</span>
             </div>
           )}
-          {build.publishType === 'block' && build.blockType && (
+          {build.publishType === 'section' && build.sectionType && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rc-cyan/15 border border-rc-cyan/30">
               <span className="text-[10px]">🧩</span>
-              <span className="text-[10px] font-mono font-bold text-rc-cyan tracking-wider uppercase">{build.blockType}</span>
+              <span className="text-[10px] font-mono font-bold text-rc-cyan tracking-wider uppercase">{build.sectionType}</span>
             </div>
           )}
           {build.fork && (
@@ -143,11 +143,11 @@ function BuildCard({ build, index, onClick, dropped }) {
         <div className="p-5 pt-12">
           <div className="grid grid-cols-3 gap-2 mb-4">
             {build.slots.slice(0, 6).map((slot, si) => {
-              const Icon = blockIcons[slot.name] || IconCube
+              const Icon = sectionIcons[slot.name] || IconCube
               return (
                 <div
                   key={si}
-                  className={`aspect-square rounded-xl bg-gradient-to-br ${blockColors[slot.name] || 'from-white/10 to-white/20'} border border-white/10 flex flex-col items-center justify-center gap-1.5 p-2`}
+                  className={`aspect-square rounded-xl bg-gradient-to-br ${sectionColors[slot.name] || 'from-white/10 to-white/20'} border border-white/10 flex flex-col items-center justify-center gap-1.5 p-2`}
                 >
                   <Icon size={22} stroke={1.5} className="text-rc-text" />
                   <span className="text-xs font-mono font-semibold text-rc-text-dim truncate w-full text-center">
@@ -280,11 +280,11 @@ function BuildDetail({ build, onClose }) {
           </div>
         </div>
 
-        {/* Blocks grid */}
+        {/* Sections grid */}
         <div className="p-6 md:p-8">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {build.slots.map((slot, si) => {
-              const Icon = blockIcons[slot.name] || IconCube
+              const Icon = sectionIcons[slot.name] || IconCube
               const isExpanded = expandedSlot === si
 
               return (

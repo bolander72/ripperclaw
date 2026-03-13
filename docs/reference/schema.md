@@ -356,35 +356,35 @@ System-level requirements for the build. Populated during export by walking skil
 | `description` | string | What this config is for |
 | `required` | boolean | Whether this is required |
 
-## Custom Blocks
+## Custom Sections
 
-Builds can include custom block types beyond the six defaults. Any string key in `blocks` is valid.
+Builds can include custom section types beyond the six defaults. Any string key at the top level is valid.
 
 ```json
 {
-  "blocks": {
-    "model": { ... },
-    "persona": { ... },
-    "customBlock": {
-      "label": "My Custom Block",
-      "status": "active",
-      "component": "CustomComponent",
-      "version": "1.0",
-      "details": { "foo": "bar" },
-      "items": [ { "name": "item1" } ]
-    }
+  "schema": 3,
+  "meta": { ... },
+  "model": { ... },
+  "persona": { ... },
+  "myCustomSection": {
+    "label": "My Custom Section",
+    "status": "active",
+    "component": "CustomComponent",
+    "version": "1.0",
+    "details": { "foo": "bar" },
+    "items": [ { "name": "item1" } ]
   }
 }
 ```
 
-Custom blocks can contain any structure. Common properties:
+Custom sections can contain any structure. Common properties:
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `label` | string | Display label |
 | `status` | string | Status indicator |
 | `component` | string | UI component name |
-| `version` | string | Block version |
+| `version` | string | Section version |
 | `details` | object | Arbitrary metadata |
 | `items` | array | List of items |
 

@@ -309,7 +309,7 @@ fn get_cron_jobs() -> Result<Vec<CronJob>, String> {
 // ─── Rich Slot Builder ───
 
 #[derive(Serialize, Clone)]
-struct BlockData {
+struct SectionData {
     id: String,
     label: String,
     icon: String,
@@ -330,12 +330,12 @@ struct SubComponent {
 }
 
 #[tauri::command]
-fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
+fn get_sections(agent_id: Option<String>) -> Vec<SectionData> {
     let config = read_config();
     let ws = agent_id.as_ref()
         .map(|id| resolve_agent_workspace(id))
         .unwrap_or_else(|| workspace_dir());
-    let mut blocks_list = Vec::new();
+    let mut sections_list = Vec::new();
 
     // ── MODEL ──
     let primary_model = config.pointer("/model/default")
@@ -384,7 +384,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         });
     }
 
-    blocks_list.push(BlockData {
+    sections_list.push(SectionData {
         id: "model".to_string(),
         label: "Model".to_string(),
         icon: "⬢".to_string(),
@@ -441,7 +441,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         });
     }
 
-    blocks_list.push(BlockData {
+    sections_list.push(SectionData {
         id: "persona".to_string(),
         label: "Persona".to_string(),
         icon: "◈".to_string(),
@@ -498,7 +498,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         });
     }
 
-    blocks_list.push(BlockData {
+    sections_list.push(SectionData {
         id: "skills".to_string(),
         label: "Skills".to_string(),
         icon: "⚡".to_string(),
@@ -713,7 +713,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         });
     }
 
-    blocks_list.push(BlockData {
+    sections_list.push(SectionData {
         id: "integrations".to_string(),
         label: "Integrations".to_string(),
         icon: "⚡".to_string(),
@@ -772,7 +772,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         });
     }
 
-    blocks_list.push(BlockData {
+    sections_list.push(SectionData {
         id: "automations".to_string(),
         label: "Automations".to_string(),
         icon: "⏱".to_string(),
@@ -794,7 +794,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
     } else {
         0
     };
-    let context_engine = config.pointer("/plugins/blocks/contextEngine")
+    let context_engine = config.pointer("/plugins/memory/contextEngine")
         .or(config.pointer("/plugins/slots/contextEngine")) // fallback for old configs
         .and_then(|v| v.as_str())
         .unwrap_or("legacy");
@@ -854,7 +854,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         });
     }
 
-    blocks_list.push(BlockData {
+    sections_list.push(SectionData {
         id: "memory".to_string(),
         label: "Memory".to_string(),
         icon: "◉".to_string(),
@@ -872,7 +872,7 @@ fn get_blocks(agent_id: Option<String>) -> Vec<BlockData> {
         sub_components: mem_subs,
     });
 
-    blocks_list
+    sections_list
 }
 
 // ─── Build import for diff ───
@@ -898,7 +898,7 @@ fn import_build(path: String) -> Result<Value, String> {
 fn export_build() -> Result<Value, String> {
     // Build a build (schema v3) from current state
     let _config = read_config();
-    let _sections_data = get_blocks(None);
+    let _sections_data = get_sections(None);
     let skills = get_skills();
     let _status = get_system_status();
 
@@ -1529,8 +1529,15 @@ fn list_builds() -> Vec<Value> {
                                 "name": name,
                                 "exportedAt": exported_at,
                                 "path": path.to_string_lossy(),
-                                "sections": build_cfg.get("blocks").and_then(|s| s.as_object()).map(|o| o.len()).unwrap_or(0),
-                                "skills": build_cfg.get("blocks").and_then(|b| b.get("skills")).and_then(|s| s.get("items")).and_then(|i| i.as_array()).map(|a| a.len()).unwrap_or(0),
+                                "sections": ["model", "persona", "skills", "integrations", "automations", "memory"]
+                                    .iter()
+                                    .filter(|k| build_cfg.get(*k).is_some())
+                                    .count(),
+                                "skills": build_cfg.get("skills")
+                                    .and_then(|s| s.get("items"))
+                                    .and_then(|i| i.as_array())
+                                    .map(|a| a.len())
+                                    .unwrap_or(0),
                             }));
                         }
                     }
@@ -1550,8 +1557,12 @@ fn import_build_file(path: String) -> Result<Value, String> {
         .map_err(|e| format!("Invalid JSON: {}", e))?;
 
     // Validate it looks like a build
-    if build_cfg.get("blocks").is_none() && build_cfg.get("mods").is_none() {
-        return Err("File doesn't look like a valid build (missing blocks)".to_string());
+    // Check for v3 (top-level sections), v2 (blocks wrapper), or legacy (mods)
+    let has_sections = ["model", "persona", "skills", "integrations", "automations", "memory"]
+        .iter()
+        .any(|k| build_cfg.get(*k).is_some());
+    if !has_sections && build_cfg.get("blocks").is_none() && build_cfg.get("mods").is_none() {
+        return Err("File doesn't look like a valid build".to_string());
     }
 
     // Schema v2 builds get full JSON Schema validation
@@ -1641,7 +1652,7 @@ pub fn run() {
             get_skills,
             get_system_status,
             get_cron_jobs,
-            get_blocks,
+            get_sections,
             get_agents,
             import_build,
             import_build_file,

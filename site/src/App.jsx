@@ -19,7 +19,7 @@ import Explore from './Explore'
 
 // ─── Helpers ───────────────────────────────────────────────
 
-const blockColors = {
+const sectionColors = {
   Model: 'from-purple-500/40 to-blue-500/40',
   Persona: 'from-cyan-500/40 to-emerald-500/40',
   Skills: 'from-pink-500/40 to-violet-500/40',
@@ -28,7 +28,7 @@ const blockColors = {
   Memory: 'from-amber-500/40 to-orange-500/40',
 }
 
-const blockIcons = {
+const sectionIcons = {
   Model: IconCube,
   Persona: IconSparkles,
   Skills: IconBolt,
@@ -196,7 +196,7 @@ function Hero() {
 // ─── Build Card (Conveyor Item) ──────────────────────────
 
 function BuildCard({ build, index, onClick, dropped }) {
-  const totalItems = build.blocks.reduce((sum, s) => sum + s.items.length, 0)
+  const totalItems = build.sections.reduce((sum, s) => sum + s.items.length, 0)
 
   return (
     <motion.div
@@ -222,19 +222,19 @@ function BuildCard({ build, index, onClick, dropped }) {
           </div>
         )}
 
-        {/* Mini block grid preview */}
+        {/* Mini section grid preview */}
         <div className="p-5 pt-12">
           <div className="grid grid-cols-3 gap-2 mb-4">
-            {build.blocks.slice(0, 6).map((block, si) => {
-              const Icon = blockIcons[block.name] || IconCube
+            {build.sections.slice(0, 6).map((section, si) => {
+              const Icon = sectionIcons[section.name] || IconCube
               return (
                 <div
                   key={si}
-                  className={`aspect-square rounded-xl bg-gradient-to-br ${blockColors[block.name] || 'from-white/10 to-white/20'} border border-white/10 flex flex-col items-center justify-center gap-1.5 p-2`}
+                  className={`aspect-square rounded-xl bg-gradient-to-br ${sectionColors[section.name] || 'from-white/10 to-white/20'} border border-white/10 flex flex-col items-center justify-center gap-1.5 p-2`}
                 >
                   <Icon size={22} stroke={1.5} className="text-rc-text" />
                   <span className="text-xs font-mono font-semibold text-rc-text-dim truncate w-full text-center">
-                    {block.items.length}
+                    {section.items.length}
                   </span>
                 </div>
               )
@@ -263,7 +263,7 @@ function BuildCard({ build, index, onClick, dropped }) {
               {build.creator}
             </span>
             <span className="text-rc-text-muted text-[10px] font-mono">
-              {build.blocks.length} blocks · {totalItems} items
+              {build.sections.length} sections · {totalItems} items
             </span>
           </div>
         </div>
@@ -347,7 +347,7 @@ function ConveyorBelt({ onSelectBuild }) {
 // ─── Build Detail Modal ──────────────────────────────────
 
 function BuildDetail({ build, onClose }) {
-  const [expandedBlock, setExpandedBlock] = useState(null)
+  const [expandedSection, setExpandedSection] = useState(null)
   const [toast, setToast] = useState(null)
 
   const showToast = (msg) => {
@@ -402,18 +402,18 @@ function BuildDetail({ build, onClose }) {
           </div>
         </div>
 
-        {/* Blocks grid */}
+        {/* Sections grid */}
         <div className="p-6 md:p-8">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {build.blocks.map((block, si) => {
-              const Icon = blockIcons[block.name] || IconCube
-              const isExpanded = expandedBlock === si
+            {build.sections.map((section, si) => {
+              const Icon = sectionIcons[section.name] || IconCube
+              const isExpanded = expandedSection === si
 
               return (
                 <motion.div
                   key={si}
                   layout
-                  onClick={() => setExpandedBlock(isExpanded ? null : si)}
+                  onClick={() => setExpandedSection(isExpanded ? null : si)}
                   className={`cursor-pointer rounded-2xl border transition-all duration-200 ${
                     isExpanded
                       ? 'col-span-2 md:col-span-3 bg-white/5 border-rc-cyan/30'
@@ -426,10 +426,10 @@ function BuildDetail({ build, onClose }) {
                         <Icon size={18} stroke={1.5} />
                       </div>
                       <span className="font-grotesk font-semibold text-rc-text text-sm">
-                        {block.name}
+                        {section.name}
                       </span>
                       <span className="text-rc-text-muted text-xs ml-auto font-mono">
-                        {block.items.length}
+                        {section.items.length}
                       </span>
                       <motion.div
                         animate={{ rotate: isExpanded ? 90 : 0 }}
@@ -441,7 +441,7 @@ function BuildDetail({ build, onClose }) {
 
                     {!isExpanded && (
                       <div className="flex flex-wrap gap-1">
-                        {block.items.slice(0, 3).map((item, ii) => (
+                        {section.items.slice(0, 3).map((item, ii) => (
                           <span
                             key={ii}
                             className="px-2 py-0.5 bg-white/5 rounded-md text-[10px] font-mono text-rc-text-dim"
@@ -449,9 +449,9 @@ function BuildDetail({ build, onClose }) {
                             {item.name}
                           </span>
                         ))}
-                        {block.items.length > 3 && (
+                        {section.items.length > 3 && (
                           <span className="px-2 py-0.5 text-[10px] font-mono text-rc-text-muted">
-                            +{block.items.length - 3}
+                            +{section.items.length - 3}
                           </span>
                         )}
                       </div>
@@ -465,7 +465,7 @@ function BuildDetail({ build, onClose }) {
                           exit={{ opacity: 0, height: 0 }}
                           className="space-y-2 overflow-hidden"
                         >
-                          {block.items.map((item, ii) => (
+                          {section.items.map((item, ii) => (
                             <motion.div
                               key={ii}
                               initial={{ opacity: 0, x: -10 }}
@@ -675,7 +675,7 @@ function AnatomySection() {
               <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${block.color} flex items-center justify-center mb-4`}>
                 <block.icon size={22} className="text-rc-text" stroke={1.5} />
               </div>
-              <h3 className="font-grotesk font-semibold text-rc-text text-base mb-1.5">{block.name}</h3>
+              <h3 className="font-grotesk font-semibold text-rc-text text-base mb-1.5">{section.name}</h3>
               <p className="text-rc-text-dim text-sm leading-relaxed">{block.desc}</p>
             </motion.div>
           ))}

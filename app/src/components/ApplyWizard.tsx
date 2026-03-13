@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import type { AgentInfo } from '../hooks/useTauri';
-import type { SecurityFinding, DependenciesBlock } from '../types';
+import type { SecurityFinding, DependenciesConfig } from '../types';
 
 // ── Types ──
 
-interface BuildBlock {
+interface BuildSection {
   items?: Array<{
     name: string;
     source?: string;
@@ -45,13 +45,13 @@ interface Build {
     version: number;
     exportedAt: string;
   };
-  blocks: Record<string, BuildBlock>;
-  dependencies?: DependenciesBlock;
+  model?: BuildSection; persona?: BuildSection; skills?: BuildSection; integrations?: BuildSection; automations?: BuildSection; memory?: BuildSection;
+  dependencies?: DependenciesConfig;
 }
 
 interface ApplyAction {
   type: string;
-  block: string;
+  section: string;
   description: string;
   status: 'pending' | 'applying' | 'done' | 'error' | 'skipped';
   error?: string;
@@ -66,7 +66,7 @@ interface ValidationResult {
 
 type Step = 'target' | 'security' | 'dependencies' | 'review' | 'applying' | 'done';
 
-import { getBlockMeta } from '../blockMeta';
+import { getSectionMeta } from '../sectionMeta';
 
 // ── Component ──
 
@@ -96,12 +96,12 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
     const acts: ApplyAction[] = [];
 
     // Model
-    const modelSlot = build.blocks?.model;
+    const modelSlot = build.model;
     if (modelSlot?.tiers) {
       const tierCount = Object.keys(modelSlot.tiers).length;
       acts.push({
         type: 'set-model',
-        block: 'model',
+        section: 'model',
         description: useMyModels
           ? `Use your existing models (${tierCount} tiers)`
           : `Set ${tierCount} model tier${tierCount > 1 ? 's' : ''}: ${Object.entries(modelSlot.tiers).map(([t, v]) => `${t}=${v.alias || v.model}`).join(', ')}`,
@@ -110,12 +110,12 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
     }
 
     // Persona
-    const personaSlot = build.blocks?.persona;
+    const personaSlot = build.persona;
     if (personaSlot) {
       if (personaSlot.identity) {
         acts.push({
           type: 'write-identity',
-          block: 'persona',
+          section: 'persona',
           description: `Create IDENTITY.md (${personaSlot.identity.name || 'unnamed'})`,
           status: 'pending',
         });
@@ -123,7 +123,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
       if (personaSlot.soul?.included) {
         acts.push({
           type: 'write-soul',
-          block: 'persona',
+          section: 'persona',
           description: `Write SOUL.md (~${personaSlot.soul.tokenEstimate || '?'} tokens)`,
           status: 'pending',
           detail: '⚠️ This defines the agent\'s personality and behavior',
@@ -132,7 +132,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
       if (personaSlot.agents?.included) {
         acts.push({
           type: 'write-agents',
-          block: 'persona',
+          section: 'persona',
           description: 'Write AGENTS.md (workspace instructions)',
           status: 'pending',
         });
@@ -140,14 +140,14 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
     }
 
     // Skills
-    const skillsSlot = build.blocks?.skills;
+    const skillsSlot = build.skills;
     if (skillsSlot?.items?.length) {
       const bundled = skillsSlot.items.filter(s => s.source === 'bundled');
       const clawhub = skillsSlot.items.filter(s => s.source === 'clawhub');
       if (bundled.length) {
         acts.push({
           type: 'enable-skills',
-          block: 'skills',
+          section: 'skills',
           description: `Enable ${bundled.length} bundled skill${bundled.length > 1 ? 's' : ''}`,
           status: 'pending',
         });
@@ -155,7 +155,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
       if (clawhub.length) {
         acts.push({
           type: 'install-skills',
-          block: 'skills',
+          section: 'skills',
           description: `Install ${clawhub.length} skill${clawhub.length > 1 ? 's' : ''} from ClawHub`,
           status: 'pending',
           detail: clawhub.map(s => s.name).join(', '),
@@ -164,11 +164,11 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
     }
 
     // Integrations
-    const intSlot = build.blocks?.integrations;
+    const intSlot = build.integrations;
     if (intSlot?.items?.length) {
       acts.push({
         type: 'flag-integrations',
-        block: 'integrations',
+        section: 'integrations',
         description: `${intSlot.items.length} integration${intSlot.items.length > 1 ? 's' : ''} require manual setup`,
         status: 'pending',
         detail: intSlot.items.map(i => i.name).join(', '),
@@ -176,24 +176,24 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
     }
 
     // Automations
-    const autoSlot = build.blocks?.automations;
+    const autoSlot = build.automations;
     if (autoSlot?.heartbeat?.included) {
       acts.push({
         type: 'write-heartbeat',
-        block: 'automations',
+        section: 'automations',
         description: `Write HEARTBEAT.md (${autoSlot.heartbeat.taskCount || 0} tasks)`,
         status: 'pending',
       });
     }
 
     // Memory
-    const memSlot = build.blocks?.memory;
+    const memSlot = build.memory;
     if (memSlot?.structure) {
       const dirs = memSlot.structure.directories?.length || 0;
       const files = memSlot.structure.templateFiles?.length || 0;
       acts.push({
         type: 'create-memory',
-        block: 'memory',
+        section: 'memory',
         description: `Create memory structure (${dirs} dirs, ${files} templates)`,
         status: 'pending',
       });
@@ -236,7 +236,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
     }
 
     // Scan automations for shell commands
-    const automations = build.blocks?.automations;
+    const automations = build.automations;
     if (automations?.heartbeat?.content) {
       const content = automations.heartbeat.content;
       const shellPatterns = [
@@ -265,7 +265,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
     }
 
     // Scan persona for prompt injection patterns
-    const persona = build.blocks?.persona;
+    const persona = build.persona;
     const promptInjectionPatterns = [
       { pattern: /\bignore\s+(previous|all|above)\b/gi, name: 'ignore instruction' },
       { pattern: /\bdisregard\b/gi, name: 'disregard' },
@@ -322,7 +322,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
       }
     };
 
-    scanForPII(build.blocks, 'blocks');
+    scanForPII(build, "build");
 
     setSecurityFindings(findings);
     setTrustScore(Math.max(0, score));
@@ -1025,14 +1025,14 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
               </p>
             </div>
 
-            {/* Block-by-block action list */}
-            {Object.keys(actions.reduce((acc: Record<string, boolean>, a: { block?: string }) => { if (a.block) acc[a.block] = true; return acc; }, {})).map(blockKey => {
-              const blockActions = previewActions.filter(a => a.block === blockKey);
-              if (blockActions.length === 0) return null;
-              const meta = getBlockMeta(blockKey);
+            {/* Section action list */}
+            {Object.keys(actions.reduce((acc: Record<string, boolean>, a: { section?: string }) => { if (a.section) acc[a.section] = true; return acc; }, {})).map(sectionKey => {
+              const sectionActions = previewActions.filter(a => a.section === sectionKey);
+              if (sectionActions.length === 0) return null;
+              const meta = getSectionMeta(sectionKey);
 
               return (
-                <div key={blockKey}>
+                <div key={sectionKey}>
                   <div className="flex items-center gap-2 mb-2">
                     <span style={{ color: meta.color }}>{meta.icon}</span>
                     <span
@@ -1043,7 +1043,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                     </span>
                   </div>
                   <div className="space-y-1 ml-5">
-                    {blockActions.map((action, i) => (
+                    {sectionActions.map((action, i) => (
                       <div key={i} className="text-xs" style={{ color: 'var(--rc-text)' }}>
                         <span className="mr-2" style={{ color: 'var(--rc-text-dim)' }}>→</span>
                         {action.description}

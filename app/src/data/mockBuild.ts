@@ -116,4 +116,4 @@ export const skills: SkillItem[] = [
 ];
 
 // Legacy export for compatibility during migration
-export const blocks = sections;
+

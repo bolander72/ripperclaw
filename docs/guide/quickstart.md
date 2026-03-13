@@ -26,7 +26,7 @@ If you see **MOCK**, the gateway isn't reachable. ClawClawGo will show sample da
 
 ## 3. View Your Build
 
-The **Blocks** view shows your current agent's configuration across all blocks. Click any block to see its details: which model you're running, what skills are installed, your integrations, etc.
+The **Build** view shows your current agent's configuration across all sections. Click any section to see its details: which model you're running, what skills are installed, your integrations, etc.
 
 ## 4. Save a Snapshot
 
@@ -40,7 +40,7 @@ Switch to **The Feed** to see builds published by other users on Nostr. Find one
 
 The Apply Wizard walks you through:
 1. **Name** your new agent
-2. **Review** what each block will do (write files, install skills, etc.)
+2. **Review** what each section will do (write files, install skills, etc.)
 3. **Confirm** and apply
 
 Your new agent gets its own workspace at `~/.openclaw/agents/<name>/`. Restart OpenClaw to activate it.
@@ -62,6 +62,6 @@ node clawclawgo.mjs apply build.json --agent my-bot
 
 ## Next Steps
 
-- [Blocks](/guide/blocks): deep dive into each block
+- 
 - [Exporting](/guide/exporting): customize your exports
 - [Publishing](/guide/publishing): share on Nostr

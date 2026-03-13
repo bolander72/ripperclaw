@@ -47,8 +47,4 @@ export function isKnownSection(sectionId: string): boolean {
   return sectionId in KNOWN_SECTIONS;
 }
 
-// Legacy aliases for backward compatibility
-export type BlockMeta = SectionMeta;
-export const getBlockMeta = getSectionMeta;
-export const getAllKnownBlocks = getAllKnownSections;
-export const isKnownBlock = isKnownSection;
+

@@ -14,8 +14,8 @@ hero:
 
 features:
   - icon: 🔧
-    title: Modular Blocks
-    details: Six standardized blocks (Model, Persona, Skills, Integrations, Automations, Memory), each independently swappable.
+    title: Modular Sections
+    details: Six configuration sections (Model, Persona, Skills, Integrations, Automations, Memory) in a flat, portable format.
   - icon: 📦
     title: One-Click Apply
     details: Export your agent config as a portable build. Apply someone else's to a new or existing agent in seconds.
