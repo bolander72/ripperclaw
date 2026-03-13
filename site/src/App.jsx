@@ -121,7 +121,7 @@ function Home() {
               />
               <button
                 type="submit"
-                className="m-1.5 px-4 py-2 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors text-sm shrink-0"
+                className="hidden sm:block m-1.5 px-4 py-2 bg-rc-cyan text-rc-bg font-grotesk font-semibold rounded-xl hover:bg-rc-cyan/90 transition-colors text-sm shrink-0"
               >
                 Go
               </button>
