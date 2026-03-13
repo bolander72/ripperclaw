@@ -529,7 +529,7 @@ function WhatIsSection() {
     {
       icon: IconPuzzle,
       title: 'Complete configurations',
-      desc: 'Every build is a full agent setup: models, skills, integrations, personality, automations, memory. The 6 blocks that make an agent unique.',
+      desc: 'Every build is a full agent setup: models, skills, integrations, personality, automations, memory. The 6 sections that make an agent unique.',
     },
     {
       icon: IconUserCircle,
@@ -596,7 +596,7 @@ function HowItWorks() {
     {
       num: '03',
       title: 'Apply',
-      desc: 'Copy a build and bootstrap your agent in seconds. Tweak the blocks, swap models, adjust personality. Make it yours.',
+      desc: 'Copy a build and bootstrap your agent in seconds. Tweak the sections, swap models, adjust personality. Make it yours.',
     },
   ]
 
@@ -641,7 +641,7 @@ function HowItWorks() {
 // ─── Anatomy of a Build ──────────────────────────────────
 
 function AnatomySection() {
-  const blocks = [
+  const sections = [
     { name: 'Model', icon: IconCube, desc: 'Which LLMs power it. Route Opus for deep thinking, Sonnet for speed, local Qwen for free, or one model for everything.', color: 'from-purple-500/30 to-blue-500/30' },
     { name: 'Persona', icon: IconSparkles, desc: 'How it thinks, talks, and acts. Tone, opinions, boundaries, identity. The stuff that makes it feel like yours, not a chatbot.', color: 'from-cyan-500/30 to-emerald-500/30' },
     { name: 'Skills', icon: IconBolt, desc: 'What it can do. Voice chat, coding, web research, marketing, home automation. Install from ClawHub or build your own.', color: 'from-pink-500/30 to-violet-500/30' },
@@ -658,12 +658,12 @@ function AnatomySection() {
             Anatomy of a build
           </h2>
           <p className="text-rc-text-dim text-lg max-w-xl mx-auto">
-            Modular slots. Infinite combinations. Every block is independent. Swap one without touching the rest.
+            Modular slots. Infinite combinations. Every section is independent. Swap one without touching the rest.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {blocks.map((block, i) => (
+          {sections.map((section, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
@@ -672,11 +672,11 @@ function AnatomySection() {
               transition={{ delay: i * 0.08, duration: 0.5 }}
               className="p-5 rounded-2xl border border-rc-border hover:border-rc-cyan/20 transition-colors group"
             >
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${block.color} flex items-center justify-center mb-4`}>
-                <block.icon size={22} className="text-rc-text" stroke={1.5} />
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${section.color} flex items-center justify-center mb-4`}>
+                <section.icon size={22} className="text-rc-text" stroke={1.5} />
               </div>
               <h3 className="font-grotesk font-semibold text-rc-text text-base mb-1.5">{section.name}</h3>
-              <p className="text-rc-text-dim text-sm leading-relaxed">{block.desc}</p>
+              <p className="text-rc-text-dim text-sm leading-relaxed">{section.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -717,7 +717,7 @@ function FAQSection() {
     },
     {
       q: 'What\'s in a typical build?',
-      a: 'Core blocks include Model (which LLMs), Persona (how it thinks and talks), Skills (what it can do), Integrations (what it connects to), Automations (what it does on its own), and Memory (how it remembers). The system is extensible, so custom block types can be added as needs evolve.',
+      a: 'Core sections include Model (which LLMs), Persona (how it thinks and talks), Skills (what it can do), Integrations (what it connects to), Automations (what it does on its own), and Memory (how it remembers). The system is extensible, so custom sections can be added as needs evolve.',
     },
     {
       q: 'Do I need OpenClaw to use a build?',

@@ -4,7 +4,7 @@ Export your current agent configuration as a portable build file.
 
 ## What Gets Exported
 
-| Block | Exported | Scrubbed |
+| Section | Exported | Scrubbed |
 |------|----------|----------|
 | Model | Tiers, providers, model names | (none) |
 | Persona | SOUL.md, IDENTITY.md, AGENTS.md | Phone numbers, emails, addresses |
