@@ -23,7 +23,7 @@ Builds use **kind `38333`**, a NIP-33 parameterized replaceable event. This mean
     ["t", "personal"],
     ["t", "voice"],
     ["t", "smart-home"],
-    ["clawclawgo", "0.2.1"],
+    ["clawclawgo", "0.2.2"],
     ["e", "<parent_event_id>", "", "fork"],
     ["p", "<original_author_npub>"]
   ],
