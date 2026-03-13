@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SimplePool, nip19 } from 'nostr-tools'
 import {
@@ -14,9 +14,7 @@ import {
 // ─── Constants ─────────────────────────────────────────────
 
 const RELAYS = [
-  'wss://relay.damus.io',
-  'wss://nos.lol',
-  'wss://relay.nostr.band',
+  'wss://relay.clawclawgo.com',
 ]
 
 // Item color palette (cycles through)
@@ -720,16 +718,49 @@ function ApplyWizard({ build, onClose }) {
 // ─── Explore Page ──────────────────────────────────────────
 
 export default function Explore() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialQuery = searchParams.get('q') || ''
   const [builds, setBuilds] = useState([])
   const [selectedBuild, setSelectedBuild] = useState(null)
   const [applyBuild, setApplyBuild] = useState(null)
   const [isConnecting, setIsConnecting] = useState(true)
   const [newIds, setNewIds] = useState(new Set())
   const [buildCount, setBuildCount] = useState(0)
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
+  const [searchFocused, setSearchFocused] = useState(false)
   const poolRef = useRef(null)
   const seenIds = useRef(new Set())
   const feedRef = useRef(null)
   const isInitialLoad = useRef(true)
+
+  // Filter builds by search query (client-side, searches name, agentName, tags, items, creator)
+  const filteredBuilds = useMemo(() => {
+    if (!searchQuery.trim()) return builds
+    const q = searchQuery.toLowerCase().trim()
+    const terms = q.split(/\s+/)
+    return builds.filter(build => {
+      const searchable = [
+        build.name,
+        build.agentName,
+        build.creator,
+        ...build.tags,
+        ...build.items.map(i => i.name),
+        build.content?.meta?.description || '',
+        build.content?.persona?.style || '',
+      ].join(' ').toLowerCase()
+      return terms.every(term => searchable.includes(term))
+    })
+  }, [builds, searchQuery])
+
+  // Sync search query to URL
+  const handleSearchChange = useCallback((value) => {
+    setSearchQuery(value)
+    if (value.trim()) {
+      setSearchParams({ q: value }, { replace: true })
+    } else {
+      setSearchParams({}, { replace: true })
+    }
+  }, [setSearchParams])
 
   useEffect(() => {
     const pool = new SimplePool()
@@ -754,7 +785,6 @@ export default function Explore() {
           // Mark as "new" (animate from top) only after initial load
           if (!isInitialLoad.current) {
             setNewIds(prev => new Set([...prev, build.id]))
-            // Clear the "new" marker after animation
             setTimeout(() => {
               setNewIds(prev => {
                 const next = new Set(prev)
@@ -767,7 +797,6 @@ export default function Explore() {
       },
       oneose() {
         setIsConnecting(false)
-        // Mark initial load complete after a short delay
         setTimeout(() => { isInitialLoad.current = false }, 500)
       },
     })
@@ -795,12 +824,10 @@ export default function Explore() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Nav links */}
             <nav className="hidden sm:flex items-center gap-4 text-sm">
               <Link to="/community" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Community</Link>
             </nav>
 
-            {/* Live indicator */}
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rc-surface border border-rc-border shrink-0">
               <div className={`w-2 h-2 rounded-full ${isConnecting ? 'bg-amber-400 animate-pulse' : 'bg-green-400'}`} />
               <span className="text-xs font-mono text-rc-text-dim">
@@ -813,13 +840,45 @@ export default function Explore() {
 
       {/* Feed */}
       <main className="max-w-4xl mx-auto px-4 py-6" ref={feedRef}>
+        {/* Search bar */}
+        <div className="mb-6">
+          <div className={`
+            flex items-center bg-rc-surface border rounded-xl transition-all duration-300 overflow-hidden
+            ${searchFocused ? 'border-rc-cyan/50 shadow-[0_0_15px_rgba(0,240,160,0.06)]' : 'border-rc-border'}
+          `}>
+            <div className="pl-4 pr-2 text-rc-text-muted">
+              <IconSearch size={18} />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              placeholder="Search builds by name, skill, model, tag..."
+              className="flex-1 py-3 px-2 bg-transparent text-rc-text font-grotesk text-sm placeholder:text-rc-text-muted/50 focus:outline-none"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => handleSearchChange('')}
+                className="mr-3 text-rc-text-muted hover:text-rc-text transition-colors"
+              >
+                <IconX size={16} />
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Feed header */}
         <div className="flex items-center justify-between mb-6">
           <span className="text-rc-text-muted text-xs font-mono">
-            Newest builds appear at the top
+            {searchQuery
+              ? `${filteredBuilds.length} result${filteredBuilds.length !== 1 ? 's' : ''} for "${searchQuery}"`
+              : 'Newest builds appear at the top'
+            }
           </span>
           <span className="text-rc-text-muted text-[10px] font-mono">
-            {RELAYS.length} relays
+            relay.clawclawgo.com
           </span>
         </div>
 
@@ -827,11 +886,11 @@ export default function Explore() {
         {isConnecting && builds.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-12 h-12 border-2 border-rc-cyan/20 border-t-rc-cyan rounded-full animate-spin mb-4" />
-            <p className="text-rc-text-dim text-sm font-mono">Connecting to relays...</p>
+            <p className="text-rc-text-dim text-sm font-mono">Connecting to relay...</p>
           </div>
         )}
 
-        {/* Empty state */}
+        {/* Empty state — no builds at all */}
         {!isConnecting && builds.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
@@ -844,11 +903,25 @@ export default function Explore() {
           </div>
         )}
 
+        {/* Empty state — search has no results */}
+        {!isConnecting && builds.length > 0 && filteredBuilds.length === 0 && searchQuery && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
+              <IconSearch size={32} className="text-rc-text-muted" />
+            </div>
+            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">No matches</p>
+            <p className="text-rc-text-dim text-sm max-w-md text-center">
+              No builds match "{searchQuery}". Try different keywords or{' '}
+              <button onClick={() => handleSearchChange('')} className="text-rc-cyan hover:underline">clear the search</button>.
+            </p>
+          </div>
+        )}
+
         {/* Build list */}
-        {builds.length > 0 && (
+        {filteredBuilds.length > 0 && (
           <div className="space-y-3">
             <AnimatePresence initial={false}>
-              {builds.map((build, i) => (
+              {filteredBuilds.map((build, i) => (
                 <FeedItem
                   key={build.id}
                   build={build}
