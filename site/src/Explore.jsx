@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SimplePool, nip19 } from 'nostr-tools'
-import { useSearchParams } from 'react-router-dom'
 import {
   IconChevronRight, IconRefresh, IconFilter, IconSortDescending,
   IconGitFork, IconUsers, IconClock, IconHash,
   IconCopy, IconCheck, IconShieldCheck, IconAlertTriangle,
   IconPackage, IconTerminal2, IconArrowRight, IconArrowLeft,
   IconX, IconDownload, IconEye, IconSearch, IconLivePhoto,
-  IconArrowUp,
+  IconArrowUp, IconBook2, IconBrandGithub,
 } from '@tabler/icons-react'
 
 // ─── Constants ─────────────────────────────────────────────
@@ -98,19 +98,6 @@ function parseBuildEvent(event) {
     console.error('Failed to parse build event:', e)
     return null
   }
-}
-
-function matchesQuery(build, query) {
-  if (!query) return true
-  const q = query.toLowerCase()
-  const searchable = [
-    build.agentName,
-    build.name,
-    build.creator,
-    ...build.tags,
-    ...build.items.map(i => i.name),
-  ].join(' ').toLowerCase()
-  return q.split(/\s+/).every(term => searchable.includes(term))
 }
 
 // ─── Feed Item ───────────────────────────────────────────
@@ -733,17 +720,11 @@ function ApplyWizard({ build, onClose }) {
 // ─── Explore Page ──────────────────────────────────────────
 
 export default function Explore() {
-  const [searchParams] = useSearchParams()
-  const initialQuery = searchParams.get('q') || ''
-
   const [builds, setBuilds] = useState([])
   const [selectedBuild, setSelectedBuild] = useState(null)
   const [applyBuild, setApplyBuild] = useState(null)
   const [isConnecting, setIsConnecting] = useState(true)
-  const [query, setQuery] = useState(initialQuery)
-  const [searchFocused, setSearchFocused] = useState(false)
   const [newIds, setNewIds] = useState(new Set())
-  const [isPaused, setIsPaused] = useState(false)
   const [buildCount, setBuildCount] = useState(0)
   const poolRef = useRef(null)
   const seenIds = useRef(new Set())
@@ -797,44 +778,34 @@ export default function Explore() {
     }
   }, [])
 
-  const filteredBuilds = builds.filter(b => matchesQuery(b, query))
-
   return (
     <div className="min-h-screen bg-rc-bg">
-      {/* Sticky header with search */}
+      {/* Header */}
       <header className="border-b border-rc-border bg-rc-bg/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 py-3">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <a href="/" className="font-grotesk font-bold text-rc-text text-lg hover:text-rc-cyan transition-colors shrink-0">
               ClawClawGo
             </a>
             <div className="h-5 w-px bg-rc-border shrink-0" />
-
-            {/* Search */}
-            <div className={`flex-1 flex items-center bg-rc-surface border rounded-xl transition-all ${searchFocused ? 'border-rc-cyan/40' : 'border-rc-border'}`}>
-              <div className="pl-3 text-rc-text-muted">
-                <IconSearch size={16} />
-              </div>
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-                placeholder="Filter builds..."
-                className="flex-1 py-2.5 px-2 bg-transparent text-rc-text font-grotesk text-sm placeholder:text-rc-text-muted/50 focus:outline-none"
-              />
-              {query && (
-                <button onClick={() => setQuery('')} className="pr-3 text-rc-text-muted hover:text-rc-text">
-                  <IconX size={14} />
-                </button>
-              )}
+            <div className="flex items-center gap-2">
+              <IconLivePhoto size={16} className="text-rc-cyan" />
+              <span className="font-grotesk font-medium text-rc-text text-sm">Live Feed</span>
             </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* Nav links */}
+            <nav className="hidden sm:flex items-center gap-4 text-sm">
+              <Link to="/community" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Community</Link>
+              <Link to="/about" className="text-rc-text-dim hover:text-rc-cyan transition-colors">About</Link>
+              <a href="/docs" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Docs</a>
+            </nav>
 
             {/* Live indicator */}
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rc-surface border border-rc-border shrink-0">
               <div className={`w-2 h-2 rounded-full ${isConnecting ? 'bg-amber-400 animate-pulse' : 'bg-green-400'}`} />
-              <span className="text-xs font-mono text-rc-text-dim hidden sm:inline">
+              <span className="text-xs font-mono text-rc-text-dim">
                 {isConnecting ? 'Connecting' : `${builds.length} builds`}
               </span>
             </div>
@@ -844,19 +815,13 @@ export default function Explore() {
 
       {/* Feed */}
       <main className="max-w-4xl mx-auto px-4 py-6" ref={feedRef}>
-        {/* Feed title */}
+        {/* Feed header */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <IconLivePhoto size={18} className="text-rc-cyan" />
-            <h2 className="font-grotesk font-semibold text-rc-text text-sm">
-              Live Feed
-            </h2>
-            <span className="text-rc-text-muted text-xs font-mono">
-              {filteredBuilds.length}{query ? ` / ${builds.length}` : ''} builds
-            </span>
-          </div>
+          <span className="text-rc-text-muted text-xs font-mono">
+            Newest builds appear at the top
+          </span>
           <span className="text-rc-text-muted text-[10px] font-mono">
-            {RELAYS.length} relays connected
+            {RELAYS.length} relays
           </span>
         </div>
 
@@ -869,36 +834,23 @@ export default function Explore() {
         )}
 
         {/* Empty state */}
-        {!isConnecting && filteredBuilds.length === 0 && (
+        {!isConnecting && builds.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
-              {query ? <IconSearch size={32} className="text-rc-text-muted" /> : <IconUsers size={32} className="text-rc-text-muted" />}
+              <IconUsers size={32} className="text-rc-text-muted" />
             </div>
-            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">
-              {query ? 'No matches' : 'No builds yet'}
-            </p>
+            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">No builds yet</p>
             <p className="text-rc-text-dim text-sm max-w-md text-center">
-              {query
-                ? `Nothing matches "${query}". Try a different search.`
-                : 'Be the first to publish a build. Share your agent configuration with the community.'
-              }
+              Be the first to publish a build. Share your agent configuration with the community.
             </p>
-            {query && (
-              <button
-                onClick={() => setQuery('')}
-                className="mt-4 px-4 py-2 bg-white/5 hover:bg-white/10 text-rc-text rounded-xl border border-rc-border transition-colors text-sm font-grotesk"
-              >
-                Clear search
-              </button>
-            )}
           </div>
         )}
 
         {/* Build list */}
-        {filteredBuilds.length > 0 && (
+        {builds.length > 0 && (
           <div className="space-y-3">
             <AnimatePresence initial={false}>
-              {filteredBuilds.map((build, i) => (
+              {builds.map((build, i) => (
                 <FeedItem
                   key={build.id}
                   build={build}
