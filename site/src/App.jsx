@@ -77,10 +77,10 @@ function Home() {
   }, [query, navigate])
 
   return (
-    <div className="min-h-screen bg-rc-bg flex flex-col">
+    <div className="min-h-screen bg-rc-bg flex flex-col overflow-x-hidden">
       {/* Minimal nav for home */}
       <header className="px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-end">
+        <div className="max-w-4xl mx-auto flex items-center justify-center">
           <nav className="flex items-center gap-5 text-sm">
             <Link to="/explore" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1">
               <IconLivePhoto size={14} /> Feed
@@ -94,8 +94,8 @@ function Home() {
       </header>
 
       {/* Centered search */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-rc-cyan/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20 relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(600px,100vw)] h-[600px] bg-rc-cyan/5 rounded-full blur-[120px] pointer-events-none" />
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
