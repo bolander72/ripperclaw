@@ -200,10 +200,10 @@ function BuildCard({ build, index, onClick, dropped }) {
       }
       whileHover={{ y: -8, scale: 1.02 }}
       onClick={onClick}
-      className="relative cursor-pointer shrink-0 w-[280px] group"
+      className="relative cursor-pointer shrink-0 w-[280px] group h-[260px]"
     >
       {/* Card */}
-      <div className="bg-rc-surface rounded-2xl border border-rc-border group-hover:border-rc-cyan/40 transition-all duration-300 overflow-hidden">
+      <div className="bg-rc-surface rounded-2xl border border-rc-border group-hover:border-rc-cyan/40 transition-all duration-300 overflow-hidden h-full flex flex-col">
         {/* NEW badge */}
         {build.isNew && (
           <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rc-cyan/15 border border-rc-cyan/30">
@@ -214,7 +214,7 @@ function BuildCard({ build, index, onClick, dropped }) {
         )}
 
         {/* Items tag cloud preview */}
-        <div className="p-5 pt-12">
+        <div className="p-5 pt-12 flex-1">
           <div className="flex flex-wrap gap-1.5 mb-4">
             {build.items.slice(0, 8).map((item, ii) => (
               <span
@@ -233,7 +233,7 @@ function BuildCard({ build, index, onClick, dropped }) {
         </div>
 
         {/* Card footer */}
-        <div className="px-5 pb-5">
+        <div className="px-5 pb-5 mt-auto">
           {/* Agent name + build type */}
           <div className="mb-2">
             <div className="flex items-center gap-2">
