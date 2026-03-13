@@ -1,9 +1,12 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SimplePool, nip19 } from 'nostr-tools'
 import {
   IconChevronRight, IconRefresh, IconFilter, IconSortDescending,
   IconGitFork, IconUsers, IconClock, IconHash,
+  IconCopy, IconCheck, IconShieldCheck, IconAlertTriangle,
+  IconPackage, IconTerminal2, IconArrowRight, IconArrowLeft,
+  IconX, IconDownload, IconEye,
 } from '@tabler/icons-react'
 
 // ─── Constants ─────────────────────────────────────────────
@@ -192,7 +195,8 @@ function BuildCard({ build, index, onClick, dropped }) {
 
 // ─── Build Detail Modal ──────────────────────────────────
 
-function BuildDetail({ build, onClose }) {
+function BuildDetail({ build, onClose, onApply }) {
+  const [showRaw, setShowRaw] = useState(false)
   // Show all config keys from the raw content
   const configKeys = Object.keys(build.content || {}).filter(k => !['schema', 'meta', 'dependencies'].includes(k))
 
@@ -299,6 +303,420 @@ function BuildDetail({ build, onClose }) {
               </div>
             </div>
           )}
+
+          {/* Raw JSON preview */}
+          {showRaw && (
+            <div className="mt-6 pt-6 border-t border-rc-border">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-rc-text-muted text-xs font-mono">Raw build JSON</p>
+                <CopyButton text={JSON.stringify(build.content, null, 2)} />
+              </div>
+              <pre className="bg-black/30 rounded-xl p-4 text-xs font-mono text-rc-text-dim overflow-auto max-h-80 border border-rc-border">
+                {JSON.stringify(build.content, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+
+        {/* Action buttons */}
+        <div className="p-6 md:p-8 border-t border-rc-border flex flex-wrap gap-3">
+          <button
+            onClick={() => setShowRaw(!showRaw)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-rc-text rounded-xl border border-rc-border transition-colors text-sm font-grotesk"
+          >
+            <IconEye size={16} />
+            {showRaw ? 'Hide' : 'View'} JSON
+          </button>
+          <CopyButton text={JSON.stringify(build.content, null, 2)} label="Copy JSON" />
+          <button
+            onClick={() => onApply(build)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-rc-cyan text-rc-bg rounded-xl hover:bg-rc-cyan/90 transition-colors text-sm font-grotesk font-semibold ml-auto"
+          >
+            <IconDownload size={16} />
+            Apply Build
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ─── Copy Button ─────────────────────────────────────────
+
+function CopyButton({ text, label = 'Copy' }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }, [text])
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-rc-text rounded-xl border border-rc-border transition-colors text-sm font-grotesk"
+    >
+      {copied ? <IconCheck size={16} className="text-rc-green" /> : <IconCopy size={16} />}
+      {copied ? 'Copied!' : label}
+    </button>
+  )
+}
+
+// ─── Security Scanner (client-side) ─────────────────────
+
+const PII_PATTERNS = [
+  { name: 'Email', pattern: /[\w.-]+@[\w.-]+\.\w+/g },
+  { name: 'Phone', pattern: /\+?1?\d{10,15}/g },
+  { name: 'IP Address', pattern: /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g },
+  { name: 'Street Address', pattern: /\d+\s+[\w\s]+(?:St|Ave|Blvd|Dr|Rd|Ln|Way|Ct|Circle|Place|Terrace)\b/gi },
+  { name: 'API Key', pattern: /(?:sk|pk|api[_-]?key)[_-][\w-]{20,}/gi },
+  { name: 'Bearer Token', pattern: /Bearer\s+[\w.-]{20,}/g },
+]
+
+const SUSPICIOUS_PATTERNS = [
+  { name: 'Prompt injection', pattern: /ignore\s+(?:all\s+)?(?:previous|above|prior)\s+instructions/gi, severity: 'high' },
+  { name: 'System prompt override', pattern: /you\s+are\s+now\s+(?:a|an)\s+(?:new|different)/gi, severity: 'high' },
+  { name: 'Exfiltration attempt', pattern: /curl\s+.*\|\s*sh|wget\s+.*\|\s*(?:ba)?sh|eval\s*\(/gi, severity: 'high' },
+  { name: 'Credential access', pattern: /security\s+find-generic-password|keychain|\.env\b/gi, severity: 'medium' },
+  { name: 'File system access', pattern: /\/etc\/(?:passwd|shadow)|~\/\.[a-z]/gi, severity: 'medium' },
+  { name: 'Network exfil', pattern: /(?:nc|netcat|ncat)\s+-[a-z]*\s+\d/gi, severity: 'high' },
+]
+
+function scanBuild(content) {
+  const text = JSON.stringify(content, null, 2)
+  const findings = { pii: [], suspicious: [], info: [] }
+
+  for (const { name, pattern } of PII_PATTERNS) {
+    const matches = text.match(pattern)
+    if (matches) {
+      findings.pii.push({ name, count: matches.length, samples: [...new Set(matches)].slice(0, 3) })
+    }
+  }
+
+  for (const { name, pattern, severity } of SUSPICIOUS_PATTERNS) {
+    const matches = text.match(pattern)
+    if (matches) {
+      findings.suspicious.push({ name, severity, count: matches.length, samples: [...new Set(matches)].slice(0, 2) })
+    }
+  }
+
+  // Info checks
+  const keys = Object.keys(content).filter(k => !['schema', 'meta', 'dependencies'].includes(k))
+  findings.info.push({ name: 'Config keys', value: keys.join(', ') })
+  if (content.model?.tiers) {
+    const models = Object.values(content.model.tiers).map(t => t.alias || `${t.provider}/${t.model}`).join(', ')
+    findings.info.push({ name: 'Models', value: models })
+  }
+  if (content.skills?.items?.length) {
+    findings.info.push({ name: 'Skills', value: content.skills.items.map(s => s.name).join(', ') })
+  }
+
+  const hasCritical = findings.suspicious.some(f => f.severity === 'high')
+  const hasPII = findings.pii.length > 0
+  const score = hasCritical ? 'FAIL' : hasPII ? 'WARN' : 'PASS'
+
+  return { findings, score }
+}
+
+// ─── Apply Wizard ───────────────────────────────────────
+
+const STEPS = ['review', 'security', 'apply']
+
+function ApplyWizard({ build, onClose }) {
+  const [step, setStep] = useState(0)
+  const [scanResult, setScanResult] = useState(null)
+  const [copied, setCopied] = useState(false)
+  const [agentId, setAgentId] = useState('')
+
+  useEffect(() => {
+    // Run security scan on mount
+    const result = scanBuild(build.content)
+    setScanResult(result)
+  }, [build])
+
+  const buildJson = JSON.stringify(build.content, null, 2)
+  const cliCommand = agentId
+    ? `echo '${buildJson.replace(/'/g, "'\\''")}' | clawclawgo apply --from-stdin --agent ${agentId}`
+    : null
+
+  const simpleCommand = agentId
+    ? `pbpaste | clawclawgo apply --from-stdin --agent ${agentId}`
+    : null
+
+  function handleCopyAndCommand() {
+    navigator.clipboard.writeText(buildJson).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 3000)
+    })
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto"
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 40 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 40 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl bg-rc-surface rounded-3xl border border-rc-border shadow-2xl relative my-8"
+      >
+        {/* Header */}
+        <div className="p-6 border-b border-rc-border">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-grotesk font-bold text-rc-text">
+              Apply: {build.agentName}
+            </h2>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors text-rc-text"
+            >
+              <IconX size={16} />
+            </button>
+          </div>
+
+          {/* Step indicator */}
+          <div className="flex items-center gap-2">
+            {STEPS.map((s, i) => (
+              <div key={s} className="flex items-center gap-2">
+                <div className={`
+                  w-8 h-8 rounded-full flex items-center justify-center text-xs font-mono font-bold transition-colors
+                  ${i <= step ? 'bg-rc-cyan text-rc-bg' : 'bg-white/5 text-rc-text-muted'}
+                `}>
+                  {i + 1}
+                </div>
+                <span className={`text-xs font-grotesk capitalize ${i <= step ? 'text-rc-text' : 'text-rc-text-muted'}`}>
+                  {s}
+                </span>
+                {i < STEPS.length - 1 && <div className="w-8 h-px bg-rc-border" />}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Step content */}
+        <div className="p-6">
+          <AnimatePresence mode="wait">
+            {step === 0 && (
+              <motion.div key="review" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                <h3 className="text-lg font-grotesk font-semibold text-rc-text mb-4">Review build contents</h3>
+
+                <div className="space-y-3 mb-6">
+                  {build.items.map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-xl border border-rc-border">
+                      <div className="w-2 h-2 rounded-full bg-rc-cyan" />
+                      <span className="text-sm font-grotesk text-rc-text">{item.name}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {build.content.dependencies && (
+                  <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <IconPackage size={16} className="text-amber-400" />
+                      <span className="text-sm font-grotesk font-medium text-amber-300">Dependencies</span>
+                    </div>
+                    <p className="text-xs text-rc-text-dim">
+                      This build declares dependencies. The CLI will check them during apply.
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {step === 1 && scanResult && (
+              <motion.div key="security" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                <div className="flex items-center gap-3 mb-6">
+                  {scanResult.score === 'PASS' ? (
+                    <>
+                      <div className="w-10 h-10 rounded-full bg-green-500/15 flex items-center justify-center">
+                        <IconShieldCheck size={20} className="text-green-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-grotesk font-semibold text-green-400">Security scan passed</h3>
+                        <p className="text-xs text-rc-text-dim">No PII or suspicious patterns detected</p>
+                      </div>
+                    </>
+                  ) : scanResult.score === 'WARN' ? (
+                    <>
+                      <div className="w-10 h-10 rounded-full bg-amber-500/15 flex items-center justify-center">
+                        <IconAlertTriangle size={20} className="text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-grotesk font-semibold text-amber-400">Potential PII detected</h3>
+                        <p className="text-xs text-rc-text-dim">Review findings below before applying</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-10 h-10 rounded-full bg-red-500/15 flex items-center justify-center">
+                        <IconAlertTriangle size={20} className="text-red-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-grotesk font-semibold text-red-400">Security issues found</h3>
+                        <p className="text-xs text-rc-text-dim">This build contains suspicious patterns</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {scanResult.findings.suspicious.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs font-mono text-rc-text-muted mb-2">Suspicious patterns:</p>
+                    <div className="space-y-2">
+                      {scanResult.findings.suspicious.map((f, i) => (
+                        <div key={i} className={`px-4 py-3 rounded-xl border ${f.severity === 'high' ? 'bg-red-500/10 border-red-500/20' : 'bg-amber-500/10 border-amber-500/20'}`}>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-mono font-bold uppercase ${f.severity === 'high' ? 'text-red-400' : 'text-amber-400'}`}>{f.severity}</span>
+                            <span className="text-sm text-rc-text">{f.name}</span>
+                            <span className="text-xs text-rc-text-muted ml-auto">{f.count} match{f.count > 1 ? 'es' : ''}</span>
+                          </div>
+                          <p className="text-xs font-mono text-rc-text-dim mt-1">{f.samples.join(', ')}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {scanResult.findings.pii.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs font-mono text-rc-text-muted mb-2">Potential PII:</p>
+                    <div className="space-y-2">
+                      {scanResult.findings.pii.map((f, i) => (
+                        <div key={i} className="px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-rc-text">{f.name}</span>
+                            <span className="text-xs text-rc-text-muted ml-auto">{f.count} found</span>
+                          </div>
+                          <p className="text-xs font-mono text-rc-text-dim mt-1">{f.samples.join(', ')}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {scanResult.findings.info.length > 0 && (
+                  <div>
+                    <p className="text-xs font-mono text-rc-text-muted mb-2">Build info:</p>
+                    <div className="space-y-1">
+                      {scanResult.findings.info.map((f, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs">
+                          <span className="text-rc-text-muted font-mono w-24 shrink-0">{f.name}:</span>
+                          <span className="text-rc-text-dim">{f.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {step === 2 && (
+              <motion.div key="apply" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                <h3 className="text-lg font-grotesk font-semibold text-rc-text mb-2">Apply to your agent</h3>
+                <p className="text-sm text-rc-text-dim mb-6">
+                  Choose an agent ID for this build, then run the command in your terminal.
+                </p>
+
+                {/* Agent ID input */}
+                <div className="mb-6">
+                  <label className="block text-xs font-mono text-rc-text-muted mb-2">Agent ID</label>
+                  <input
+                    type="text"
+                    value={agentId}
+                    onChange={(e) => setAgentId(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
+                    placeholder="e.g. my-agent"
+                    className="w-full px-4 py-3 bg-black/30 border border-rc-border rounded-xl text-rc-text font-mono text-sm focus:outline-none focus:border-rc-cyan/40 placeholder:text-rc-text-muted/50"
+                  />
+                </div>
+
+                {agentId && (
+                  <>
+                    {/* Option 1: Copy + paste */}
+                    <div className="mb-6 p-4 rounded-xl bg-white/5 border border-rc-border">
+                      <p className="text-xs font-mono text-rc-text-muted mb-3">Option 1: Copy build to clipboard, then run</p>
+                      <div className="flex items-center gap-2 mb-3">
+                        <button
+                          onClick={handleCopyAndCommand}
+                          className="flex items-center gap-2 px-3 py-2 bg-rc-cyan text-rc-bg rounded-lg text-xs font-grotesk font-semibold hover:bg-rc-cyan/90 transition-colors"
+                        >
+                          {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                          {copied ? 'Copied!' : 'Copy build JSON'}
+                        </button>
+                      </div>
+                      <div className="bg-black/40 rounded-lg p-3 font-mono text-xs text-rc-cyan break-all select-all">
+                        {simpleCommand}
+                      </div>
+                    </div>
+
+                    {/* Option 2: Download file */}
+                    <div className="p-4 rounded-xl bg-white/5 border border-rc-border">
+                      <p className="text-xs font-mono text-rc-text-muted mb-3">Option 2: Download and apply file</p>
+                      <div className="flex items-center gap-2 mb-3">
+                        <button
+                          onClick={() => {
+                            const blob = new Blob([buildJson], { type: 'application/json' })
+                            const url = URL.createObjectURL(blob)
+                            const a = document.createElement('a')
+                            a.href = url
+                            a.download = `${build.name || 'build'}.json`
+                            a.click()
+                            URL.revokeObjectURL(url)
+                          }}
+                          className="flex items-center gap-2 px-3 py-2 bg-white/10 text-rc-text rounded-lg text-xs font-grotesk font-semibold hover:bg-white/15 transition-colors"
+                        >
+                          <IconDownload size={14} />
+                          Download {build.name || 'build'}.json
+                        </button>
+                      </div>
+                      <div className="bg-black/40 rounded-lg p-3 font-mono text-xs text-rc-cyan break-all select-all">
+                        clawclawgo apply {build.name || 'build'}.json --agent {agentId}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {!agentId && (
+                  <div className="p-4 rounded-xl bg-white/5 border border-rc-border text-center">
+                    <p className="text-sm text-rc-text-dim">Enter an agent ID above to generate the apply command</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Navigation */}
+        <div className="p-6 border-t border-rc-border flex items-center justify-between">
+          <button
+            onClick={() => step > 0 ? setStep(step - 1) : onClose()}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-rc-text rounded-xl border border-rc-border transition-colors text-sm font-grotesk"
+          >
+            <IconArrowLeft size={16} />
+            {step === 0 ? 'Cancel' : 'Back'}
+          </button>
+
+          {step < STEPS.length - 1 && (
+            <button
+              onClick={() => setStep(step + 1)}
+              disabled={step === 1 && scanResult?.score === 'FAIL'}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-grotesk font-semibold transition-colors ${
+                step === 1 && scanResult?.score === 'FAIL'
+                  ? 'bg-white/5 text-rc-text-muted cursor-not-allowed'
+                  : 'bg-rc-cyan text-rc-bg hover:bg-rc-cyan/90'
+              }`}
+            >
+              Next
+              <IconArrowRight size={16} />
+            </button>
+          )}
         </div>
       </motion.div>
     </motion.div>
@@ -310,6 +728,7 @@ function BuildDetail({ build, onClose }) {
 export default function Explore() {
   const [builds, setBuilds] = useState([])
   const [selectedBuild, setSelectedBuild] = useState(null)
+  const [applyBuild, setApplyBuild] = useState(null)
   const [isConnecting, setIsConnecting] = useState(true)
   const [sortBy, setSortBy] = useState('newest')
   const poolRef = useRef(null)
@@ -444,10 +863,20 @@ export default function Explore() {
       </main>
 
       <AnimatePresence>
-        {selectedBuild && (
+        {selectedBuild && !applyBuild && (
           <BuildDetail
             build={selectedBuild}
             onClose={() => setSelectedBuild(null)}
+            onApply={(build) => {
+              setSelectedBuild(null)
+              setApplyBuild(build)
+            }}
+          />
+        )}
+        {applyBuild && (
+          <ApplyWizard
+            build={applyBuild}
+            onClose={() => setApplyBuild(null)}
           />
         )}
       </AnimatePresence>

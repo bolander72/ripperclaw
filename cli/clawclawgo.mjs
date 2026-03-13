@@ -4,9 +4,22 @@
  *
  * Usage:
  *   clawclawgo export [--agent <id>] [--out <file>]
- *   clawclawgo apply <build.json> --agent <id> [--mode merge|replace] [--use-my-models] [--dry-run] [--skip-deps] [--skip-security]
- *   clawclawgo preview <build.json>
- *   clawclawgo scan <build.json>
+ *   clawclawgo apply <build.json|url|--from-stdin> --agent <id> [options]
+ *   clawclawgo preview <build.json|url|--from-stdin>
+ *   clawclawgo scan <build.json|url|--from-stdin>
+ *
+ * Apply options:
+ *   --mode merge|replace    Apply mode (default: merge)
+ *   --use-my-models         Use your current models instead of build's
+ *   --dry-run               Show what would happen without doing it
+ *   --skip-deps             Skip dependency checking
+ *   --skip-security         Skip security scanning (not recommended)
+ *
+ * Build sources:
+ *   <build.json>            Local file path
+ *   <url>                   HTTP(S) URL to fetch build from
+ *   --from-stdin            Read build JSON from stdin (e.g., pbpaste | clawclawgo apply --from-stdin --agent <id>)
+ *   nostr:<naddr>           Nostr URI (TODO: not yet implemented)
  */
 
 import fs from 'fs';
@@ -17,6 +30,15 @@ const OPENCLAW_DIR = path.join(process.env.HOME, '.openclaw');
 const CONFIG_PATH = path.join(OPENCLAW_DIR, 'openclaw.json');
 
 // ── Helpers ──
+
+/**
+ * Get a section from a build, supporting both v3 (flat) and v2 (build.blocks.*) schemas.
+ * v3: top-level keys (model, persona, skills, integrations, automations, memory)
+ * v2: build.blocks.* (backward compat)
+ */
+function getSection(build, key) {
+  return build[key] || build.blocks?.[key];
+}
 
 function readConfig() {
   const raw = fs.readFileSync(CONFIG_PATH, 'utf8');
@@ -216,7 +238,8 @@ async function validateGuideUrl(url) {
  * @returns {{ guideResults: Array, guides: Record<string, string> }}
  */
 async function resolveSetupGuides(build) {
-  const items = build.blocks?.integrations?.items || [];
+  const integrationsBlock = getSection(build, 'integrations');
+  const items = integrationsBlock?.items || [];
   const guideResults = [];
   const guides = {};
 
@@ -344,9 +367,11 @@ async function scanBuildSecurity(build, options = {}) {
   }
 
   // Scan persona content
-  const soulContent = build.blocks?.persona?.soul?.content || '';
-  const agentsContent = build.blocks?.persona?.agents?.content || '';
-  const heartbeatContent = build.blocks?.automations?.heartbeat?.content || '';
+  const personaBlock = getSection(build, 'persona');
+  const automationsBlock = getSection(build, 'automations');
+  const soulContent = personaBlock?.soul?.content || '';
+  const agentsContent = personaBlock?.agents?.content || '';
+  const heartbeatContent = automationsBlock?.heartbeat?.content || '';
 
   scanText(soulContent, 'blocks.persona.soul.content', BLOCK_PATTERNS, 'block');
   scanText(soulContent, 'blocks.persona.soul.content', WARN_PATTERNS, 'warn');
@@ -356,7 +381,7 @@ async function scanBuildSecurity(build, options = {}) {
   scanText(heartbeatContent, 'blocks.automations.heartbeat', WARN_PATTERNS, 'warn');
 
   // Scan cron jobs
-  const cronJobs = build.blocks?.automations?.cron || [];
+  const cronJobs = automationsBlock?.cron || [];
   for (let i = 0; i < cronJobs.length; i++) {
     const jobText = JSON.stringify(cronJobs[i]);
     scanText(jobText, `blocks.automations.cron[${i}]`, BLOCK_PATTERNS, 'block');
@@ -364,7 +389,8 @@ async function scanBuildSecurity(build, options = {}) {
   }
 
   // Skill verification (local checks)
-  const skills = build.blocks?.skills?.items || [];
+  const skillsBlock = getSection(build, 'skills');
+  const skills = skillsBlock?.items || [];
   for (let i = 0; i < skills.length; i++) {
     const skill = skills[i];
     if (skill.source === 'custom') {
@@ -379,7 +405,8 @@ async function scanBuildSecurity(build, options = {}) {
   }
 
   // ── Setup guide URL safety ──
-  const integrations = build.blocks?.integrations?.items || [];
+  const integrationsBlock = getSection(build, 'integrations');
+  const integrations = integrationsBlock?.items || [];
   for (let i = 0; i < integrations.length; i++) {
     const int = integrations[i];
     if (int.setupGuideUrl) {
@@ -768,7 +795,32 @@ function exportBuild(agentId) {
 async function applyBuild(buildPath, agentId, options = {}) {
   const { mode = 'merge', useMyModels = false, dryRun = false, skipDeps = false, skipSecurity = false } = options;
 
-  const build = JSON.parse(fs.readFileSync(buildPath, 'utf8'));
+  let buildJson;
+  
+  // Support URLs (http/https)
+  if (buildPath.startsWith('http://') || buildPath.startsWith('https://')) {
+    console.log(`📥 Fetching build from ${buildPath}...`);
+    const response = await fetch(buildPath);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch build: HTTP ${response.status}`);
+    }
+    buildJson = await response.text();
+  }
+  // Support stdin
+  else if (buildPath === '--from-stdin') {
+    console.log('📥 Reading build from stdin...');
+    buildJson = fs.readFileSync(0, 'utf8');
+  }
+  // Support nostr: URIs (TODO: parse naddr, fetch from relays)
+  else if (buildPath.startsWith('nostr:')) {
+    throw new Error('Nostr URI support is not yet implemented. Use HTTP(S) or local file for now.');
+  }
+  // Local file
+  else {
+    buildJson = fs.readFileSync(buildPath, 'utf8');
+  }
+
+  const build = JSON.parse(buildJson);
 
   // Security scan first (unless skipped)
   if (!skipSecurity) {
@@ -831,7 +883,7 @@ async function applyBuild(buildPath, agentId, options = {}) {
   actions.push({ type: 'create-workspace', path: agentWorkspace });
 
   // ── 2. Model block ──
-  const modelBlock = build.blocks?.model;
+  const modelBlock = getSection(build, 'model');
   if (modelBlock?.tiers) {
     if (useMyModels) {
       actions.push({
@@ -858,7 +910,7 @@ async function applyBuild(buildPath, agentId, options = {}) {
   }
 
   // ── 3. Persona block ──
-  const personaBlock = build.blocks?.persona;
+  const personaBlock = getSection(build, 'persona');
   if (personaBlock) {
     if (personaBlock.identity) {
       actions.push({
@@ -894,7 +946,7 @@ async function applyBuild(buildPath, agentId, options = {}) {
   }
 
   // ── 4. Skills block ──
-  const skillsBlock = build.blocks?.skills;
+  const skillsBlock = getSection(build, 'skills');
   if (skillsBlock?.items) {
     for (const skill of skillsBlock.items) {
       if (skill.source === 'bundled') {
@@ -915,7 +967,7 @@ async function applyBuild(buildPath, agentId, options = {}) {
   }
 
   // ── 5. Integrations block ──
-  const intBlock = build.blocks?.integrations;
+  const intBlock = getSection(build, 'integrations');
   if (intBlock?.items) {
     for (const integration of intBlock.items) {
       if (integration.setupGuideUrl) {
@@ -929,7 +981,7 @@ async function applyBuild(buildPath, agentId, options = {}) {
   }
 
   // ── 6. Automations block ──
-  const autoBlock = build.blocks?.automations;
+  const autoBlock = getSection(build, 'automations');
   if (autoBlock?.heartbeat?.included && autoBlock.heartbeat.content) {
     actions.push({
       type: 'write-file',
@@ -947,7 +999,7 @@ async function applyBuild(buildPath, agentId, options = {}) {
   }
 
   // ── 7. Memory block ──
-  const memBlock = build.blocks?.memory;
+  const memBlock = getSection(build, 'memory');
   if (memBlock?.structure) {
     for (const dir of memBlock.structure.directories || []) {
       actions.push({ type: 'create-dir', path: path.join(agentWorkspace, dir) });
@@ -1092,7 +1144,30 @@ async function applyBuild(buildPath, agentId, options = {}) {
 // ── Preview ──
 
 async function previewBuild(buildPath) {
-  const build = JSON.parse(fs.readFileSync(buildPath, 'utf8'));
+  let buildJson;
+  
+  // Support URLs (http/https)
+  if (buildPath.startsWith('http://') || buildPath.startsWith('https://')) {
+    const response = await fetch(buildPath);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch build: HTTP ${response.status}`);
+    }
+    buildJson = await response.text();
+  }
+  // Support stdin
+  else if (buildPath === '--from-stdin') {
+    buildJson = fs.readFileSync(0, 'utf8');
+  }
+  // Support nostr: URIs (TODO)
+  else if (buildPath.startsWith('nostr:')) {
+    throw new Error('Nostr URI support is not yet implemented.');
+  }
+  // Local file
+  else {
+    buildJson = fs.readFileSync(buildPath, 'utf8');
+  }
+
+  const build = JSON.parse(buildJson);
   const lines = [];
 
   lines.push(`\n📦 ${build.meta.name} (by ${build.meta.author})`);
@@ -1109,7 +1184,7 @@ async function previewBuild(buildPath) {
   lines.push('');
 
   // Model
-  const m = build.blocks?.model;
+  const m = getSection(build, 'model');
   if (m?.tiers) {
     lines.push('⬢ Model');
     for (const [tier, info] of Object.entries(m.tiers)) {
@@ -1120,7 +1195,7 @@ async function previewBuild(buildPath) {
   }
 
   // Persona
-  const p = build.blocks?.persona;
+  const p = getSection(build, 'persona');
   if (p) {
     lines.push('🎭 Persona');
     lines.push(`  Name: ${p.identity?.name || '?'}`);
@@ -1131,7 +1206,7 @@ async function previewBuild(buildPath) {
   }
 
   // Skills
-  const s = build.blocks?.skills;
+  const s = getSection(build, 'skills');
   if (s?.items?.length) {
     lines.push(`🔧 Skills (${s.items.length})`);
     for (const skill of s.items) {
@@ -1143,7 +1218,7 @@ async function previewBuild(buildPath) {
   }
 
   // Integrations
-  const i = build.blocks?.integrations;
+  const i = getSection(build, 'integrations');
   if (i?.items?.length) {
     const withGuide = i.items.filter(x => x.setupGuideUrl).length;
     const label = withGuide === i.items.length
@@ -1161,7 +1236,7 @@ async function previewBuild(buildPath) {
   }
 
   // Automations
-  const a = build.blocks?.automations;
+  const a = getSection(build, 'automations');
   if (a) {
     lines.push('⏰ Automations');
     if (a.heartbeat?.included) lines.push(`  Heartbeat: ${a.heartbeat.taskCount} tasks`);
@@ -1170,7 +1245,7 @@ async function previewBuild(buildPath) {
   }
 
   // Memory
-  const mem = build.blocks?.memory;
+  const mem = getSection(build, 'memory');
   if (mem?.structure) {
     lines.push('🧠 Memory');
     lines.push(`  Directories: ${mem.structure.directories?.length || 0}`);
@@ -1259,10 +1334,33 @@ try {
     case 'scan': {
       const buildPath = args[1];
       if (!buildPath) {
-        console.error('Usage: clawclawgo scan <build.json>');
+        console.error('Usage: clawclawgo scan <build.json|url|--from-stdin>');
         process.exit(1);
       }
-      const build = JSON.parse(fs.readFileSync(buildPath, 'utf8'));
+      
+      let buildJson;
+      // Support URLs (http/https)
+      if (buildPath.startsWith('http://') || buildPath.startsWith('https://')) {
+        const response = await fetch(buildPath);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch build: HTTP ${response.status}`);
+        }
+        buildJson = await response.text();
+      }
+      // Support stdin
+      else if (buildPath === '--from-stdin') {
+        buildJson = fs.readFileSync(0, 'utf8');
+      }
+      // Support nostr: URIs (TODO)
+      else if (buildPath.startsWith('nostr:')) {
+        throw new Error('Nostr URI support is not yet implemented.');
+      }
+      // Local file
+      else {
+        buildJson = fs.readFileSync(buildPath, 'utf8');
+      }
+      
+      const build = JSON.parse(buildJson);
       const report = await scanBuildSecurity(build);
       console.log(formatSecurityReport(report));
       break;
@@ -1271,17 +1369,23 @@ try {
       console.log(`clawclawgo: OpenClaw agent build manager
 
 Commands:
-  export [--agent <id>] [--out <file>]    Export current agent as build
-  apply <file> --agent <id> [options]     Apply build to agent
-  preview <file>                          Preview build contents
-  scan <file>                             Run security scan on build
+  export [--agent <id>] [--out <file>]              Export current agent as build
+  apply <source> --agent <id> [options]             Apply build to agent
+  preview <source>                                  Preview build contents
+  scan <source>                                     Run security scan on build
+
+Build sources:
+  <build.json>                                      Local file path
+  <url>                                             HTTP(S) URL (e.g., https://example.com/build.json)
+  --from-stdin                                      Read from stdin (e.g., pbpaste | clawclawgo apply --from-stdin --agent demo)
+  nostr:<naddr>                                     Nostr URI (TODO: not yet implemented)
 
 Apply options:
-  --mode merge|replace    Apply mode (default: merge)
-  --use-my-models         Use your current models instead of build's
-  --dry-run               Show what would happen without doing it
-  --skip-deps             Skip dependency checking
-  --skip-security         Skip security scanning (not recommended)`);
+  --mode merge|replace                              Apply mode (default: merge)
+  --use-my-models                                   Use your current models instead of build's
+  --dry-run                                         Show what would happen without doing it
+  --skip-deps                                       Skip dependency checking
+  --skip-security                                   Skip security scanning (not recommended)`);
   }
 } catch (err) {
   console.error(`❌ ${err.message}`);
