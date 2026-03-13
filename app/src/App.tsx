@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Header } from './components/Header';
-import { BlockCard } from './components/BlockCard';
-import { BlockDetail } from './components/BlockDetail';
+import { SectionCard } from './components/SectionCard';
+import { SectionDetail } from './components/SectionDetail';
 import { SkillList } from './components/SkillList';
 import { CompareView } from './components/CompareView';
 import { FeedView } from './components/FeedView';
@@ -9,8 +9,8 @@ import { BuildsView } from './components/BuildsView';
 import { PublishDialog } from './components/PublishDialog';
 import { ApplyWizard } from './components/ApplyWizard';
 import { SettingsView } from './components/SettingsView';
-import { useBlocks, useSkills, useSystemStatus, useCloneBuild, useAgents } from './hooks/useTauri';
-import { blocks as mockBlocks, skills as mockSkills } from './data/mockBuild';
+import { useSections, useSkills, useSystemStatus, useCloneBuild, useAgents } from './hooks/useTauri';
+import { sections as mockSections, skills as mockSkills } from './data/mockBuild';
 
 type View = 'build' | 'skills' | 'builds' | 'compare' | 'feed' | 'settings';
 
@@ -30,7 +30,7 @@ function CloneToast({ result }: { result: { message: string; type: 'success' | '
 }
 
 function App() {
-  const [selectedBlock, setSelectedBlock] = useState('soul');
+  const [selectedSection, setSelectedSection] = useState('soul');
   const [view, setView] = useState<View>('build');
   const [showPublish, setShowPublish] = useState(false);
   const [compareTarget, setCompareTarget] = useState<Record<string, unknown> | null>(null);
@@ -40,7 +40,7 @@ function App() {
   const { cloneBuild } = useCloneBuild();
 
   const { data: agents } = useAgents();
-  const { data: realBlocks, loading: blocksLoading, error: blocksError } = useBlocks(activeAgent);
+  const { data: realSections, loading: sectionsLoading, error: sectionsError } = useSections(activeAgent);
   const { data: realSkills, loading: skillsLoading } = useSkills();
   const { data: status } = useSystemStatus();
 
@@ -52,18 +52,18 @@ function App() {
     }
   }, [agents]);
 
-  const blocks = realBlocks.length > 0 ? realBlocks : mockBlocks;
+  const sections = realSections.length > 0 ? realSections : mockSections;
   const skills = realSkills.length > 0 ? realSkills : mockSkills;
 
-  const activeBlock = blocks.find((s) => s.id === selectedBlock) ?? blocks[0];
+  const activeSection = sections.find((s) => s.id === selectedSection) ?? sections[0];
 
   useEffect(() => {
-    if (blocks.length > 0 && !blocks.find((s) => s.id === selectedBlock)) {
-      setSelectedBlock(blocks[0].id);
+    if (sections.length > 0 && !sections.find((s) => s.id === selectedSection)) {
+      setSelectedSection(sections[0].id);
     }
-  }, [blocks]);
+  }, [sections]);
 
-  const dataSource = blocksError ? 'mock' : 'live';
+  const dataSource = sectionsError ? 'mock' : 'live';
 
   const navItems: { id: View; icon: string; label: string }[] = [
     { id: 'build', icon: '⬡', label: 'Build' },
@@ -142,26 +142,26 @@ function App() {
       <main className="flex-1 flex overflow-hidden">
         {view === 'build' && (
           <>
-            {/* Block grid */}
+            {/* Section grid */}
             <div className="w-[360px] p-6 overflow-y-auto border-r" style={{ borderColor: 'var(--rc-border)' }}>
               <div className="flex items-center justify-between mb-6">
                 <h3
                   className="text-sm font-semibold tracking-wide"
                   style={{ color: 'var(--rc-text)' }}
                 >
-                  Blocks
+                  Sections
                 </h3>
-                {blocksLoading && (
+                {sectionsLoading && (
                   <span className="animate-pulse" style={{ color: 'var(--rc-cyan)' }}>●</span>
                 )}
               </div>
               <div className="space-y-3">
-                {blocks.map((block) => (
-                  <BlockCard
-                    key={block.id}
-                    block={block}
-                    selected={selectedBlock === block.id}
-                    onClick={() => setSelectedBlock(block.id)}
+                {sections.map((section) => (
+                  <SectionCard
+                    key={section.id}
+                    section={section}
+                    selected={selectedSection === section.id}
+                    onClick={() => setSelectedSection(section.id)}
                   />
                 ))}
               </div>
@@ -169,7 +169,7 @@ function App() {
 
             {/* Detail panel */}
             <div className="flex-1 p-6 overflow-y-auto">
-              <BlockDetail block={activeBlock} />
+              <SectionDetail section={activeSection} />
             </div>
           </>
         )}
@@ -210,7 +210,7 @@ function App() {
 
         {view === 'compare' && (
           <CompareView
-            currentBlocks={blocks}
+            currentSections={sections}
             currentSkills={skills}
             currentName="Quinn"
             initialBuild={compareTarget}
@@ -220,8 +220,8 @@ function App() {
               const res = await cloneBuild(json, mode, activeAgent);
               if (res) {
                 const msg = mode === 'new'
-                  ? `Saved as build: ${res.block_changes[0] || 'done'}`
-                  : `Applied to ${activeAgent || 'agent'}. ${res.applied_skills.length} skills, ${res.skipped_skills.length} skipped. ${res.block_changes.length} changes.`;
+                  ? `Saved as build: ${res.section_changes[0] || 'done'}`
+                  : `Applied to ${activeAgent || 'agent'}. ${res.applied_skills.length} skills, ${res.skipped_skills.length} skipped. ${res.section_changes.length} changes.`;
                 setCloneResult({ message: msg, type: 'success' });
                 setTimeout(() => setCloneResult(null), 6000);
               } else {
@@ -264,7 +264,7 @@ function App() {
           )}
         </span>
         <span className="font-medium">
-          {blocks.length} blocks · {skills.length} skills
+          {sections.length} sections · {skills.length} skills
         </span>
       </footer>
 
