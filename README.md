@@ -66,11 +66,11 @@ npm run tauri dev
 
 ### Features
 
-- **Live section visualization**: reads your OpenClaw config in real-time
+- **Live config visualization**: reads your OpenClaw config in real-time
 - **Multi-agent support**: switch between agents if you run more than one
 - **The Feed**: browse and clone builds published on Nostr
 - **Compare view**: side-by-side diff of any build against yours
-- **Apply wizard**: section-by-section review with security scan, dependency check, and setup guides
+- **Apply wizard**: step-by-step review with security scan, dependency check, and setup guides
 - **Security scanning**: trust score and badge shown before you apply anything
 - **PII scrubber**: strips 12+ pattern types before publishing
 - **Publish flow**: review scrubbed output, sign with Nostr keys, push to relays
@@ -102,7 +102,7 @@ Apply a build to create a new agent or configure an existing one:
 
 1. **Select build**: from the Feed, a file, or a saved build
 2. **Choose target**: pick an agent ID and name
-3. **Review sections**: section-by-section preview with warnings and options
+3. **Review**: full preview with warnings and options
 4. **Apply**: workspace created, skills installed, config wired up
 
 Safety rules:
@@ -189,7 +189,7 @@ clawclawgo/
 │   │   └── hooks/        # useTauri, useNostr
 │   └── src-tauri/    # Rust backend
 │       └── src/
-│           ├── lib.rs    # OpenClaw data reading, section detection, apply
+│           ├── lib.rs    # OpenClaw data reading, config parsing, apply
 │           ├── nostr.rs  # Nostr protocol (keys, publish, subscribe)
 │           └── scrub.rs  # PII scrubber
 ├── specs/            # Schema (build.schema.json), security, dependencies, setup guides

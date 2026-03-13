@@ -19,18 +19,9 @@ ClawClawGo gives you:
 
 ## How It Works
 
-Every AI agent (specifically [OpenClaw](https://github.com/openclaw/openclaw) agents) breaks down into modular **sections**:
+Every AI agent (specifically [OpenClaw](https://github.com/openclaw/openclaw) agents) has a configuration: which models it uses, its personality files, installed skills, connected integrations, scheduled automations, memory settings, and more.
 
-| Section | What It Covers |
-|------|---------------|
-| **Model** | Which LLMs to use, routing rules between tiers |
-| **Persona** | SOUL.md, IDENTITY.md, USER.md: who the agent is |
-| **Skills** | Installed skill packages (bundled + community) |
-| **Integrations** | Channels, calendar, email, smart home, voice I/O |
-| **Automations** | Heartbeat tasks, cron jobs, scheduled work |
-| **Memory** | Context engine, LCM config, memory file structure |
-
-A build captures the state of all sections, scrubs sensitive data, and produces a JSON file that's portable across machines.
+A build captures that configuration as flat JSON, scrubs sensitive data, and produces a portable file you can share across machines. There are no fixed categories. Whatever your agent uses, it goes in the build.
 
 ## What ClawClawGo Is Not
 

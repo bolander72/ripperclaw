@@ -62,4 +62,4 @@ When publishing to Nostr, ClawClawGo uses `export_build_safe` which applies stri
 
 ## Export Format
 
-Exports use the [Build Schema](/reference/schema), a JSON format with `meta`, configuration sections, and `dependencies` at the top level. See the reference for the full spec.
+Exports use the [Build Schema](/reference/schema), a JSON format with `meta`, configuration keys, and `dependencies` at the top level. See the reference for the full spec.

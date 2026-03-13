@@ -55,7 +55,7 @@ The ApplyWizard walks you through five steps:
 1. **Target** - Enter an agent ID, display name, and model strategy (use build's models or your own)
 2. **Security Scan** - Runs schema validation and a client-side security scan. Shows trust score, badge, and any findings. Builds with "block" severity findings cannot proceed.
 3. **Dependencies** - Shows what the build needs: binaries, brew/pip/npm packages, models, config keys, platform requirements, and setup guides. Informational only, never blocks you.
-4. **Review** - Section-by-section action plan showing exactly what will be created, written, or installed
+4. **Review** - Full action plan showing exactly what will be created, written, or installed
 5. **Apply** - Creates the agent workspace, installs skills, writes config. Restart OpenClaw to activate.
 
 ## Using the CLI
@@ -80,7 +80,7 @@ The `--dry-run` flag previews all actions without making any changes:
 
 - Shows which files would be created or modified
 - Lists skills that would be installed
-- Displays the full action plan for each section
+- Displays the full action plan
 - No files are written, no skills are installed, no config is modified
 
 Use this to inspect a build before committing to the apply.

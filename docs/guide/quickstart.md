@@ -26,7 +26,7 @@ If you see **MOCK**, the gateway isn't reachable. ClawClawGo will show sample da
 
 ## 3. View Your Build
 
-The **Build** view shows your current agent's configuration across all sections. Click any section to see its details: which model you're running, what skills are installed, your integrations, etc.
+The **Build** view shows your current agent's configuration in a tree view. Click any key to drill into the details.
 
 ## 4. Save a Snapshot
 
@@ -40,7 +40,7 @@ Switch to **The Feed** to see builds published by other users on Nostr. Find one
 
 The Apply Wizard walks you through:
 1. **Name** your new agent
-2. **Review** what each section will do (write files, install skills, etc.)
+2. **Review** what will be created, written, or installed
 3. **Confirm** and apply
 
 Your new agent gets its own workspace at `~/.openclaw/agents/<name>/`. Restart OpenClaw to activate it.
