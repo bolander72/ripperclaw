@@ -798,8 +798,6 @@ export default function Explore() {
             {/* Nav links */}
             <nav className="hidden sm:flex items-center gap-4 text-sm">
               <Link to="/community" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Community</Link>
-              <Link to="/about" className="text-rc-text-dim hover:text-rc-cyan transition-colors">About</Link>
-              <a href="/docs" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Docs</a>
             </nav>
 
             {/* Live indicator */}
