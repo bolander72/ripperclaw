@@ -628,7 +628,7 @@ function FAQSection() {
     },
     {
       q: 'What\'s in a typical build?',
-      a: 'Builds contain whatever config your agent uses. Common pieces include model routing (which LLMs), personality (how it talks), skills (what it can do), integrations (what it connects to), automations (heartbeat + cron), and memory config. But builds are flexible - they contain your agent's full configuration, not a fixed template.',
+      a: 'Builds contain whatever config your agent uses. Common pieces include model routing (which LLMs), personality (how it talks), skills (what it can do), integrations (what it connects to), automations (heartbeat + cron), and memory config. But builds are flexible - they contain your agent\'s full configuration, not a fixed template.',
     },
     {
       q: 'Do I need OpenClaw to use a build?',
