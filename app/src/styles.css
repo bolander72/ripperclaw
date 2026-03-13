@@ -1,29 +1,40 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-rc-bg: var(--rc-bg);
+  --color-rc-surface: var(--rc-surface);
+  --color-rc-border: var(--rc-border);
+  --color-rc-cyan: var(--rc-cyan);
+  --color-rc-magenta: var(--rc-magenta);
+  --color-rc-green: var(--rc-green);
+  --color-rc-yellow: var(--rc-yellow);
+  --color-rc-red: var(--rc-red);
+  --color-rc-text: var(--rc-text);
+  --color-rc-text-dim: var(--rc-text-dim);
+  --color-rc-text-muted: var(--rc-text-muted);
+
+  --font-family-grotesk: 'Space Grotesk', sans-serif;
+  --font-family-mono: 'JetBrains Mono', monospace;
+}
+
 :root {
-  /* Cyberpunk palette (dark default) */
+  /* Clean modern palette (dark default) */
   --rc-bg: #0a0a0f;
   --rc-surface: #12121a;
   --rc-surface-hover: #1a1a25;
-  --rc-border: #2a2a3a;
+  --rc-border: #1e1e2e;
   --rc-border-active: #00f0ff;
   --rc-cyan: #00f0ff;
   --rc-cyan-dim: #00f0ff66;
   --rc-magenta: #ff00aa;
   --rc-magenta-dim: #ff00aa66;
-  --rc-yellow: #f0e040;
+  --rc-yellow: #ffcc00;
   --rc-green: #00ff88;
   --rc-red: #ff3366;
-  --rc-text: #e0e0f0;
-  --rc-text-dim: #808090;
-  --rc-text-muted: #505060;
-  /* Overlay helpers (dark: white overlays) */
-  --rc-overlay-subtle: rgba(255, 255, 255, 0.03);
-  --rc-overlay-light: rgba(255, 255, 255, 0.05);
-  --rc-overlay-active: rgba(0, 240, 255, 0.10);
-  --rc-overlay-accent: rgba(0, 240, 255, 0.05);
-  --rc-shadow-color: rgba(0, 0, 0, 0.3);
+  --rc-text: #e8e8f0;
+  --rc-text-dim: #8888a0;
+  --rc-text-muted: #555570;
 }
 
 @media (prefers-color-scheme: light) {
@@ -43,12 +54,6 @@
     --rc-text: #1a1a2e;
     --rc-text-dim: #4a4a60;
     --rc-text-muted: #7a7a90;
-    /* Overlay helpers (light: black overlays) */
-    --rc-overlay-subtle: rgba(0, 0, 0, 0.03);
-    --rc-overlay-light: rgba(0, 0, 0, 0.05);
-    --rc-overlay-active: rgba(0, 153, 170, 0.10);
-    --rc-overlay-accent: rgba(0, 153, 170, 0.05);
-    --rc-shadow-color: rgba(0, 0, 0, 0.08);
   }
 }
 
@@ -64,95 +69,88 @@ body {
   color: var(--rc-text);
   min-height: 100vh;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--rc-border);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--rc-cyan);
 }
 
-/* Light mode glow adjustments */
+/* Selection */
+::selection {
+  background: rgba(0, 240, 255, 0.3);
+  color: #e8e8f0;
+}
+
+::-moz-selection {
+  background: rgba(0, 240, 255, 0.3);
+  color: #e8e8f0;
+}
+
 @media (prefers-color-scheme: light) {
-  .block-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 153, 170, 0.15);
+  ::selection {
+    background: rgba(0, 153, 170, 0.2);
+    color: #1a1a2e;
   }
-  .block-card.active {
-    box-shadow: 0 2px 12px rgba(0, 153, 170, 0.2);
-  }
-  .glow-cyan {
-    box-shadow: 0 2px 8px rgba(0, 153, 170, 0.2);
-  }
-  .glow-magenta {
-    box-shadow: 0 2px 8px rgba(204, 0, 136, 0.2);
+  ::-moz-selection {
+    background: rgba(0, 153, 170, 0.2);
+    color: #1a1a2e;
   }
 }
 
-/* Glow effects */
-.glow-cyan {
-  box-shadow: 0 0 8px var(--rc-cyan-dim), inset 0 0 8px var(--rc-cyan-dim);
-  border-color: var(--rc-cyan);
+/* Focus styles */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--rc-cyan);
+  outline-offset: 3px;
 }
 
-.glow-magenta {
-  box-shadow: 0 0 8px var(--rc-magenta-dim), inset 0 0 8px var(--rc-magenta-dim);
-  border-color: var(--rc-magenta);
+/* Smooth animations */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
+.health-pulse {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Card styles */
 .block-card {
   background: var(--rc-surface);
   border: 1px solid var(--rc-border);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 16px;
+  padding: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .block-card:hover {
   background: var(--rc-surface-hover);
-  border-color: var(--rc-cyan);
-  box-shadow: 0 0 12px var(--rc-cyan-dim);
+  border-color: rgba(0, 240, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 .block-card.active {
   border-color: var(--rc-cyan);
-  box-shadow: 0 0 16px var(--rc-cyan-dim), inset 0 0 12px rgba(0, 240, 255, 0.05);
+  background: rgba(0, 240, 255, 0.05);
 }
 
-/* Scanline overlay */
-.scanlines::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.03) 2px,
-    rgba(0, 0, 0, 0.03) 4px
-  );
-  z-index: 9999;
-}
-
-/* Pulse animation for health dot */
-@keyframes pulse-glow {
-  0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--rc-green); }
-  50% { opacity: 0.7; box-shadow: 0 0 12px var(--rc-green); }
-}
-
-.health-pulse {
-  animation: pulse-glow 2s ease-in-out infinite;
+@media (prefers-color-scheme: light) {
+  .block-card.active {
+    background: rgba(0, 153, 170, 0.05);
+  }
 }

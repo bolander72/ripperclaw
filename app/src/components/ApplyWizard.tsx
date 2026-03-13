@@ -405,7 +405,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded flex items-center justify-center text-sm hover:opacity-70 transition-opacity"
+            className="w-8 h-8 rounded-xl flex items-center justify-center text-sm hover:opacity-70 transition-opacity"
             style={{ color: 'var(--rc-text-muted)' }}
           >
             ✕
@@ -427,7 +427,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                 value={agentId}
                 onChange={(e) => setAgentId(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
                 placeholder="e.g. dev-bot, assistant-2, test"
-                className="w-full px-3 py-2 rounded text-sm border font-mono"
+                className="w-full px-3 py-2 rounded-xl text-sm border font-mono"
                 style={{
                   background: 'var(--rc-surface)',
                   borderColor: agentExists ? 'var(--rc-red)' : agentIdValid ? 'var(--rc-cyan)' : 'var(--rc-border)',
@@ -459,7 +459,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                 value={agentName}
                 onChange={(e) => setAgentName(e.target.value)}
                 placeholder={agentId || 'Agent name'}
-                className="w-full px-3 py-2 rounded text-sm border"
+                className="w-full px-3 py-2 rounded-xl text-sm border"
                 style={{
                   background: 'var(--rc-surface)',
                   borderColor: 'var(--rc-border)',
@@ -621,7 +621,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                   {securityFindings.map((finding, i) => (
                     <div
                       key={i}
-                      className="p-2 rounded border text-xs"
+                      className="p-2 rounded-xl border text-xs"
                       style={{
                         borderColor:
                           finding.severity === 'block'
@@ -735,7 +735,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                       {build.dependencies.bins.map((bin, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded text-xs"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs"
                           style={{ background: 'var(--rc-surface)' }}
                         >
                           <span style={{ color: 'var(--rc-text-dim)' }}>?</span>
@@ -761,7 +761,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                       {build.dependencies.brew.map((pkg, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded text-xs"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs"
                           style={{ background: 'var(--rc-surface)' }}
                         >
                           <span style={{ color: 'var(--rc-text-dim)' }}>?</span>
@@ -787,7 +787,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                       {build.dependencies.pip.map((pkg, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded text-xs"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs"
                           style={{ background: 'var(--rc-surface)' }}
                         >
                           <span style={{ color: 'var(--rc-text-dim)' }}>?</span>
@@ -813,7 +813,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                       {build.dependencies.npm.map((pkg, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded text-xs"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs"
                           style={{ background: 'var(--rc-surface)' }}
                         >
                           <span style={{ color: 'var(--rc-text-dim)' }}>?</span>
@@ -839,7 +839,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                       {build.dependencies.models.map((model, i) => (
                         <div
                           key={i}
-                          className="px-3 py-2 rounded text-xs border"
+                          className="px-3 py-2 rounded-xl text-xs border"
                           style={{ background: 'var(--rc-surface)', borderColor: 'var(--rc-border)' }}
                         >
                           <div className="font-mono font-semibold" style={{ color: 'var(--rc-text)' }}>
@@ -877,7 +877,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                       {build.dependencies.config.map((cfg, i) => (
                         <div
                           key={i}
-                          className="px-3 py-2 rounded text-xs border"
+                          className="px-3 py-2 rounded-xl text-xs border"
                           style={{ background: 'var(--rc-surface)', borderColor: 'var(--rc-border)' }}
                         >
                           <div className="flex items-center gap-2">
@@ -886,7 +886,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                             </span>
                             {cfg.required && (
                               <span
-                                className="text-[10px] px-1.5 py-0.5 rounded"
+                                className="text-[10px] px-1.5 py-0.5 rounded-xl"
                                 style={{ background: 'var(--rc-red)', color: 'var(--rc-bg)' }}
                               >
                                 REQUIRED
@@ -917,7 +917,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                       {build.dependencies.platform.map((platform, i) => (
                         <div
                           key={i}
-                          className="px-3 py-1.5 rounded text-xs font-mono"
+                          className="px-3 py-1.5 rounded-xl text-xs font-mono"
                           style={{
                             background:
                               navigator.platform.toLowerCase().includes(platform.toLowerCase())
@@ -946,7 +946,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                       Min OpenClaw Version
                     </div>
                     <div
-                      className="px-3 py-1.5 rounded text-xs font-mono"
+                      className="px-3 py-1.5 rounded-xl text-xs font-mono"
                       style={{ background: 'var(--rc-surface)', color: 'var(--rc-text)' }}
                     >
                       {build.dependencies.minOpenclawVersion}
@@ -970,7 +970,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
                           href={url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-3 py-1.5 rounded text-xs hover:opacity-80 transition-opacity"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs hover:opacity-80 transition-opacity"
                           style={{ background: 'var(--rc-surface)', color: 'var(--rc-cyan)' }}
                         >
                           <span>📖</span>
@@ -1098,7 +1098,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
               {actions.map((action, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded text-xs"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs"
                   style={{ background: 'var(--rc-surface)' }}
                 >
                   <span>
@@ -1141,7 +1141,7 @@ export function ApplyWizard({ build, agents, onClose, onComplete }: Props) {
               {actions.map((action, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded text-xs"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs"
                   style={{ background: 'var(--rc-surface)' }}
                 >
                   <span>

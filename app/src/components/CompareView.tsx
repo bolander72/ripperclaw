@@ -148,7 +148,7 @@ export function CompareView({ currentBlocks, currentSkills, currentName, initial
           </p>
           <button
             onClick={handleFileSelect}
-            className="px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+            className="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
             style={{
               borderColor: 'var(--rc-cyan)',
               color: 'var(--rc-cyan)',
@@ -187,7 +187,7 @@ export function CompareView({ currentBlocks, currentSkills, currentName, initial
               <>
                 <button
                   onClick={() => onClone(imported, 'overwrite')}
-                  className="px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
                   style={{
                     borderColor: 'var(--rc-cyan)',
                     color: 'var(--rc-bg)',
@@ -198,7 +198,7 @@ export function CompareView({ currentBlocks, currentSkills, currentName, initial
                 </button>
                 <button
                   onClick={() => onClone(imported, 'new')}
-                  className="px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
                   style={{
                     borderColor: 'var(--rc-magenta)',
                     color: 'var(--rc-magenta)',
@@ -211,7 +211,7 @@ export function CompareView({ currentBlocks, currentSkills, currentName, initial
             )}
             <button
               onClick={() => { setImported(null); onClear?.(); }}
-              className="px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
               style={{
                 borderColor: 'var(--rc-border)',
                 color: 'var(--rc-text-dim)',
@@ -241,7 +241,7 @@ export function CompareView({ currentBlocks, currentSkills, currentName, initial
           {diff.blockDiffs.map((sd) => (
             <div
               key={sd.id}
-              className="grid grid-cols-[1fr_1fr_1fr] gap-4 py-3 px-4 rounded"
+              className="grid grid-cols-[1fr_1fr_1fr] gap-4 py-3 px-4 rounded-xl"
               style={{
                 background: sd.match ? 'var(--rc-overlay-subtle)' : 'var(--rc-overlay-subtle)',
                 border: sd.match ? 'none' : '1px solid var(--rc-border)',
@@ -298,7 +298,7 @@ export function CompareView({ currentBlocks, currentSkills, currentName, initial
               </h4>
               <div className="space-y-1">
                 {diff.shared.map((name) => (
-                  <div key={name} className="text-xs py-1 px-2 rounded" style={{ background: 'rgba(0,255,136,0.05)', color: 'var(--rc-text-dim)' }}>
+                  <div key={name} className="text-xs py-1 px-2 rounded-xl" style={{ background: 'rgba(0,255,136,0.05)', color: 'var(--rc-text-dim)' }}>
                     {name}
                   </div>
                 ))}
@@ -312,7 +312,7 @@ export function CompareView({ currentBlocks, currentSkills, currentName, initial
               </h4>
               <div className="space-y-1">
                 {diff.onlyYours.map((name) => (
-                  <div key={name} className="text-xs py-1 px-2 rounded" style={{ background: 'var(--rc-overlay-accent)', color: 'var(--rc-cyan)' }}>
+                  <div key={name} className="text-xs py-1 px-2 rounded-xl" style={{ background: 'var(--rc-overlay-accent)', color: 'var(--rc-cyan)' }}>
                     {name}
                   </div>
                 ))}
@@ -326,7 +326,7 @@ export function CompareView({ currentBlocks, currentSkills, currentName, initial
               </h4>
               <div className="space-y-1">
                 {diff.onlyTheirs.map((name) => (
-                  <div key={name} className="text-xs py-1 px-2 rounded" style={{ background: 'rgba(255,0,170,0.05)', color: 'var(--rc-magenta)' }}>
+                  <div key={name} className="text-xs py-1 px-2 rounded-xl" style={{ background: 'rgba(255,0,170,0.05)', color: 'var(--rc-magenta)' }}>
                     {name}
                   </div>
                 ))}

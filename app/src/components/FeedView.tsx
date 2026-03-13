@@ -209,7 +209,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
             </h3>
             <div className="flex items-center gap-2">
               {isUsingMock && (
-                <span className="text-[10px] px-2 py-0.5 rounded" style={{
+                <span className="text-[10px] px-2 py-0.5 rounded-xl" style={{
                   background: 'rgba(255,0,170,0.1)',
                   color: 'var(--rc-magenta)',
                   border: '1px solid var(--rc-magenta-dim)',
@@ -240,7 +240,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                 </div>
                 <button
                   onClick={() => fetchFeed(50)}
-                  className="text-[10px] px-2 py-1 rounded border transition-all hover:opacity-80"
+                  className="text-[10px] px-2 py-1 rounded-xl border transition-all hover:opacity-80"
                   style={{
                     borderColor: 'var(--rc-cyan)',
                     color: 'var(--rc-cyan)',
@@ -257,7 +257,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                 </span>
                 <button
                   onClick={() => setShowKeySetup(!showKeySetup)}
-                  className="text-[10px] px-2 py-1 rounded border transition-all hover:opacity-80"
+                  className="text-[10px] px-2 py-1 rounded-xl border transition-all hover:opacity-80"
                   style={{
                     borderColor: 'var(--rc-cyan)',
                     color: 'var(--rc-cyan)',
@@ -285,7 +285,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                     await generate();
                     setShowKeySetup(false);
                   }}
-                  className="w-full py-2 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                  className="w-full py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
                   style={{
                     borderColor: 'var(--rc-cyan)',
                     color: 'var(--rc-cyan)',
@@ -301,7 +301,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                     value={nsecInput}
                     onChange={(e) => setNsecInput(e.target.value)}
                     placeholder="nsec1..."
-                    className="flex-1 px-3 py-2 rounded text-xs font-mono border outline-none"
+                    className="flex-1 px-3 py-2 rounded-xl text-xs font-mono border outline-none"
                     style={{
                       background: 'var(--rc-overlay-subtle)',
                       borderColor: 'var(--rc-border)',
@@ -316,7 +316,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                         setShowKeySetup(false);
                       }
                     }}
-                    className="px-3 py-2 rounded text-xs border transition-all hover:opacity-80"
+                    className="px-3 py-2 rounded-xl text-xs border transition-all hover:opacity-80"
                     style={{
                       borderColor: 'var(--rc-border)',
                       color: 'var(--rc-text-dim)',
@@ -349,7 +349,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
-                className="px-3 py-1 rounded text-[10px] font-semibold uppercase tracking-wider border transition-all"
+                className="px-3 py-1 rounded-xl text-[10px] font-semibold uppercase tracking-wider border transition-all"
                 style={{
                   borderColor: typeFilter === t ? 'var(--rc-magenta)' : 'var(--rc-border)',
                   color: typeFilter === t ? 'var(--rc-magenta)' : 'var(--rc-text-muted)',
@@ -364,7 +364,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => setFilter(null)}
-                className="px-3 py-1 rounded text-[10px] font-semibold uppercase tracking-wider border transition-all"
+                className="px-3 py-1 rounded-xl text-[10px] font-semibold uppercase tracking-wider border transition-all"
                 style={{
                   borderColor: !filter ? 'var(--rc-cyan)' : 'var(--rc-border)',
                   color: !filter ? 'var(--rc-cyan)' : 'var(--rc-text-muted)',
@@ -377,7 +377,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                 <button
                   key={t}
                   onClick={() => setFilter(filter === t ? null : t)}
-                  className="px-3 py-1 rounded text-[10px] font-semibold uppercase tracking-wider border transition-all"
+                  className="px-3 py-1 rounded-xl text-[10px] font-semibold uppercase tracking-wider border transition-all"
                   style={{
                     borderColor: filter === t ? templateColors[t] : 'var(--rc-border)',
                     color: filter === t ? templateColors[t] : 'var(--rc-text-muted)',
@@ -393,7 +393,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                 <button
                   key={s}
                   onClick={() => setSortBy(s)}
-                  className="px-2 py-1 rounded text-[10px] font-semibold uppercase tracking-wider border transition-all"
+                  className="px-2 py-1 rounded-xl text-[10px] font-semibold uppercase tracking-wider border transition-all"
                   style={{
                     borderColor: sortBy === s ? 'var(--rc-magenta)' : 'var(--rc-border)',
                     color: sortBy === s ? 'var(--rc-magenta)' : 'var(--rc-text-muted)',
@@ -425,7 +425,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                       {entry.name}
                     </span>
                     <span
-                      className="text-[10px] px-1.5 py-0.5 rounded font-mono uppercase"
+                      className="text-[10px] px-1.5 py-0.5 rounded-xl font-mono uppercase"
                       style={{
                         color: templateColors[entry.template] || 'var(--rc-text-muted)',
                         border: `1px solid ${templateColors[entry.template] || 'var(--rc-border)'}33`,
@@ -435,7 +435,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                     </span>
                     {entry.publishType === 'block' && entry.blockType && (
                       <span
-                        className="text-[9px] px-1.5 py-0.5 rounded font-semibold"
+                        className="text-[9px] px-1.5 py-0.5 rounded-xl font-semibold"
                         style={{
                           color: 'var(--rc-cyan)',
                           background: 'rgba(0,240,255,0.1)',
@@ -447,7 +447,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                     )}
                     {entry.remixCount > 0 && (
                       <span
-                        className="text-[9px] px-1.5 py-0.5 rounded font-semibold"
+                        className="text-[9px] px-1.5 py-0.5 rounded-xl font-semibold"
                         style={{
                           color: 'var(--rc-magenta)',
                           background: 'rgba(255,0,170,0.1)',
@@ -458,7 +458,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                       </span>
                     )}
                     {entry.isMock && (
-                      <span className="text-[9px] px-1 py-0.5 rounded" style={{
+                      <span className="text-[9px] px-1 py-0.5 rounded-xl" style={{
                         color: 'var(--rc-text-muted)',
                         opacity: 0.5,
                       }}>
@@ -508,7 +508,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                   {entry.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="text-[9px] px-1.5 py-0.5 rounded font-mono cursor-pointer"
+                      className="text-[9px] px-1.5 py-0.5 rounded-xl font-mono cursor-pointer"
                       style={{
                         background: 'var(--rc-overlay-subtle)',
                         color: 'var(--rc-text-muted)',
@@ -547,7 +547,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                 {selectedBuild.name}
               </h2>
               <span
-                className="text-xs px-2 py-1 rounded font-mono uppercase"
+                className="text-xs px-2 py-1 rounded-xl font-mono uppercase"
                 style={{
                   color: templateColors[selectedBuild.template],
                   border: `1px solid ${templateColors[selectedBuild.template]}66`,
@@ -565,7 +565,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
             </p>
 
             {selectedBuild.model && (
-              <div className="mb-4 py-2 px-3 rounded" style={{ background: 'var(--rc-overlay-subtle)' }}>
+              <div className="mb-4 py-2 px-3 rounded-xl" style={{ background: 'var(--rc-overlay-subtle)' }}>
                 <div className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--rc-text-muted)' }}>
                   Model
                 </div>
@@ -578,7 +578,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
             {/* Provenance */}
             {(selectedBuild.forkOf || selectedBuild.remixCount > 0) && (
               <div
-                className="mb-6 py-3 px-3 rounded border"
+                className="mb-6 py-3 px-3 rounded-xl border"
                 style={{ background: 'rgba(255,0,170,0.03)', borderColor: 'rgba(255,0,170,0.15)' }}
               >
                 <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'var(--rc-magenta)' }}>
@@ -689,7 +689,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
 
             <div className="flex gap-3">
               <button
-                className="flex-1 py-2 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                className="flex-1 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
                 style={{
                   borderColor: 'var(--rc-cyan)',
                   color: 'var(--rc-cyan)',
@@ -723,7 +723,7 @@ export function FeedView({ onCompare }: FeedViewProps) {
                 Compare to Mine
               </button>
               <button
-                className="flex-1 py-2 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                className="flex-1 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
                 style={{
                   borderColor: 'var(--rc-border)',
                   color: 'var(--rc-text-dim)',

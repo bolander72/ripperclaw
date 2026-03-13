@@ -94,7 +94,7 @@ export function SettingsView() {
                 Public Key (npub)
               </label>
               <div
-                className="px-3 py-2 rounded border text-xs font-mono select-all"
+                className="px-3 py-2 rounded-xl border text-xs font-mono select-all"
                 style={{ ...inputStyle, cursor: 'text' }}
               >
                 {keys.npub}
@@ -109,7 +109,7 @@ export function SettingsView() {
               {showNsec && revealedNsec ? (
                 <div className="space-y-2">
                   <div
-                    className="px-3 py-2 rounded border text-xs font-mono select-all break-all"
+                    className="px-3 py-2 rounded-xl border text-xs font-mono select-all break-all"
                     style={{ ...inputStyle, borderColor: 'var(--rc-red)' }}
                   >
                     {revealedNsec}
@@ -125,7 +125,7 @@ export function SettingsView() {
               )}
               <button
                 onClick={handleReveal}
-                className="mt-1 text-[10px] px-3 py-1 rounded border transition-all hover:opacity-80"
+                className="mt-1 text-[10px] px-3 py-1 rounded-xl border transition-all hover:opacity-80"
                 style={{
                   borderColor: showNsec ? 'var(--rc-border)' : 'var(--rc-yellow)',
                   color: showNsec ? 'var(--rc-text-dim)' : 'var(--rc-yellow)',
@@ -146,13 +146,13 @@ export function SettingsView() {
                   value={nsecInput}
                   onChange={(e) => { setNsecInput(e.target.value); setImportError(null); }}
                   placeholder="nsec1..."
-                  className="flex-1 px-3 py-2 rounded text-xs border outline-none font-mono"
+                  className="flex-1 px-3 py-2 rounded-xl text-xs border outline-none font-mono"
                   style={inputStyle}
                 />
                 <button
                   onClick={handleImport}
                   disabled={!nsecInput.trim()}
-                  className="px-4 py-2 rounded text-xs font-semibold border transition-all hover:opacity-80 disabled:opacity-40"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold border transition-all hover:opacity-80 disabled:opacity-40"
                   style={{ borderColor: 'var(--rc-cyan)', color: 'var(--rc-cyan)' }}
                 >
                   Import
@@ -166,7 +166,7 @@ export function SettingsView() {
             <div className="pt-2">
               {confirmRegenerate ? (
                 <div
-                  className="p-3 rounded border text-xs space-y-2"
+                  className="p-3 rounded-xl border text-xs space-y-2"
                   style={{ borderColor: 'var(--rc-red)', background: 'rgba(255,50,50,0.05)' }}
                 >
                   <div style={{ color: 'var(--rc-red)' }}>
@@ -176,14 +176,14 @@ export function SettingsView() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setConfirmRegenerate(false)}
-                      className="px-3 py-1 rounded text-[10px] border transition-all hover:opacity-80"
+                      className="px-3 py-1 rounded-xl text-[10px] border transition-all hover:opacity-80"
                       style={{ borderColor: 'var(--rc-border)', color: 'var(--rc-text-dim)' }}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleRegenerate}
-                      className="px-3 py-1 rounded text-[10px] border transition-all hover:opacity-80"
+                      className="px-3 py-1 rounded-xl text-[10px] border transition-all hover:opacity-80"
                       style={{ borderColor: 'var(--rc-red)', color: 'var(--rc-red)' }}
                     >
                       Yes, Regenerate
@@ -193,7 +193,7 @@ export function SettingsView() {
               ) : (
                 <button
                   onClick={() => setConfirmRegenerate(true)}
-                  className="text-[10px] px-3 py-1 rounded border transition-all hover:opacity-80"
+                  className="text-[10px] px-3 py-1 rounded-xl border transition-all hover:opacity-80"
                   style={{ borderColor: 'var(--rc-border)', color: 'var(--rc-text-muted)' }}
                 >
                   Regenerate Key
@@ -209,7 +209,7 @@ export function SettingsView() {
             <div className="flex gap-2">
               <button
                 onClick={async () => { await generate(); await refresh(); }}
-                className="px-4 py-2 rounded text-xs font-semibold border transition-all hover:opacity-80"
+                className="px-4 py-2 rounded-xl text-xs font-semibold border transition-all hover:opacity-80"
                 style={{ borderColor: 'var(--rc-cyan)', color: 'var(--rc-cyan)', background: 'var(--rc-overlay-active)' }}
               >
                 Generate New Identity
@@ -222,13 +222,13 @@ export function SettingsView() {
                   value={nsecInput}
                   onChange={(e) => { setNsecInput(e.target.value); setImportError(null); }}
                   placeholder="Or import: nsec1..."
-                  className="flex-1 px-3 py-2 rounded text-xs border outline-none font-mono"
+                  className="flex-1 px-3 py-2 rounded-xl text-xs border outline-none font-mono"
                   style={inputStyle}
                 />
                 <button
                   onClick={handleImport}
                   disabled={!nsecInput.trim()}
-                  className="px-4 py-2 rounded text-xs font-semibold border transition-all hover:opacity-80 disabled:opacity-40"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold border transition-all hover:opacity-80 disabled:opacity-40"
                   style={{ borderColor: 'var(--rc-cyan)', color: 'var(--rc-cyan)' }}
                 >
                   Import
@@ -279,7 +279,7 @@ export function SettingsView() {
                     onChange={(e) => updateField(field, e.target.value)}
                     placeholder={placeholder}
                     rows={2}
-                    className="w-full px-3 py-2 rounded text-xs border outline-none resize-none"
+                    className="w-full px-3 py-2 rounded-xl text-xs border outline-none resize-none"
                     style={inputStyle}
                   />
                 ) : (
@@ -288,7 +288,7 @@ export function SettingsView() {
                     value={profile[field]}
                     onChange={(e) => updateField(field, e.target.value)}
                     placeholder={placeholder}
-                    className="w-full px-3 py-2 rounded text-xs border outline-none"
+                    className="w-full px-3 py-2 rounded-xl text-xs border outline-none"
                     style={inputStyle}
                   />
                 )}
@@ -296,7 +296,7 @@ export function SettingsView() {
             ))}
 
             {profileError && (
-              <div className="text-[10px] p-2 rounded" style={{ color: 'var(--rc-red)', background: 'rgba(255,50,50,0.05)' }}>
+              <div className="text-[10px] p-2 rounded-xl" style={{ color: 'var(--rc-red)', background: 'rgba(255,50,50,0.05)' }}>
                 {profileError}
               </div>
             )}
@@ -309,7 +309,7 @@ export function SettingsView() {
             <button
               onClick={handleSaveProfile}
               disabled={saving}
-              className="px-6 py-2 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80 disabled:opacity-40"
+              className="px-6 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80 disabled:opacity-40"
               style={{
                 borderColor: 'var(--rc-cyan)',
                 color: 'var(--rc-cyan)',
@@ -337,7 +337,7 @@ export function SettingsView() {
           {relays.map((relay) => (
             <div
               key={relay.url}
-              className="flex items-center justify-between px-3 py-2 rounded border text-xs"
+              className="flex items-center justify-between px-3 py-2 rounded-xl border text-xs"
               style={{ borderColor: 'var(--rc-border)', background: 'var(--rc-surface)' }}
             >
               <span className="font-mono text-[11px]" style={{ color: 'var(--rc-text)' }}>
@@ -352,7 +352,7 @@ export function SettingsView() {
                     setRelayError(String(err));
                   }
                 }}
-                className="text-[10px] px-2 py-0.5 rounded transition-all hover:opacity-80"
+                className="text-[10px] px-2 py-0.5 rounded-xl transition-all hover:opacity-80"
                 style={{ color: 'var(--rc-text-muted)' }}
                 title="Remove relay"
               >
@@ -375,7 +375,7 @@ export function SettingsView() {
               }
             }}
             placeholder="wss://relay.example.com"
-            className="flex-1 px-3 py-2 rounded text-xs border outline-none font-mono"
+            className="flex-1 px-3 py-2 rounded-xl text-xs border outline-none font-mono"
             style={inputStyle}
           />
           <button
@@ -390,7 +390,7 @@ export function SettingsView() {
               }
             }}
             disabled={!newRelayUrl.trim()}
-            className="px-4 py-2 rounded text-xs font-semibold border transition-all hover:opacity-80 disabled:opacity-40"
+            className="px-4 py-2 rounded-xl text-xs font-semibold border transition-all hover:opacity-80 disabled:opacity-40"
             style={{ borderColor: 'var(--rc-cyan)', color: 'var(--rc-cyan)' }}
           >
             Add

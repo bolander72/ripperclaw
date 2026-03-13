@@ -12,10 +12,10 @@ const sourceColor: Record<string, string> = {
 };
 
 const sourceBadge: Record<string, string> = {
-  bundled: 'STK',
-  custom: 'CUS',
-  clawhub: 'HUB',
-  local: 'LOC',
+  bundled: 'Stock',
+  custom: 'Custom',
+  clawhub: 'ClawHub',
+  local: 'Local',
 };
 
 export function SkillList({ skills }: Props) {
@@ -29,39 +29,40 @@ export function SkillList({ skills }: Props) {
   const sections = Object.entries(grouped).filter(([, items]) => items.length > 0);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {sections.map(([source, items]) => (
         <div key={source}>
           <h4
-            className="text-xs font-semibold uppercase tracking-widest mb-2"
+            className="text-sm font-semibold mb-3 capitalize"
             style={{ color: sourceColor[source] }}
           >
             {source} ({items.length})
           </h4>
-          <div className="space-y-1">
+          <div className="space-y-2">
             {items.map((skill) => (
               <div
                 key={skill.name}
-                className="flex items-center justify-between py-1.5 px-3 rounded text-xs"
-                style={{ background: 'var(--rc-overlay-subtle)' }}
+                className="flex items-center justify-between p-3 rounded-xl transition-all hover:bg-white/[0.02]"
+                style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--rc-border)' }}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <span
-                    className="w-1.5 h-1.5 rounded-full"
+                    className="w-2 h-2 rounded-full"
                     style={{
                       backgroundColor: skill.enabled !== false ? 'var(--rc-green)' : 'var(--rc-red)',
                     }}
                   />
-                  <span style={{ color: 'var(--rc-text)' }}>{skill.name}</span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--rc-text)' }}>{skill.name}</span>
                   {skill.version && (
-                    <span style={{ color: 'var(--rc-text-muted)' }}>v{skill.version}</span>
+                    <span className="text-xs font-mono" style={{ color: 'var(--rc-text-muted)' }}>v{skill.version}</span>
                   )}
                 </div>
                 <span
-                  className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+                  className="text-xs font-medium px-2.5 py-1 rounded-lg"
                   style={{
                     color: sourceColor[skill.source],
-                    border: `1px solid ${sourceColor[skill.source]}33`,
+                    background: `${sourceColor[skill.source]}15`,
+                    border: `1px solid ${sourceColor[skill.source]}40`,
                   }}
                 >
                   {sourceBadge[skill.source]}

@@ -144,7 +144,7 @@ export function BuildsView({ onCompare, onApply }: Props) {
           <div className="flex gap-2">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+              className="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
               style={{
                 borderColor: 'var(--rc-border)',
                 color: 'var(--rc-text-muted)',
@@ -166,7 +166,7 @@ export function BuildsView({ onCompare, onApply }: Props) {
             />
             <button
               onClick={() => setShowSaveDialog(true)}
-              className="px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-all hover:opacity-80"
+              className="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all hover:opacity-80"
               style={{
                 background: 'var(--rc-cyan)',
                 color: 'var(--rc-bg)',
@@ -221,7 +221,7 @@ export function BuildsView({ onCompare, onApply }: Props) {
                 onChange={(e) => setSaveName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && saveCurrentBuild()}
                 placeholder="e.g. Production, Experimental, Lean Ops..."
-                className="flex-1 px-3 py-2 rounded text-xs border"
+                className="flex-1 px-3 py-2 rounded-xl text-xs border"
                 style={{
                   background: 'var(--rc-bg)',
                   borderColor: 'var(--rc-border)',
@@ -232,7 +232,7 @@ export function BuildsView({ onCompare, onApply }: Props) {
               <button
                 onClick={saveCurrentBuild}
                 disabled={saving || !saveName.trim()}
-                className="px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider transition-all hover:opacity-80 disabled:opacity-30"
+                className="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all hover:opacity-80 disabled:opacity-30"
                 style={{
                   background: 'var(--rc-cyan)',
                   color: 'var(--rc-bg)',
@@ -242,7 +242,7 @@ export function BuildsView({ onCompare, onApply }: Props) {
               </button>
               <button
                 onClick={() => { setShowSaveDialog(false); setSaveName(''); }}
-                className="px-3 py-2 rounded text-xs transition-all hover:opacity-80"
+                className="px-3 py-2 rounded-xl text-xs transition-all hover:opacity-80"
                 style={{ color: 'var(--rc-text-muted)' }}
               >
                 Cancel
@@ -289,7 +289,7 @@ export function BuildsView({ onCompare, onApply }: Props) {
                 >
                   <div className="flex items-center gap-3">
                     <span
-                      className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold"
+                      className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold"
                       style={{
                         background: 'var(--rc-overlay-active)',
                         color: 'var(--rc-cyan)',
@@ -336,7 +336,7 @@ export function BuildsView({ onCompare, onApply }: Props) {
                             return (
                               <span
                                 key={id}
-                                className="px-2 py-1 rounded text-[10px] font-mono"
+                                className="px-2 py-1 rounded-xl text-[10px] font-mono"
                                 style={{
                                   background: 'var(--rc-overlay-accent)',
                                   color: 'var(--rc-text-dim)',
@@ -356,7 +356,7 @@ export function BuildsView({ onCompare, onApply }: Props) {
                       {onApply && (
                         <button
                           onClick={() => onApply(cached)}
-                          className="px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                          className="px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
                           style={{
                             borderColor: 'var(--rc-cyan)',
                             color: 'var(--rc-bg)',
@@ -369,7 +369,7 @@ export function BuildsView({ onCompare, onApply }: Props) {
                       {onCompare && (
                         <button
                           onClick={() => onCompare(cached)}
-                          className="px-3 py-1.5 rounded text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
+                          className="px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-all hover:opacity-80"
                           style={{
                             borderColor: 'var(--rc-magenta)',
                             color: 'var(--rc-magenta)',
