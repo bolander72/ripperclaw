@@ -6,7 +6,7 @@ Privacy-first. Decentralized. Open source. Think DuckDuckGo for OpenClaw configu
 
 **[clawclawgo.com](https://clawclawgo.com)**
 
-![v0.2.1](https://img.shields.io/badge/version-0.2.1-green.svg)
+![v0.2.2](https://img.shields.io/badge/version-0.2.2-green.svg)
 ![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Tauri v2](https://img.shields.io/badge/tauri-v2-orange.svg)
 ![Nostr](https://img.shields.io/badge/nostr-kind_38333-purple.svg)
