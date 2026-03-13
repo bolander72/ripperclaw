@@ -170,7 +170,7 @@ pub fn scrub_build(
     }
 
     // Scrub skill descriptions (schema v2: blocks.skills.items, legacy: mods array)
-    if let Some(skills) = build_data.pointer_mut("/blocks/skills/items").and_then(|v| v.as_array_mut()) {
+    if let Some(skills) = build_data.pointer_mut("/skills/items").and_then(|v| v.as_array_mut()) {
         for (i, skill_val) in skills.iter_mut().enumerate() {
             if let Some(desc) = skill_val.get("description").and_then(|d| d.as_str()).map(String::from) {
                 let scrubbed = scrub_string(&desc, &patterns);
