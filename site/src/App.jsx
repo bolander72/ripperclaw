@@ -154,8 +154,14 @@ function Hero() {
         </p>
 
         {/* CTA */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md mx-auto">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-lg mx-auto">
           <DownloadDropdown className="w-full" />
+          <a
+            href="/docs"
+            className="w-full px-6 py-3 bg-white/5 text-rc-text font-grotesk font-semibold rounded-xl hover:bg-white/10 transition-colors border border-rc-border flex items-center justify-center gap-2"
+          >
+            Read the Docs
+          </a>
           <Link
             to="/explore"
             className="w-full px-6 py-3 bg-white/5 text-rc-text font-grotesk font-semibold rounded-xl hover:bg-white/10 transition-colors border border-rc-border flex items-center justify-center gap-2"
@@ -473,10 +479,6 @@ function WhatIsSection() {
           <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
             What is ClawClawGo?
           </h2>
-          <p className="text-rc-text-dim text-lg max-w-2xl mx-auto">
-            A search engine and marketplace for AI agent builds.
-            Privacy-first, decentralized, open source. Think DuckDuckGo for agent configurations.
-          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -555,41 +557,6 @@ function HowItWorks() {
               </div>
             </motion.div>
           ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── Anatomy of a Build ──────────────────────────────────
-
-function AnatomySection() {
-  return (
-    <section className="py-24 px-6">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-grotesk font-bold text-rc-text mb-4">
-            What's in a build?
-          </h2>
-          <p className="text-rc-text-dim text-lg max-w-2xl mx-auto">
-            A build contains your agent's complete configuration: model routing, personality, skills, integrations, automations, memory, and any custom config. It's flat JSON - no fixed structure. If your agent uses it, it's in the build.
-          </p>
-        </div>
-
-        <div className="max-w-3xl mx-auto">
-          <div className="p-8 rounded-2xl border border-rc-border bg-gradient-to-br from-purple-500/5 to-cyan-500/5">
-            <div className="space-y-4 text-rc-text-dim text-sm leading-relaxed">
-              <p>
-                Builds are config exports. You configure your agent how you want it (which models, which skills, how it talks, what it automates) and export that as a build. Share it, apply it to other agents, or use it as a starting point.
-              </p>
-              <p>
-                Every build is different. Some use model routing with multiple tiers. Others use a single model. Some have deep personality configs and memory systems. Others are minimal. The schema is flexible - builds contain whatever your agent has configured.
-              </p>
-              <p>
-                Browse builds to see how others configure their agents. Copy what works. Remix. The goal is fast iteration on agent configurations, not rigid templates.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -788,7 +755,7 @@ function Landing() {
       <ConveyorBelt onSelectBuild={setSelectedBuild} />
       <WhatIsSection />
       <HowItWorks />
-      <AnatomySection />
+
       <FAQSection />
       <Footer />
 
