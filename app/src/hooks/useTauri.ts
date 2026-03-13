@@ -38,7 +38,7 @@ function useTauriCommand<T>(
   return { data, loading, error, refresh: load };
 }
 
-export function useBlocks(agentId?: string) {
+export function useSections(agentId?: string) {
   return useTauriCommand<BlockData[]>(
     'get_blocks',
     [],
@@ -46,6 +46,9 @@ export function useBlocks(agentId?: string) {
     [agentId]
   );
 }
+
+// Legacy alias
+export const useBlocks = useSections;
 
 export interface AgentInfo {
   id: string;
@@ -124,7 +127,7 @@ export function useCloneBuild() {
   const [result, setResult] = useState<{
     applied_skills: string[];
     skipped_skills: string[];
-    block_changes: string[];
+    section_changes: string[];
     backup_path?: string;
   } | null>(null);
 
@@ -155,7 +158,7 @@ export function useBuilds() {
     name: string;
     exportedAt: string;
     path: string;
-    blocks: number;
+    sections: number;
     skills: number;
   }>>('list_builds', []);
 }
