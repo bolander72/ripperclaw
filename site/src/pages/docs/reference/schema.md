@@ -11,7 +11,7 @@ The build format is a JSON document with configuration sections at the top level
 
 ```json
 {
-  "schema": 3,
+  "schema": 4,
   "meta": { ... },
   "model": { ... },
   "persona": { ... },
@@ -19,7 +19,7 @@ The build format is a JSON document with configuration sections at the top level
   "integrations": { ... },
   "automations": { ... },
   "memory": { ... },
-  "dependencies": { ... }
+  "permissions": [ ... ]
 }
 ```
 
@@ -27,37 +27,68 @@ The build format is a JSON document with configuration sections at the top level
 
 ```json
 {
-  "schema": 3
+  "schema": 4
 }
 ```
 
-The schema version is always `3`. Schema v2 wrapped configuration in a `blocks` object; v3 uses a flat structure for simplicity.
+The schema version is `4`. Schema v3 used Nostr-based publishing; v4 uses GitHub-based publishing with multi-source aggregation.
 
 ## Meta
 
 ```json
 {
   "name": "Quinn",
-  "agentName": "Quinn",
-  "author": "@Bolander72",
+  "description": "Full-featured personal assistant with voice and smart home",
+  "tags": ["personal", "voice", "smart-home"],
+  "compatibility": ["openclaw", "claude-code"],
+  "permissions": ["filesystem", "web-search", "email", "calendar", "smart-home"],
+  "source": "github",
+  "repoUrl": "https://github.com/bolander72/quinn-build",
   "version": 1,
-  "exportedAt": "2026-03-12T18:00:00.000Z",
-  "openclawVersion": "1.5.0",
-  "description": "Full-featured personal assistant",
-  "tags": ["personal", "voice", "smart-home"]
+  "exportedAt": "2026-03-14T18:00:00.000Z",
+  "openclawVersion": "1.6.0"
 }
 ```
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `name` | string | yes | Human-readable build name |
-| `agentName` | string | yes | Name of the agent this was exported from |
-| `author` | string | yes | Author identifier (e.g., @username) |
-| `version` | number | yes | Build revision number (bumps on re-export) |
-| `exportedAt` | string | yes | ISO 8601 timestamp of export |
+| `description` | string | recommended | Short description of what this agent does |
+| `tags` | string[] | recommended | Searchable tags for categorization |
+| `compatibility` | string[] | recommended | Which agents can use this build (openclaw, claude-code, cursor, etc.) |
+| `permissions` | string[] | recommended | Declared tool permissions (filesystem, web-search, email, etc.) |
+| `source` | string | yes | Build source: github, clawhub, skillssh, or local |
+| `repoUrl` | string | for github | GitHub repository URL |
+| `version` | number | no | Build revision number (bumps on re-export) |
+| `exportedAt` | string | no | ISO 8601 timestamp of export |
 | `openclawVersion` | string | no | OpenClaw version at export time |
-| `description` | string | no | Short description of what this agent does |
-| `tags` | string[] | no | Searchable tags for categorization |
+
+### Compatibility
+
+List which AI agents can use this build:
+
+- `openclaw` — OpenClaw agent framework
+- `claude-code` — Anthropic's Claude Code CLI
+- `cursor` — Cursor AI editor
+- `windsurf` — Windsurf AI editor
+- `codex` — Codex agent
+- `pi` — Pi agent
+- `opencode` — OpenCode agent
+
+### Permissions
+
+Declare which tools/capabilities your build uses:
+
+- `filesystem` — Read, Write, Edit files
+- `web-search` — Brave Search, web research
+- `email` — Email reading/sending (himalaya, gog)
+- `calendar` — Calendar access (caldir, gog)
+- `smart-home` — Home Assistant, HomeKit
+- `message` — iMessage, Telegram, Discord
+- `exec` — Shell command execution
+- `browser` — Browser automation
+
+The security scanner compares declared permissions against detected tool usage.
 
 ## Configuration Sections
 
