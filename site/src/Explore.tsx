@@ -147,7 +147,7 @@ export default function Explore() {
                   kit={kit}
                   index={i}
                   isNew={newIds.has(kit.id)}
-                  onClick={() => setSelectedBuild(kit)}
+                  onClick={() => setSelectedKit(kit)}
                   onTagClick={(tag) => setTagFilter(tag)}
                 />
               ))}
@@ -161,9 +161,9 @@ export default function Explore() {
         {selectedKit && !exportKit && (
           <KitDetail
             kit={selectedKit}
-            onClose={() => setSelectedBuild(null)}
+            onClose={() => setSelectedKit(null)}
             onExport={(kit) => {
-              setSelectedBuild(null)
+              setSelectedKit(null)
               setExportKit(kit)
             }}
           />

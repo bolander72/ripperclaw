@@ -201,7 +201,7 @@ export default function Search() {
                     kit={kit}
                     index={i}
                     isNew={false}
-                    onClick={() => setSelectedBuild(kit)}
+                    onClick={() => setSelectedKit(kit)}
                     onTagClick={(tag) => handleSearchChange(tag)}
                   />
                 ))}
@@ -218,17 +218,17 @@ export default function Search() {
         {selectedKit && !exportKit && (
           <KitDetail
             kit={selectedKit}
-            onClose={() => setSelectedBuild(null)}
+            onClose={() => setSelectedKit(null)}
             onExport={(kit) => {
-              setSelectedBuild(null)
-              setExportBuild(kit)
+              setSelectedKit(null)
+              setExportKit(kit)
             }}
           />
         )}
         {exportKit && (
           <ExportWizard
             kit={exportKit}
-            onClose={() => setExportBuild(null)}
+            onClose={() => setExportKit(null)}
           />
         )}
       </AnimatePresence>
