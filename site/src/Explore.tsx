@@ -229,7 +229,7 @@ export default function Explore() {
             </div>
             <p className="text-rc-text text-lg font-grotesk font-medium mb-2">No builds yet</p>
             <p className="text-rc-text-dim text-sm max-w-md text-center">
-              Be the first to publish a build. Share your agent configuration with the community.
+              No builds found. Try importing a build.json file or check back soon.
             </p>
           </div>
         )}
