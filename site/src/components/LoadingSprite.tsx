@@ -5,13 +5,13 @@ interface LoadingSpriteProps {
 
 export default function LoadingSprite({ size = 48, className = '' }: LoadingSpriteProps) {
   return (
-    <div
-      className={`loading-sprite ${className}`}
-      style={{
-        width: `${size}px`,
-        height: `${size}px`,
-      }}
-      aria-label="Loading..."
+    <img
+      src="/logo-loading.gif"
+      alt="Loading..."
+      width={size}
+      height={size}
+      className={className}
+      style={{ imageRendering: 'pixelated' }}
     />
   )
 }
