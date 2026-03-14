@@ -11,10 +11,12 @@ Run with `npx` (no install required):
 npx clawclawgo <command>
 ```
 
-Or install globally:
+Or run from source:
 
 ```bash
-npm install -g clawclawgo
+git clone https://github.com/bolander72/clawclawgo
+chmod +x clawclawgo/cli/clawclawgo.mjs
+./clawclawgo/cli/clawclawgo.mjs --help
 ```
 
 ## Commands

@@ -1,4 +1,4 @@
-import { IconBrandGithub, IconBrandDiscord } from '@tabler/icons-react'
+import { IconBrandGithub } from '@tabler/icons-react'
 
 export default function Footer() {
   return (
@@ -8,8 +8,7 @@ export default function Footer() {
           <div>
             <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">ClawClawGo</h4>
             <ul className="space-y-2.5">
-              <li><a href="/feed" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Feed</a></li>
-              <li><a href="/search" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Search</a></li>
+              <li><a href="/explore" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Explore</a></li>
               <li><a href="/community" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Community Builds</a></li>
               <li><a href="/docs/" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Documentation</a></li>
               <li><a href="https://github.com/bolander72/clawclawgo" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">GitHub</a></li>
@@ -25,17 +24,15 @@ export default function Footer() {
           <div>
             <h4 className="font-grotesk font-semibold text-rc-text text-sm mb-4">Community</h4>
             <ul className="space-y-2.5">
-              <li><a href="https://discord.com/invite/clawd" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Discord</a></li>
-              <li><a href="https://github.com/bolander72/clawclawgo/discussions" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Discussions</a></li>
+              <li><a href="https://github.com/bolander72/clawclawgo/issues" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Report an Issue</a></li>
             </ul>
           </div>
         </div>
 
         <div className="flex items-center justify-between pt-8 border-t border-rc-border">
-          <p className="text-rc-text-muted text-xs font-mono">clawclawgo · agent skills aggregator · search · remix · export</p>
+          <p className="text-rc-text-muted text-xs font-mono">clawclawgo · agent skills search engine</p>
           <div className="flex items-center gap-4">
             <a href="https://github.com/bolander72/clawclawgo" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors"><IconBrandGithub size={18} /></a>
-            <a href="https://discord.com/invite/clawd" target="_blank" rel="noopener" className="text-rc-text-muted hover:text-rc-text transition-colors"><IconBrandDiscord size={18} /></a>
           </div>
         </div>
       </div>

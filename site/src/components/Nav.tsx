@@ -17,10 +17,9 @@ export default function Nav({ minimal }: NavProps) {
         
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-5 text-sm">
-          <a href="/feed" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1">
-            <IconLivePhoto size={14} /> Feed
+          <a href="/explore" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1">
+            <IconLivePhoto size={14} /> Explore
           </a>
-          <a href="/search" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Search</a>
           <a href="/community" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Community</a>
           <a href="/docs/" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Docs</a>
         </nav>
@@ -38,10 +37,9 @@ export default function Nav({ minimal }: NavProps) {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-rc-border bg-rc-bg">
           <nav className="flex flex-col p-4 gap-3 text-sm">
-            <a href="/feed" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-2">
-              <IconLivePhoto size={14} /> Feed
+            <a href="/explore" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-2">
+              <IconLivePhoto size={14} /> Explore
             </a>
-            <a href="/search" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Search</a>
             <a href="/community" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Community</a>
             <a href="/docs/" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Docs</a>
           </nav>

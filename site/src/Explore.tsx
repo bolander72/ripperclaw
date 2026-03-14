@@ -138,7 +138,7 @@ export default function Explore() {
             <div className="h-5 w-px bg-rc-border shrink-0" />
             <div className="flex items-center gap-2">
               <IconLivePhoto size={16} className="text-rc-cyan" />
-              <span className="font-grotesk font-medium text-rc-text text-sm">Feed</span>
+              <span className="font-grotesk font-medium text-rc-text text-sm">Explore</span>
             </div>
           </div>
 

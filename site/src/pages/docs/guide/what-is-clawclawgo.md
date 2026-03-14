@@ -131,11 +131,10 @@ ClawClawGo is MIT licensed and open source:
 
 - **Repo:** [github.com/bolander72/clawclawgo](https://github.com/bolander72/clawclawgo)
 - **Registry:** `registry/builds.json` (submit PRs to add builds)
-- **CLI:** Node.js, zero dependencies
+- **CLI:** Node.js, zero dependencies — run with `npx clawclawgo`
 
 ## Next Steps
 
-- [Install the CLI](/docs/guide/installation)
-- [Pack your first build](/docs/guide/quickstart)
+- [Get started](/docs/guide/quickstart)
 - [Learn about security](/docs/guide/security)
-- [Browse builds](https://clawclawgo.com/search)
+- [Explore builds](https://clawclawgo.com/explore)

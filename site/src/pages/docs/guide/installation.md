@@ -9,22 +9,19 @@ ClawClawGo has two parts: the CLI and the web app.
 
 ## CLI
 
-Install globally:
-
-```bash
-npm install -g clawclawgo
-```
-
-Or use without installing:
+Use without installing:
 
 ```bash
 npx clawclawgo --help
 ```
 
-### Verify Installation
+Or clone from source:
 
 ```bash
-clawclawgo --version
+git clone https://github.com/bolander72/clawclawgo
+cd clawclawgo
+chmod +x cli/clawclawgo.mjs
+./cli/clawclawgo.mjs --help
 ```
 
 ## Web App
@@ -35,39 +32,20 @@ No installation needed. Visit [clawclawgo.com](https://clawclawgo.com) to search
 
 - **Node.js** 18+ (for CLI)
 - **Git** (for publishing builds)
+- **GitHub CLI** (`gh`) — optional, for auto-publishing PRs
 
 ## CLI Commands
 
-Once installed, you have access to:
-
 ```bash
-clawclawgo pack       # Pack a directory into build.json
-clawclawgo add        # Download a build
-clawclawgo scan       # Security scan a build
-clawclawgo preview    # Preview build details
-clawclawgo publish    # Generate registry entry
-clawclawgo search     # Search for builds
+npx clawclawgo pack       # Pack a directory into build.json
+npx clawclawgo add        # Download a build
+npx clawclawgo scan       # Security scan a build
+npx clawclawgo preview    # Preview build details
+npx clawclawgo publish    # Submit to the registry
+npx clawclawgo search     # Search for builds
 ```
 
-Run `clawclawgo --help` for full usage.
-
-## Updating
-
-```bash
-npm update -g clawclawgo
-```
-
-Or with npx:
-
-```bash
-npx clawclawgo@latest --version
-```
-
-## Uninstall
-
-```bash
-npm uninstall -g clawclawgo
-```
+Run `npx clawclawgo --help` for full usage.
 
 ## Next Steps
 

@@ -24,7 +24,7 @@ Click a build to see the full detail view — skills with links to their source,
 
 ### Feed
 
-The [Feed](https://clawclawgo.com/feed) shows recently added builds from all sources (GitHub, ClawHub, skills.sh, registry).
+The [Explore](https://clawclawgo.com/explore) page shows recently added builds from all sources (GitHub, ClawHub, skills.sh, registry).
 
 ### Community Builds
 
