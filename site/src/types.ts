@@ -110,6 +110,7 @@ export interface FeedItemProps {
   index: number
   isNew: boolean
   onClick: () => void
+  onTagClick?: (tag: string) => void
 }
 
 export interface BuildDetailProps {

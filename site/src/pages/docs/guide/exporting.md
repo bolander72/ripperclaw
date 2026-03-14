@@ -19,7 +19,7 @@ Export your current agent configuration as a portable build file.
 | Memory | Directory structure, template files | Actual memory content, facts, notes |
 | Dependencies | Detected from skills and integrations | (none) |
 
-**Dependency detection**: The exporter walks all skills and integrations to build a complete [dependency manifest](/guide/dependencies) including required binaries, packages, models, and config. This lets appliers know exactly what's needed before installation.
+**Dependency detection**: The exporter walks all skills and integrations to build a complete [dependency manifest](/docs/guide/dependencies) including required binaries, packages, models, and config. This lets appliers know exactly what's needed before installation.
 
 ## PII Scrubbing
 
@@ -67,4 +67,4 @@ When publishing to Nostr, ClawClawGo uses `export_build_safe` which applies stri
 
 ## Export Format
 
-Exports use the [Build Schema](/reference/schema), a JSON format with `meta`, configuration keys, and `dependencies` at the top level. See the reference for the full spec.
+Exports use the [Build Schema](/docs/reference/schema), a JSON format with `meta`, configuration keys, and `dependencies` at the top level. See the reference for the full spec.

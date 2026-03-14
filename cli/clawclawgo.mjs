@@ -93,6 +93,14 @@ function preview(text, maxLen = 500) {
   return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;
 }
 
+function tryExec(cmd) {
+  try {
+    return execSync(cmd, { stdio: ['pipe', 'pipe', 'pipe'] }).toString().trim();
+  } catch {
+    return undefined;
+  }
+}
+
 // ── Dependency Checking ──
 
 function checkDependencies(build) {
@@ -762,7 +770,7 @@ function exportBuild(agentId) {
 
   // ── Assemble ──
   const build = {
-    schema: 2,
+    schema: 3,
     meta: {
       name: `${identityName}'s Build`,
       agentName: identityName,
@@ -772,14 +780,12 @@ function exportBuild(agentId) {
       exportedAt: new Date().toISOString(),
       tags: [],
     },
-    blocks: {
-      model: modelBlock,
-      persona: personaBlock,
-      skills: skillsBlock,
-      integrations: integrationsBlock,
-      automations: automationsBlock,
-      memory: memoryBlock,
-    },
+    model: modelBlock,
+    persona: personaBlock,
+    skills: skillsBlock,
+    integrations: integrationsBlock,
+    automations: automationsBlock,
+    memory: memoryBlock,
     ...(Object.keys(guides).length > 0 && {
       dependencies: {
         guides,

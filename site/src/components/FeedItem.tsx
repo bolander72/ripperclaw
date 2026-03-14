@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
-import { IconChevronRight, IconGitFork, IconHash } from '@tabler/icons-react'
-import { formatDate, itemGradients } from '../lib/utils'
+import { IconChevronRight, IconGitFork, IconHash, IconShield, IconAlertTriangle, IconAlertCircle } from '@tabler/icons-react'
+import { formatDate, itemGradients, scanBuild } from '../lib/utils'
 import type { FeedItemProps } from '../types'
 
-export default function FeedItem({ build, index, isNew, onClick }: FeedItemProps) {
+export default function FeedItem({ build, index, isNew, onClick, onTagClick }: FeedItemProps) {
+  const scanResult = scanBuild(build.content)
   return (
     <motion.div
       layout
@@ -22,9 +23,20 @@ export default function FeedItem({ build, index, isNew, onClick }: FeedItemProps
         <div className="flex flex-col md:flex-row">
           {/* Left: timestamp + badges */}
           <div className="md:w-44 shrink-0 p-5 md:border-r border-rc-border flex md:flex-col items-center md:items-start gap-3 md:gap-2">
-            <span className="text-rc-text-muted text-xs font-mono">
-              {formatDate(typeof build.createdAt === 'number' ? build.createdAt : 0)}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-rc-text-muted text-xs font-mono">
+                {formatDate(typeof build.createdAt === 'number' ? build.createdAt : 0)}
+              </span>
+              {scanResult.score === 'PASS' && (
+                <IconShield size={12} className="text-green-400" title="Security: PASS" />
+              )}
+              {scanResult.score === 'WARN' && (
+                <IconAlertTriangle size={12} className="text-amber-400" title="Security: WARN" />
+              )}
+              {scanResult.score === 'FAIL' && (
+                <IconAlertCircle size={12} className="text-red-400" title="Security: FAIL" />
+              )}
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {build.isNew && (
                 <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-rc-cyan/15 border border-rc-cyan/30">
@@ -69,9 +81,16 @@ export default function FeedItem({ build, index, isNew, onClick }: FeedItemProps
             {build.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {build.tags.slice(0, 4).map((tag, i) => (
-                  <span key={i} className="px-1.5 py-0.5 text-[9px] font-mono text-rc-text-muted flex items-center gap-0.5">
+                  <button
+                    key={i}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onTagClick?.(tag)
+                    }}
+                    className="px-1.5 py-0.5 text-[9px] font-mono text-rc-text-muted hover:text-rc-cyan hover:bg-rc-cyan/10 rounded transition-colors flex items-center gap-0.5"
+                  >
                     <IconHash size={9} />{tag}
-                  </span>
+                  </button>
                 ))}
               </div>
             )}

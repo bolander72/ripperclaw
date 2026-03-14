@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { IconEye, IconDownload, IconGitFork, IconHash } from '@tabler/icons-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { IconEye, IconDownload, IconGitFork, IconHash, IconArrowsSplit } from '@tabler/icons-react'
 import { formatDate, itemGradients } from '../lib/utils'
 import CopyButton from './CopyButton'
+import CompareModal from './CompareModal'
 import type { BuildDetailProps } from '../types'
 
 export default function BuildDetail({ build, onClose, onApply }: BuildDetailProps) {
   const [showRaw, setShowRaw] = useState<boolean>(false)
+  const [showCompare, setShowCompare] = useState<boolean>(false)
   const configKeys = Object.keys(build.content || {}).filter(k => !['schema', 'meta', 'dependencies'].includes(k))
 
   return (
@@ -42,8 +44,18 @@ export default function BuildDetail({ build, onClose, onApply }: BuildDetailProp
                 {build.fork && (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rc-magenta/15 border border-rc-magenta/30">
                     <IconGitFork size={14} className="text-rc-magenta" />
-                    <span className="text-[10px] font-mono font-bold text-rc-magenta tracking-wider">
-                      Forked from {build.originalAuthor || 'unknown'}
+                    <span className="text-[10px] font-mono text-rc-magenta">
+                      Forked from 
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          // TODO: Navigate to parent build if available in builds list
+                        }}
+                        className="ml-1 font-bold hover:underline"
+                        title={`Event: ${build.fork.eventId}`}
+                      >
+                        {build.originalAuthor || build.fork.eventId.slice(0, 8)}
+                      </button>
                     </span>
                   </div>
                 )}
@@ -138,6 +150,13 @@ export default function BuildDetail({ build, onClose, onApply }: BuildDetailProp
             <IconEye size={16} />
             {showRaw ? 'Hide' : 'View'} JSON
           </button>
+          <button
+            onClick={() => setShowCompare(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-rc-text rounded-xl border border-rc-border transition-colors text-sm font-grotesk"
+          >
+            <IconArrowsSplit size={16} />
+            Compare
+          </button>
           <CopyButton text={JSON.stringify(build.content, null, 2)} label="Copy JSON" />
           <button
             onClick={() => onApply(build)}
@@ -148,6 +167,13 @@ export default function BuildDetail({ build, onClose, onApply }: BuildDetailProp
           </button>
         </div>
       </motion.div>
+
+      {/* Compare Modal */}
+      <AnimatePresence>
+        {showCompare && (
+          <CompareModal build={build} onClose={() => setShowCompare(false)} />
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

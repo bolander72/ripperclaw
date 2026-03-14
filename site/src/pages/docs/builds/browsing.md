@@ -48,7 +48,7 @@ Click any build card to open the detail panel. The **Provenance** section shows:
 
 Navigate the tree to see how a build evolved through the community.
 
-See the [Provenance guide](/guide/provenance) for details on how remix tracking works.
+See the [Provenance guide](/docs/guide/provenance) for details on how remix tracking works.
 
 ## Comparing
 
@@ -78,4 +78,4 @@ Once imported, you can compare or apply it like any feed build.
 
 ## Applying
 
-See the [Applying guide](/guide/applying) for the full apply flow: safety rules, model strategy options, and the step-by-step wizard.
+See the [Applying guide](/docs/guide/applying) for the full apply flow: safety rules, model strategy options, and the step-by-step wizard.

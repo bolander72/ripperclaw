@@ -36,6 +36,6 @@ A build captures that configuration as flat JSON, scrubs sensitive data, and pro
 
 ## Next Steps
 
-- [Quick Start](/guide/quickstart): get up and running in 5 minutes
-- [Installation](/guide/installation): download the app
-- 
+- [Quick Start](/docs/guide/quickstart): get up and running in 5 minutes
+- [Installation](/docs/guide/installation): download the app
+- [Browse Builds](/docs/builds/overview): explore the community catalog

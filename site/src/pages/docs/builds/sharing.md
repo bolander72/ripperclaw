@@ -7,7 +7,7 @@ title: Sharing
 
 ## Publish to Nostr
 
-The primary way to share builds. See the [Publishing guide](/guide/publishing) for full details.
+The primary way to share builds. See the [Publishing guide](/docs/guide/publishing) for full details.
 
 ```
 You → Export (safe) → Nostr relays → Anyone's Feed
@@ -24,7 +24,7 @@ When you apply a build from the feed, modify it, and republish, ClawClawGo autom
 
 This happens automatically. You don't need to do anything special.
 
-See the [Provenance guide](/guide/provenance) for how remix tracking works.
+See the [Provenance guide](/docs/guide/provenance) for how remix tracking works.
 
 ## How Provenance Propagates
 
