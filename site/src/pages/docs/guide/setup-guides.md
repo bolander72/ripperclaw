@@ -144,7 +144,9 @@ ClawClawGo has hardcoded mappings for common integrations. If no explicit `setup
 | `whisper` | https://docs.openclaw.ai/guides/whisper.md |
 | `peekaboo` | https://docs.openclaw.ai/guides/peekaboo.md |
 
-These don't need to exist yet. The registry grows over time. The CLI gracefully handles 404s.
+::: info
+These URLs are planned defaults. The CLI handles 404s gracefully — missing guides don't block apply.
+:::
 
 ## Trust and Safety
 

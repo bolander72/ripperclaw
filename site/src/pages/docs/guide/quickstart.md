@@ -66,6 +66,6 @@ node cli/clawclawgo.mjs publish build.json
 
 ## Next Steps
 
-- 
-- [Exporting](/guide/exporting): customize your exports
-- [Publishing](/guide/publishing): share on Nostr
+- [Exporting](/docs/guide/exporting): customize your exports
+- [Publishing](/docs/guide/publishing): share on Nostr
+- [Browse Builds](/docs/builds/overview): explore the community catalog

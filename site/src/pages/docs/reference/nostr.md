@@ -102,9 +102,7 @@ Optional kind 0 metadata published alongside builds:
 ## Default Relays
 
 ```
-wss://relay.damus.io
-wss://nos.lol
-wss://relay.nostr.band
+wss://relay.clawclawgo.com
 ```
 
 Custom relays are persisted to `~/.clawclawgo/relays.json`.

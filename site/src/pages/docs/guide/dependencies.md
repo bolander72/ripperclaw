@@ -206,6 +206,10 @@ ClawClawGo has hardcoded mappings for common integrations:
 | `bluebubbles` | (none) | See [setup guide](https://docs.openclaw.ai/guides/bluebubbles.md) |
 | `homeassistant` | (none) | See [setup guide](https://docs.openclaw.ai/guides/home-assistant.md) |
 
+::: info
+These URLs are planned defaults. The CLI handles 404s gracefully — missing guides don't block apply.
+:::
+
 ## Skipping Dependency Checks
 
 Use `--skip-deps` to skip dependency checking:

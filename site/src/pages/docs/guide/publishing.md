@@ -81,9 +81,7 @@ This info is published to relays and shown alongside your builds.
 
 By default, ClawClawGo publishes to:
 
-- `wss://relay.damus.io`
-- `wss://nos.lol`
-- `wss://relay.nostr.band`
+- `wss://relay.clawclawgo.com` (primary relay)
 
 Add or remove relays in **Settings → Relays**. Custom relays are saved to `~/.clawclawgo/relays.json`.
 
@@ -102,4 +100,4 @@ Add or remove relays in **Settings → Relays**. Custom relays are saved to `~/.
 }
 ```
 
-See the [Nostr Protocol Reference](/reference/nostr) for the full event spec.
+See the [Nostr Protocol Reference](/docs/reference/nostr) for the full event spec.

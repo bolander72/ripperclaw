@@ -86,7 +86,7 @@ Scan a build file for security issues without applying it.
 node clawclawgo.mjs scan <build.json>
 ```
 
-Runs all five security passes and outputs the security report with trust score and findings. See [Security Scanning](/guide/security) for details.
+Runs all five security passes and outputs the security report with trust score and findings. See [Security Scanning](/docs/guide/security) for details.
 
 **Example:**
 

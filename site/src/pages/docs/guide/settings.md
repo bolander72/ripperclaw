@@ -74,9 +74,7 @@ Relays are Nostr servers that store and distribute events. ClawClawGo uses a def
 
 ### Default Relays
 
-- `wss://relay.damus.io`
-- `wss://nos.lol`
-- `wss://relay.nostr.band`
+- `wss://relay.clawclawgo.com` (primary relay)
 
 ### Add a Relay
 
@@ -101,9 +99,7 @@ Custom relays are saved to `~/.clawclawgo/relays.json`:
 ```json
 {
   "relays": [
-    "wss://relay.damus.io",
-    "wss://nos.lol",
-    "wss://relay.nostr.band",
+    "wss://relay.clawclawgo.com",
     "wss://relay.example.com"
   ]
 }
