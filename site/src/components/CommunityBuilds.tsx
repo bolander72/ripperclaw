@@ -19,38 +19,32 @@ function BuildCard({ build, onClick }: BuildCardProps) {
       className="cursor-pointer group"
     >
       <div className="bg-rc-surface rounded-2xl border border-rc-border group-hover:border-rc-cyan/40 transition-all duration-300 overflow-hidden h-full flex flex-col">
-        {build.isNew && (
-          <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rc-cyan/15 border border-rc-cyan/30">
-            <span className="w-1.5 h-1.5 rounded-full bg-rc-cyan animate-pulse" />
-            <span className="text-[10px] font-mono font-bold text-rc-cyan tracking-wider">NEW</span>
-          </div>
-        )}
+
         <div className="p-5 pt-10 flex-1">
           <div className="flex flex-wrap gap-1.5 mb-4">
-            {build.items.slice(0, 8).map((item, ii) => (
+            {build.skills.slice(0, 8).map((skill, ii) => (
               <span
                 key={ii}
                 className={`px-2 py-1 rounded-lg bg-gradient-to-br ${itemGradients[ii % itemGradients.length]} border border-white/10 text-[11px] font-mono font-medium text-rc-text`}
               >
-                {item.name}
+                {skill.name}
               </span>
             ))}
-            {build.items.length > 8 && (
+            {build.skills.length > 8 && (
               <span className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-mono text-rc-text-muted">
-                +{build.items.length - 8}
+                +{build.skills.length - 8}
               </span>
             )}
           </div>
         </div>
         <div className="px-5 pb-5 mt-auto">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-grotesk font-bold text-rc-text text-base truncate">{build.agentName}</h3>
-            <span className="text-rc-text-muted text-xs">·</span>
-            <span className="text-rc-text-dim text-xs font-mono truncate">{build.name}</span>
+            <h3 className="font-grotesk font-bold text-rc-text text-base truncate">{build.name}</h3>
           </div>
+          <p className="text-rc-text-dim text-xs mb-2 line-clamp-2">{build.description}</p>
           <div className="flex items-center justify-between">
             <span className="text-rc-cyan/70 text-xs font-mono">{build.creator}</span>
-            <span className="text-rc-text-muted text-[10px] font-mono">{build.items.length} items</span>
+            <span className="text-rc-text-muted text-[10px] font-mono">{build.skills.length} {build.skills.length === 1 ? 'skill' : 'skills'}</span>
           </div>
         </div>
         <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-t from-rc-cyan/5 via-transparent to-transparent" />
@@ -84,9 +78,9 @@ function BuildDetail({ build, onClose }: BuildDetailProps) {
         <div className="p-6 md:p-8 border-b border-rc-border">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-3xl font-grotesk font-bold text-rc-text mb-1">{build.agentName}</h2>
+              <h2 className="text-3xl font-grotesk font-bold text-rc-text mb-1">{build.name}</h2>
               <p className="text-rc-text-dim text-sm">
-                <span className="text-rc-cyan/70 font-mono">{build.creator}</span> · {build.name}
+                <span className="text-rc-cyan/70 font-mono">{build.creator}</span>
               </p>
             </div>
             <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors text-rc-text">
@@ -96,10 +90,13 @@ function BuildDetail({ build, onClose }: BuildDetailProps) {
         </div>
         <div className="p-6 md:p-8">
           <div className="flex flex-wrap gap-2">
-            {build.items.map((item, ii) => (
+            {build.skills.map((skill, ii) => (
               <div key={ii} className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-rc-border hover:border-rc-cyan/30 transition-colors">
-                <div className={`w-2 h-2 rounded-full ${item.color?.replace('text-', 'bg-') || 'bg-rc-text-dim'}`} />
-                <span className="font-grotesk text-sm text-rc-text">{item.name}</span>
+                <div className="w-2 h-2 rounded-full bg-rc-cyan" />
+                <div>
+                  <p className="font-grotesk text-sm text-rc-text font-semibold">{skill.name}</p>
+                  <p className="text-xs text-rc-text-dim">{skill.description}</p>
+                </div>
               </div>
             ))}
           </div>
