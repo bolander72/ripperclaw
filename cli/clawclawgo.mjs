@@ -19,7 +19,6 @@
  *   <build.json>            Local file path
  *   <url>                   HTTP(S) URL to fetch build from
  *   --from-stdin            Read build JSON from stdin (e.g., pbpaste | clawclawgo apply --from-stdin --agent <id>)
- *   nostr:<naddr>           Nostr URI (TODO: not yet implemented)
  */
 
 import fs from 'fs';
@@ -348,7 +347,7 @@ async function scanBuildSecurity(build, options = {}) {
     { pattern: /cat\s+~\/\.ssh\//i, msg: 'SSH key access' },
     { pattern: /(?:brew|pip|npm|apt-get)\s+install/i, msg: 'Package installation without user consent' },
     { pattern: /\d{3}-\d{2}-\d{4}/, msg: 'SSN found' },
-    { pattern: /nsec1[a-z0-9]{58,}/, msg: 'Nostr nsec key found' },
+    { pattern: /nsec1[a-z0-9]{58,}/, msg: 'Nostr private key found' },
     { pattern: /https?:\/\/(?:discord|slack)\.com\/api\/webhooks\//i, msg: 'Discord/Slack webhook URL' },
     { pattern: /https?:\/\/(?:api\.telegram\.org|t\.me)\//i, msg: 'Telegram webhook/bot URL' },
     { pattern: /https?:\/\/(?:ngrok|serveo|localhost\.run)/i, msg: 'Ngrok/tunnel URL (potential exfiltration)' },
@@ -817,10 +816,6 @@ async function applyBuild(buildPath, agentId, options = {}) {
     console.log('📥 Reading build from stdin...');
     buildJson = fs.readFileSync(0, 'utf8');
   }
-  // Support nostr: URIs (TODO: parse naddr, fetch from relays)
-  else if (buildPath.startsWith('nostr:')) {
-    throw new Error('Nostr URI support is not yet implemented. Use HTTP(S) or local file for now.');
-  }
   // Local file
   else {
     buildJson = fs.readFileSync(buildPath, 'utf8');
@@ -1164,10 +1159,6 @@ async function previewBuild(buildPath) {
   else if (buildPath === '--from-stdin') {
     buildJson = fs.readFileSync(0, 'utf8');
   }
-  // Support nostr: URIs (TODO)
-  else if (buildPath.startsWith('nostr:')) {
-    throw new Error('Nostr URI support is not yet implemented.');
-  }
   // Local file
   else {
     buildJson = fs.readFileSync(buildPath, 'utf8');
@@ -1357,10 +1348,6 @@ try {
       else if (buildPath === '--from-stdin') {
         buildJson = fs.readFileSync(0, 'utf8');
       }
-      // Support nostr: URIs (TODO)
-      else if (buildPath.startsWith('nostr:')) {
-        throw new Error('Nostr URI support is not yet implemented.');
-      }
       // Local file
       else {
         buildJson = fs.readFileSync(buildPath, 'utf8');
@@ -1384,8 +1371,6 @@ Build sources:
   <build.json>                                      Local file path
   <url>                                             HTTP(S) URL (e.g., https://example.com/build.json)
   --from-stdin                                      Read from stdin (e.g., pbpaste | clawclawgo apply --from-stdin --agent demo)
-  nostr:<naddr>                                     Nostr URI (TODO: not yet implemented)
-
 Apply options:
   --mode merge|replace                              Apply mode (default: merge)
   --use-my-models                                   Use your current models instead of build's

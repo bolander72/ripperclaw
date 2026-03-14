@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { Relay } from 'nostr-tools'
 import { IconSearch, IconX } from '@tabler/icons-react'
-import { parseBuildEvent, RELAYS } from './lib/utils'
+import { builds as sampleBuilds } from './builds'
 import Nav from './components/Nav'
 import Footer from './components/Footer'
 import FeedItem from './components/FeedItem'
 import BuildDetail from './components/BuildDetail'
 import ApplyWizard from './components/ApplyWizard'
+import LoadingSprite from './components/LoadingSprite'
 import type { Build } from './types'
 
 export default function Search() {
@@ -22,28 +22,45 @@ export default function Search() {
   const [selectedBuild, setSelectedBuild] = useState<Build | null>(null)
   const [applyBuild, setApplyBuild] = useState<Build | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  
-  const relayRef = useRef<any>(null)
-  const seenIds = useRef<Set<string>>(new Set())
+  const [sourceFilter, setSourceFilter] = useState<string | null>(null)
+  const [compatFilter, setCompatFilter] = useState<string | null>(null)
 
-  // Filter builds by search query (client-side)
+  // Load builds
+  useEffect(() => {
+    setTimeout(() => {
+      setBuilds(sampleBuilds)
+      setIsLoading(false)
+    }, 300)
+  }, [])
+
+  // Filter builds by search query + filters
   const filteredBuilds = useMemo(() => {
-    if (!searchQuery.trim()) return []
+    if (!searchQuery.trim() && !sourceFilter && !compatFilter) return []
     const q = searchQuery.toLowerCase().trim()
     const terms = q.split(/\s+/)
+    
     return builds.filter(build => {
+      // Source filter
+      if (sourceFilter && build.source !== sourceFilter) return false
+      
+      // Compatibility filter
+      if (compatFilter && !build.compatibility.includes(compatFilter)) return false
+      
+      // Text search
+      if (!q) return true
+      
       const searchable = [
         build.name,
-        build.agentName,
+        build.description || '',
         build.creator,
         ...build.tags,
         ...build.items.map(i => i.name),
-        (build.content?.meta?.description as string) || '',
-        (build.content?.persona?.style as string) || '',
+        ...(build.compatibility || []),
       ].join(' ').toLowerCase()
+      
       return terms.every(term => searchable.includes(term))
     })
-  }, [builds, searchQuery])
+  }, [builds, searchQuery, sourceFilter, compatFilter])
 
   // Sync search query to URL
   const handleSearchChange = (value: string) => {
@@ -58,50 +75,6 @@ export default function Search() {
       window.history.replaceState({}, '', url.toString())
     }
   }
-
-  // Connect to relay and fetch builds
-  useEffect(() => {
-    let sub: any = null
-    let relay: any = null
-
-    async function connect() {
-      try {
-        relay = await Relay.connect(RELAYS[0])
-        relayRef.current = relay
-
-        sub = relay.subscribe([{ kinds: [38333], limit: 200 }], {
-          onevent(event: any) {
-            if (seenIds.current.has(event.id)) return
-            seenIds.current.add(event.id)
-
-            const build = parseBuildEvent(event)
-            if (build) {
-              setBuilds(prev => {
-                if (prev.find(l => l.id === build.id)) return prev
-                const next = [build, ...prev].sort((a, b) => 
-                  (typeof b.createdAt === 'number' ? b.createdAt : 0) - (typeof a.createdAt === 'number' ? a.createdAt : 0)
-                )
-                return next
-              })
-            }
-          },
-          oneose() {
-            setIsLoading(false)
-          },
-        })
-      } catch (err) {
-        console.error('Failed to connect to relay:', err)
-        setIsLoading(false)
-      }
-    }
-
-    connect()
-
-    return () => {
-      if (sub) sub.close()
-      if (relay) relay.close()
-    }
-  }, [])
 
   return (
     <div className="min-h-screen bg-rc-bg flex flex-col">
@@ -136,64 +109,103 @@ export default function Search() {
               </button>
             )}
           </div>
+
+          {/* Filters */}
+          <div className="flex gap-2 mt-4 flex-wrap">
+            <span className="text-xs font-mono text-rc-text-muted py-1.5">Filter:</span>
+            <button
+              onClick={() => setSourceFilter(sourceFilter === 'github' ? null : 'github')}
+              className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
+                sourceFilter === 'github'
+                  ? 'bg-rc-cyan text-rc-bg font-bold'
+                  : 'bg-rc-surface border border-rc-border text-rc-text-dim hover:border-rc-cyan/40'
+              }`}
+            >
+              GitHub
+            </button>
+            <button
+              onClick={() => setSourceFilter(sourceFilter === 'clawhub' ? null : 'clawhub')}
+              className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
+                sourceFilter === 'clawhub'
+                  ? 'bg-rc-cyan text-rc-bg font-bold'
+                  : 'bg-rc-surface border border-rc-border text-rc-text-dim hover:border-rc-cyan/40'
+              }`}
+            >
+              ClawHub
+            </button>
+            <div className="w-px h-6 bg-rc-border" />
+            {['openclaw', 'claude-code', 'cursor'].map(agent => (
+              <button
+                key={agent}
+                onClick={() => setCompatFilter(compatFilter === agent ? null : agent)}
+                className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
+                  compatFilter === agent
+                    ? 'bg-rc-magenta text-rc-bg font-bold'
+                    : 'bg-rc-surface border border-rc-border text-rc-text-dim hover:border-rc-magenta/40'
+                }`}
+              >
+                {agent}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Loading state */}
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-12 h-12 border-2 border-rc-cyan/20 border-t-rc-cyan rounded-full animate-spin mb-4" />
+            <LoadingSprite size={64} className="mb-4" />
             <p className="text-rc-text-dim text-sm font-mono">Loading builds...</p>
           </div>
         )}
 
         {/* Empty state — no search query */}
-        {!isLoading && !searchQuery.trim() && (
+        {!isLoading && !searchQuery.trim() && !sourceFilter && !compatFilter && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
               <IconSearch size={32} className="text-rc-text-muted" />
             </div>
-            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">Search for builds</p>
+            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">Search builds</p>
             <p className="text-rc-text-dim text-sm max-w-md text-center">
-              Search for builds by name, skill, model, or tag
+              Start typing to search by name, skill, model, tags, or filter by source and compatibility.
             </p>
           </div>
         )}
 
-        {/* Empty state — search has no results */}
-        {!isLoading && searchQuery.trim() && filteredBuilds.length === 0 && (
+        {/* No results */}
+        {!isLoading && (searchQuery.trim() || sourceFilter || compatFilter) && filteredBuilds.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
-              <IconSearch size={32} className="text-rc-text-muted" />
+              <IconX size={32} className="text-rc-text-muted" />
             </div>
-            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">No matches</p>
+            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">No builds found</p>
             <p className="text-rc-text-dim text-sm max-w-md text-center">
-              No builds match "{searchQuery}". Try different keywords or{' '}
-              <button onClick={() => handleSearchChange('')} className="text-rc-cyan hover:underline">clear the search</button>.
+              Try adjusting your search or filters.
             </p>
           </div>
         )}
 
-        {/* Results header */}
-        {!isLoading && searchQuery.trim() && filteredBuilds.length > 0 && (
-          <div className="mb-6">
-            <p className="text-rc-text-muted text-sm font-mono">
-              {filteredBuilds.length} result{filteredBuilds.length !== 1 ? 's' : ''} for "{searchQuery}"
-            </p>
-          </div>
-        )}
-
-        {/* Build list */}
-        {filteredBuilds.length > 0 && (
-          <div className="space-y-3">
-            {filteredBuilds.map((build, i) => (
-              <FeedItem
-                key={build.id}
-                build={build}
-                index={i}
-                isNew={false}
-                onClick={() => setSelectedBuild(build)}
-              />
-            ))}
+        {/* Results */}
+        {!isLoading && filteredBuilds.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-rc-text-dim text-sm font-mono">
+                {filteredBuilds.length} {filteredBuilds.length === 1 ? 'build' : 'builds'} found
+              </p>
+            </div>
+            <div className="space-y-3">
+              <AnimatePresence>
+                {filteredBuilds.map((build, i) => (
+                  <FeedItem
+                    key={build.id}
+                    build={build}
+                    index={i}
+                    isNew={false}
+                    onClick={() => setSelectedBuild(build)}
+                    onTagClick={(tag) => handleSearchChange(tag)}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
           </div>
         )}
       </main>

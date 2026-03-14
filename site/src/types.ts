@@ -1,5 +1,7 @@
 // ─── Core Types ────────────────────────────────────────────
 
+export type BuildSource = 'github' | 'clawhub' | 'skillssh' | 'local'
+
 export interface BuildItem {
   name: string
   color?: string
@@ -8,26 +10,37 @@ export interface BuildItem {
 export interface Build {
   id: string
   name: string
-  agentName: string
+  description: string
+  source: BuildSource
+  // GitHub-specific
+  repoUrl?: string
+  owner?: string
+  stars?: number
+  forks?: number
+  lastUpdated?: string
+  // Universal
   creator: string
-  createdAt: number | string // timestamp or date string
-  isNew: boolean
+  createdAt: number | string
   tags: string[]
   items: BuildItem[]
   keyCount: number
   content: BuildContent
-  fork: {
-    eventId: string
-    relay: string
-  } | null
-  originalAuthor: string | null
-  remixCount: number
+  compatibility: string[] // e.g. ['openclaw', 'claude-code', 'cursor']
+  permissions?: string[] // declared tool access e.g. ['filesystem', 'web-search', 'email']
+  trustTier: 'verified' | 'community' | 'unreviewed'
 }
 
 export interface BuildContent {
-  schema?: string
+  schema?: number | string
   meta?: {
+    name?: string
+    description?: string
     agentName?: string
+    compatibility?: string[]
+    permissions?: string[]
+    tags?: string[]
+    source?: BuildSource
+    repoUrl?: string
     [key: string]: unknown
   }
   agentName?: string
@@ -61,17 +74,8 @@ export interface BuildContent {
     }
     [key: string]: unknown
   }
+  permissions?: string[]
   [key: string]: unknown
-}
-
-export interface BuildEvent {
-  id: string
-  pubkey: string
-  created_at: number
-  kind: number
-  tags: string[][]
-  content: string
-  sig: string
 }
 
 // ─── Security Scanner Types ────────────────────────────────
@@ -94,11 +98,18 @@ export interface InfoFinding {
   value: string
 }
 
+export interface PermissionFinding {
+  name: string
+  severity: 'info' | 'warning'
+  message: string
+}
+
 export interface ScanResult {
   findings: {
     pii: PIIFinding[]
     suspicious: SuspiciousFinding[]
     info: InfoFinding[]
+    permissions?: PermissionFinding[]
   }
   score: 'PASS' | 'WARN' | 'FAIL'
 }

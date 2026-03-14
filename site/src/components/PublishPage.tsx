@@ -1,13 +1,12 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   IconUpload, IconHash, IconCheck, IconAlertTriangle, IconX,
-  IconShieldCheck, IconShieldExclamation, IconEye, IconEyeOff,
-  IconChevronDown, IconChevronRight, IconKey, IconUserCircle,
-  IconSpy, IconCopy, IconFile, IconTrash, IconInfoCircle,
+  IconShieldCheck, IconShieldExclamation, IconChevronDown, IconChevronRight,
+  IconInfoCircle, IconCopy, IconDownload, IconBrandGithub,
 } from '@tabler/icons-react'
-import { generateSecretKey, getPublicKey, nip19, finalizeEvent, Relay } from 'nostr-tools'
-import { scanBuild, RELAYS } from '../lib/utils'
+import { scanBuild } from '../lib/utils'
+import LoadingSprite from './LoadingSprite'
 import type { BuildContent, ScanResult } from '../types'
 
 // ─── Types ─────────────────────────────────────────────────
@@ -22,7 +21,7 @@ interface BuildSection {
   piiWarnings: string[]
 }
 
-type Step = 'upload' | 'review' | 'identity' | 'metadata' | 'publishing' | 'success'
+type Step = 'upload' | 'review' | 'metadata' | 'output'
 
 // ─── Section descriptions ──────────────────────────────────
 
@@ -67,47 +66,31 @@ export default function PublishPage() {
   const [sections, setSections] = useState<BuildSection[]>([])
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const [buildName, setBuildName] = useState('')
+  const [buildDescription, setBuildDescription] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [newTag, setNewTag] = useState('')
-  const [identityMode, setIdentityMode] = useState<'anon' | 'existing' | 'generate'>('anon')
-  const [keys, setKeys] = useState<{ nsec: string; npub: string } | null>(null)
-  const [importNsec, setImportNsec] = useState('')
-  const [revealNsec, setRevealNsec] = useState(false)
-  const [eventId, setEventId] = useState<string | null>(null)
+  const [compatibility, setCompatibility] = useState<string[]>([])
+  const [permissions, setPermissions] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [pasteText, setPasteText] = useState('')
   const [showPasteArea, setShowPasteArea] = useState(false)
+  const [copied, setCopied] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // Load stored keys on mount
-  useEffect(() => {
-    const stored = localStorage.getItem('clawclawgo:keys')
-    if (stored) {
-      try {
-        setKeys(JSON.parse(stored))
-        setIdentityMode('existing')
-      } catch { /* ignore */ }
-    }
-  }, [])
 
   // ─── Build Parsing ─────────────────────────────────────
 
   const parseBuild = useCallback((content: BuildContent) => {
     setRawContent(content)
-    setBuildName(content.meta?.agentName || (content as any).agentName || 'Unnamed Build')
-
-    // Extract tags from content if present
-    const autoTags: string[] = []
-    if (content.model?.tiers) {
-      Object.values(content.model.tiers).forEach((t: any) => {
-        if (t?.provider) autoTags.push(t.provider)
-      })
-    }
-    if (content.skills?.items) {
-      content.skills.items.forEach(s => autoTags.push(s.name))
-    }
+    setBuildName(content.meta?.name || 'Unnamed Build')
+    setBuildDescription(content.meta?.description || '')
+    
+    // Extract tags, compatibility, permissions from content
+    const autoTags: string[] = content.meta?.tags || []
     setTags([...new Set(autoTags)].slice(0, 8))
+    
+    setCompatibility(content.meta?.compatibility || [])
+    setPermissions(content.permissions || content.meta?.permissions || [])
 
     // Build sections
     const sectionKeys = Object.keys(content).filter(k => !['schema', 'dependencies'].includes(k))
@@ -175,604 +158,455 @@ export default function PublishPage() {
     reader.readAsText(file)
   }
 
-  // ─── Identity ──────────────────────────────────────────
+  // ─── Generate Output ───────────────────────────────────
 
-  const generateKeys = () => {
-    const sk = generateSecretKey()
-    const pk = getPublicKey(sk)
-    const nsec = nip19.nsecEncode(sk)
-    const npub = nip19.npubEncode(pk)
-    const newKeys = { nsec, npub }
-    setKeys(newKeys)
-    localStorage.setItem('clawclawgo:keys', JSON.stringify(newKeys))
-    setIdentityMode('generate')
+  const generateBuildJSON = () => {
+    if (!rawContent) return ''
+    
+    const finalContent = { ...rawContent }
+    
+    // Update meta
+    if (!finalContent.meta) finalContent.meta = {}
+    finalContent.meta.name = buildName
+    finalContent.meta.description = buildDescription
+    finalContent.meta.tags = tags
+    finalContent.meta.compatibility = compatibility
+    finalContent.meta.permissions = permissions
+    finalContent.meta.source = 'github'
+    
+    // Set schema version
+    finalContent.schema = 4
+    
+    // Remove excluded sections
+    sections.filter(s => !s.included).forEach(s => {
+      delete (finalContent as any)[s.key]
+    })
+    
+    return JSON.stringify(finalContent, null, 2)
   }
 
-  const importKey = () => {
-    try {
-      const { type, data } = nip19.decode(importNsec.trim())
-      if (type !== 'nsec') {
-        setError('Invalid nsec key')
-        return
-      }
-      const pk = getPublicKey(data as Uint8Array)
-      const npub = nip19.npubEncode(pk)
-      const newKeys = { nsec: importNsec.trim(), npub }
-      setKeys(newKeys)
-      localStorage.setItem('clawclawgo:keys', JSON.stringify(newKeys))
-      setIdentityMode('existing')
-      setImportNsec('')
-    } catch (err) {
-      setError('Failed to import key: ' + (err as Error).message)
-    }
+  const downloadBuildJSON = () => {
+    const json = generateBuildJSON()
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'build.json'
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
-  // ─── Section Toggle ────────────────────────────────────
-
-  const toggleSection = (key: string) => {
-    setSections(prev => prev.map(s => s.key === key ? { ...s, included: !s.included } : s))
+  const copyToClipboard = () => {
+    const json = generateBuildJSON()
+    navigator.clipboard.writeText(json)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
-
-  // ─── Publish ───────────────────────────────────────────
-
-  const publish = async () => {
-    if (!rawContent) return
-    setStep('publishing')
-    setError(null)
-
-    try {
-      // Build filtered content — only included sections
-      const filteredContent: Record<string, unknown> = {}
-      if (rawContent.schema) filteredContent.schema = rawContent.schema
-      for (const section of sections) {
-        if (section.included) {
-          filteredContent[section.key] = section.content
-        }
-      }
-      if (rawContent.dependencies) filteredContent.dependencies = rawContent.dependencies
-
-      let secretKey: Uint8Array
-      if (identityMode === 'anon') {
-        // Generate throwaway keys for anonymous publish
-        secretKey = generateSecretKey()
-      } else {
-        if (!keys) {
-          setError('No identity configured')
-          setStep('identity')
-          return
-        }
-        const { type, data } = nip19.decode(keys.nsec)
-        if (type !== 'nsec') throw new Error('Invalid nsec')
-        secretKey = data as Uint8Array
-      }
-
-      const event = {
-        kind: 38333,
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [
-          ['d', buildName],
-          ...tags.map(t => ['t', t]),
-          ['clawclawgo', '0.3.0'],
-        ],
-        content: JSON.stringify(filteredContent),
-      }
-
-      const signedEvent = finalizeEvent(event, secretKey)
-
-      // Publish to relays
-      const storedRelays = localStorage.getItem('clawclawgo:relays')
-      const relayUrls: string[] = storedRelays ? JSON.parse(storedRelays) : RELAYS
-
-      let published = false
-      for (const url of relayUrls) {
-        try {
-          const relay = await Relay.connect(url)
-          await relay.publish(signedEvent)
-          relay.close()
-          published = true
-        } catch (err) {
-          console.error(`Failed to publish to ${url}:`, err)
-        }
-      }
-
-      if (!published) throw new Error('Failed to publish to any relay')
-
-      setEventId(signedEvent.id)
-      setStep('success')
-    } catch (err) {
-      setError('Publishing failed: ' + (err as Error).message)
-      setStep('metadata')
-    }
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-  }
-
-  // ─── Computed ──────────────────────────────────────────
-
-  const includedCount = sections.filter(s => s.included).length
-  const totalCount = sections.length
-  const hasWarnings = sections.some(s => s.included && s.scanScore !== 'PASS')
-  const hasCritical = sections.some(s => s.included && s.scanScore === 'FAIL')
-  const overallScanResult = rawContent ? scanBuild(rawContent) : null
 
   // ─── Render ────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-rc-bg py-12 px-4">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="font-grotesk font-bold text-2xl md:text-3xl text-rc-text mb-2">Publish Build</h1>
-          <p className="text-rc-text-dim text-sm">Share your agent configuration on Nostr. Choose what to include and how to identify yourself.</p>
+          <h1 className="font-grotesk font-bold text-2xl md:text-3xl text-rc-text mb-2">Publish a Build</h1>
+          <p className="text-rc-text-dim text-sm">Export your agent config and publish it as a GitHub repo</p>
         </div>
 
-        {/* Step indicator */}
-        <div className="flex items-center gap-2 mb-8 text-xs font-mono">
-          {(['upload', 'review', 'identity', 'metadata'] as Step[]).map((s, i) => (
-            <div key={s} className="flex items-center gap-2">
-              {i > 0 && <div className={`w-8 h-px ${step === s || (['review', 'identity', 'metadata', 'publishing', 'success'].indexOf(step) > ['review', 'identity', 'metadata'].indexOf(s)) ? 'bg-rc-cyan' : 'bg-rc-border'}`} />}
-              <button
-                onClick={() => {
-                  if (s === 'upload') setStep('upload')
-                  else if (s === 'review' && rawContent) setStep('review')
-                  else if (s === 'identity' && rawContent) setStep('identity')
-                  else if (s === 'metadata' && rawContent) setStep('metadata')
-                }}
-                className={`px-3 py-1.5 rounded-lg border transition-colors ${
-                  step === s
-                    ? 'bg-rc-cyan/15 border-rc-cyan/40 text-rc-cyan'
-                    : 'bg-rc-surface border-rc-border text-rc-text-muted hover:border-rc-border hover:text-rc-text-dim'
-                }`}
-              >
-                {s === 'upload' ? '1. Upload' : s === 'review' ? '2. Review' : s === 'identity' ? '3. Identity' : '4. Publish'}
+        {/* Error toast */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3"
+            >
+              <IconAlertTriangle size={20} className="text-red-400 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-red-400 text-sm font-mono">{error}</p>
+              </div>
+              <button onClick={() => setError(null)} className="text-red-400/60 hover:text-red-400">
+                <IconX size={16} />
               </button>
-            </div>
-          ))}
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Error banner */}
-        {error && (
-          <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm flex items-start gap-2">
-            <IconAlertTriangle size={16} className="mt-0.5 shrink-0" />
-            <span>{error}</span>
-            <button onClick={() => setError(null)} className="ml-auto text-red-400/60 hover:text-red-400"><IconX size={14} /></button>
-          </div>
-        )}
-
-        {/* ─── Step 1: Upload ─────────────────────────────── */}
+        {/* Step 1: Upload */}
         {step === 'upload' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all ${
-                isDragging
-                  ? 'border-rc-cyan bg-rc-cyan/5'
-                  : 'border-rc-border hover:border-rc-cyan/30'
-              }`}
+              className={`
+                relative border-2 border-dashed rounded-2xl p-12 transition-all
+                ${isDragging ? 'border-rc-cyan bg-rc-cyan/5' : 'border-rc-border bg-rc-surface'}
+              `}
             >
-              <IconUpload size={40} className="mx-auto mb-4 text-rc-text-muted" />
-              <p className="text-rc-text font-grotesk font-semibold mb-1">Drop your build JSON here</p>
-              <p className="text-rc-text-dim text-sm mb-4">or use one of the options below</p>
-              <div className="flex gap-3 justify-center">
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 bg-rc-cyan text-rc-bg font-mono text-sm font-bold rounded-lg hover:bg-rc-cyan/90 transition-colors"
-                >
-                  <IconFile size={14} className="inline mr-1.5 -mt-0.5" />
-                  Browse Files
-                </button>
-                <button
-                  onClick={() => setShowPasteArea(!showPasteArea)}
-                  className="px-4 py-2 bg-rc-surface border border-rc-border text-rc-text font-mono text-sm rounded-lg hover:border-rc-cyan/40 transition-colors"
-                >
-                  Paste JSON
-                </button>
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-rc-bg border border-rc-border flex items-center justify-center">
+                  <IconUpload size={32} className="text-rc-cyan" />
+                </div>
+                <div className="text-center">
+                  <p className="font-grotesk font-bold text-rc-text text-lg mb-1">Upload build config</p>
+                  <p className="text-rc-text-dim text-sm">Drag and drop, paste JSON, or click to browse</p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-4 py-2 bg-rc-cyan text-rc-bg font-mono text-sm font-bold rounded-lg hover:bg-rc-cyan/90 transition-colors"
+                  >
+                    Browse files
+                  </button>
+                  <button
+                    onClick={() => setShowPasteArea(!showPasteArea)}
+                    className="px-4 py-2 bg-rc-surface border border-rc-border text-rc-text font-mono text-sm rounded-lg hover:border-rc-cyan/40 transition-colors"
+                  >
+                    Paste JSON
+                  </button>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
               </div>
-              <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileUpload} className="hidden" />
             </div>
 
             {showPasteArea && (
-              <div className="bg-rc-surface border border-rc-border rounded-2xl p-4 space-y-3">
+              <div className="bg-rc-surface border border-rc-border rounded-2xl p-6">
+                <label className="block text-rc-text text-sm font-mono mb-2">Paste your build JSON:</label>
                 <textarea
                   value={pasteText}
                   onChange={(e) => setPasteText(e.target.value)}
-                  placeholder='{"schema": "3", "model": {...}, "skills": {...}}'
-                  rows={8}
+                  placeholder='{ "schema": 4, "meta": { ... }, ... }'
+                  rows={12}
                   className="w-full px-3 py-2 bg-rc-bg border border-rc-border rounded-lg text-rc-text font-mono text-xs focus:outline-none focus:border-rc-cyan resize-y"
                 />
-                <button
-                  onClick={handlePasteSubmit}
-                  disabled={!pasteText.trim()}
-                  className="px-4 py-2 bg-rc-cyan text-rc-bg font-mono text-sm font-bold rounded-lg hover:bg-rc-cyan/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Parse Build
-                </button>
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={handlePasteSubmit}
+                    className="px-4 py-2 bg-rc-cyan text-rc-bg font-mono text-sm font-bold rounded-lg hover:bg-rc-cyan/90 transition-colors"
+                  >
+                    Parse & Continue
+                  </button>
+                  <button
+                    onClick={() => { setShowPasteArea(false); setPasteText('') }}
+                    className="px-4 py-2 bg-rc-surface border border-rc-border text-rc-text font-mono text-sm rounded-lg hover:border-rc-border/40 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
-
-            <div className="bg-rc-surface/50 border border-rc-border rounded-xl p-4 flex gap-3 items-start">
-              <IconInfoCircle size={16} className="text-rc-text-muted mt-0.5 shrink-0" />
-              <div className="text-xs text-rc-text-dim">
-                <p className="mb-1">Export your build with the CLI: <code className="text-rc-cyan font-mono">clawclawgo export</code></p>
-                <p>Builds are published as <a href="/docs/reference/nostr" className="text-rc-cyan hover:underline">Nostr kind 38333 events</a> — decentralized and censorship-resistant.</p>
-              </div>
-            </div>
           </div>
         )}
 
-        {/* ─── Step 2: Review (scan results + content selector) ─── */}
+        {/* Step 2: Review sections */}
         {step === 'review' && rawContent && (
-          <div className="space-y-4">
-            {/* Overall scan badge */}
-            <div className={`border rounded-xl p-4 flex items-center gap-3 ${
-              hasCritical ? 'bg-red-500/10 border-red-500/30' :
-              hasWarnings ? 'bg-amber-500/10 border-amber-500/30' :
-              'bg-green-500/10 border-green-500/30'
-            }`}>
-              {hasCritical ? (
-                <IconShieldExclamation size={24} className="text-red-400" />
-              ) : hasWarnings ? (
-                <IconShieldExclamation size={24} className="text-amber-400" />
-              ) : (
-                <IconShieldCheck size={24} className="text-green-400" />
-              )}
-              <div>
-                <p className={`font-mono text-sm font-bold ${
-                  hasCritical ? 'text-red-400' : hasWarnings ? 'text-amber-400' : 'text-green-400'
-                }`}>
-                  {hasCritical ? 'SECURITY ISSUES DETECTED' : hasWarnings ? 'PII WARNINGS' : 'SCAN PASSED'}
-                </p>
-                <p className="text-xs text-rc-text-dim">
-                  {includedCount} of {totalCount} sections selected for publishing
-                </p>
-              </div>
-            </div>
-
-            {/* Section list */}
-            <div className="space-y-2">
-              {sections.map((section) => (
-                <div
-                  key={section.key}
-                  className={`border rounded-xl overflow-hidden transition-colors ${
-                    section.included ? 'bg-rc-surface border-rc-border' : 'bg-rc-bg/50 border-rc-border/50 opacity-60'
-                  }`}
-                >
-                  {/* Section header */}
-                  <div className="flex items-center gap-3 px-4 py-3">
-                    {/* Toggle */}
-                    <button
-                      onClick={() => toggleSection(section.key)}
-                      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${
-                        section.included
-                          ? 'bg-rc-cyan border-rc-cyan'
-                          : 'border-rc-text-muted hover:border-rc-cyan'
-                      }`}
-                    >
-                      {section.included && <IconCheck size={12} className="text-rc-bg" />}
-                    </button>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-grotesk font-semibold text-rc-text">{section.label}</span>
-                        {section.scanScore === 'WARN' && (
-                          <span className="text-xs font-mono text-amber-400 flex items-center gap-1">
-                            <IconAlertTriangle size={12} /> PII
-                          </span>
-                        )}
-                        {section.scanScore === 'FAIL' && (
-                          <span className="text-xs font-mono text-red-400 flex items-center gap-1">
-                            <IconAlertTriangle size={12} /> DANGER
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-rc-text-dim truncate">{section.description}</p>
-                    </div>
-
-                    {/* Expand button */}
-                    <button
-                      onClick={() => setExpandedSection(expandedSection === section.key ? null : section.key)}
-                      className="text-rc-text-muted hover:text-rc-cyan transition-colors shrink-0"
-                    >
-                      {expandedSection === section.key ? <IconChevronDown size={18} /> : <IconChevronRight size={18} />}
-                    </button>
-                  </div>
-
-                  {/* Expanded content */}
-                  <AnimatePresence>
-                    {expandedSection === section.key && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-4 pb-4 space-y-3">
-                          {/* PII warnings for this section */}
-                          {section.piiWarnings.length > 0 && (
-                            <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                              <p className="text-xs font-mono text-amber-400 font-bold mb-1">PII Detected:</p>
-                              {section.piiWarnings.map((w, i) => (
-                                <p key={i} className="text-xs text-amber-400/80">• {w}</p>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Content preview */}
-                          <div className="bg-rc-bg border border-rc-border rounded-lg overflow-hidden">
-                            <div className="px-3 py-1.5 border-b border-rc-border flex items-center justify-between">
-                              <span className="text-[10px] font-mono text-rc-text-muted uppercase tracking-wider">{section.key}</span>
-                              <button
-                                onClick={() => copyToClipboard(JSON.stringify(section.content, null, 2))}
-                                className="text-rc-text-muted hover:text-rc-cyan transition-colors"
-                              >
-                                <IconCopy size={12} />
-                              </button>
-                            </div>
-                            <pre className="p-3 text-xs font-mono text-rc-text-dim overflow-x-auto max-h-64 overflow-y-auto">
-                              {JSON.stringify(section.content, null, 2)}
-                            </pre>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={() => setStep('identity')}
-              disabled={includedCount === 0}
-              className="w-full px-4 py-3 bg-rc-cyan text-rc-bg font-mono text-sm font-bold rounded-xl hover:bg-rc-cyan/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Continue with {includedCount} section{includedCount !== 1 ? 's' : ''} →
-            </button>
-          </div>
-        )}
-
-        {/* ─── Step 3: Identity ───────────────────────────── */}
-        {step === 'identity' && (
-          <div className="space-y-4">
-            <p className="text-rc-text-dim text-sm mb-2">Choose how this build is attributed.</p>
-
-            {/* Anonymous option */}
-            <button
-              onClick={() => { setIdentityMode('anon'); }}
-              className={`w-full border rounded-xl p-4 text-left transition-all flex items-start gap-4 ${
-                identityMode === 'anon'
-                  ? 'bg-rc-cyan/10 border-rc-cyan/40'
-                  : 'bg-rc-surface border-rc-border hover:border-rc-cyan/20'
-              }`}
-            >
-              <IconSpy size={24} className={identityMode === 'anon' ? 'text-rc-cyan' : 'text-rc-text-muted'} />
-              <div>
-                <p className={`font-grotesk font-semibold text-sm ${identityMode === 'anon' ? 'text-rc-cyan' : 'text-rc-text'}`}>Anonymous</p>
-                <p className="text-xs text-rc-text-dim mt-0.5">Publish with a throwaway key. No one can link it to your identity.</p>
-              </div>
-              {identityMode === 'anon' && <IconCheck size={18} className="text-rc-cyan ml-auto mt-1" />}
-            </button>
-
-            {/* Existing identity option */}
-            <button
-              onClick={() => {
-                if (keys) setIdentityMode('existing')
-                else setIdentityMode('generate')
-              }}
-              className={`w-full border rounded-xl p-4 text-left transition-all flex items-start gap-4 ${
-                identityMode === 'existing' || identityMode === 'generate'
-                  ? 'bg-rc-cyan/10 border-rc-cyan/40'
-                  : 'bg-rc-surface border-rc-border hover:border-rc-cyan/20'
-              }`}
-            >
-              <IconUserCircle size={24} className={identityMode !== 'anon' ? 'text-rc-cyan' : 'text-rc-text-muted'} />
-              <div className="flex-1">
-                <p className={`font-grotesk font-semibold text-sm ${identityMode !== 'anon' ? 'text-rc-cyan' : 'text-rc-text'}`}>With Identity</p>
-                <p className="text-xs text-rc-text-dim mt-0.5">
-                  {keys
-                    ? `Publish as ${keys.npub.slice(0, 20)}...`
-                    : 'Generate new keys or import existing ones.'
-                  }
-                </p>
-              </div>
-              {identityMode !== 'anon' && <IconCheck size={18} className="text-rc-cyan ml-auto mt-1" />}
-            </button>
-
-            {/* Key management (only when identity mode selected) */}
-            {identityMode !== 'anon' && (
-              <div className="bg-rc-surface border border-rc-border rounded-xl p-4 space-y-4">
-                {keys ? (
-                  <>
-                    <div>
-                      <label className="block text-rc-text-dim text-xs font-mono mb-1">Public Key (npub)</label>
-                      <div className="flex gap-2">
-                        <input type="text" value={keys.npub} readOnly className="flex-1 px-3 py-2 bg-rc-bg border border-rc-border rounded-lg text-rc-text font-mono text-xs" />
-                        <button onClick={() => copyToClipboard(keys.npub)} className="px-3 py-2 bg-rc-bg border border-rc-border rounded-lg text-rc-text-muted hover:text-rc-cyan transition-colors">
-                          <IconCopy size={14} />
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-rc-text-dim text-xs font-mono mb-1">Private Key (nsec)</label>
-                      <div className="flex gap-2">
-                        <input type={revealNsec ? 'text' : 'password'} value={keys.nsec} readOnly className="flex-1 px-3 py-2 bg-rc-bg border border-rc-border rounded-lg text-rc-text font-mono text-xs" />
-                        <button onClick={() => setRevealNsec(!revealNsec)} className="px-3 py-2 bg-rc-bg border border-rc-border rounded-lg text-rc-text-muted hover:text-rc-cyan transition-colors">
-                          {revealNsec ? <IconEyeOff size={14} /> : <IconEye size={14} />}
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-[10px] text-rc-text-muted">
-                      Keys stored in localStorage. Use <a href="/settings" className="text-rc-cyan hover:underline">Settings</a> to manage.
-                    </p>
-                  </>
-                ) : (
-                  <div className="flex gap-3">
-                    <button
-                      onClick={generateKeys}
-                      className="px-4 py-2 bg-rc-cyan text-rc-bg font-mono text-sm font-bold rounded-lg hover:bg-rc-cyan/90 transition-colors"
-                    >
-                      <IconKey size={14} className="inline mr-1.5 -mt-0.5" />
-                      Generate Keys
-                    </button>
-                    <div className="flex-1 flex gap-2">
+          <div className="space-y-6">
+            <div className="bg-rc-surface border border-rc-border rounded-2xl p-6">
+              <h2 className="font-grotesk font-bold text-rc-text text-lg mb-4">Review & Select Sections</h2>
+              <p className="text-rc-text-dim text-sm mb-6">
+                Choose which parts of your config to include. Sensitive data warnings are highlighted.
+              </p>
+              
+              <div className="space-y-2">
+                {sections.map(section => (
+                  <div
+                    key={section.key}
+                    className="bg-rc-bg border border-rc-border rounded-xl overflow-hidden"
+                  >
+                    <div className="flex items-center gap-3 p-4">
                       <input
-                        type="text"
-                        value={importNsec}
-                        onChange={(e) => setImportNsec(e.target.value)}
-                        placeholder="nsec1..."
-                        className="flex-1 px-3 py-2 bg-rc-bg border border-rc-border rounded-lg text-rc-text font-mono text-xs focus:outline-none focus:border-rc-cyan"
+                        type="checkbox"
+                        checked={section.included}
+                        onChange={() => {
+                          setSections(prev => prev.map(s =>
+                            s.key === section.key ? { ...s, included: !s.included } : s
+                          ))
+                        }}
+                        className="w-4 h-4 rounded border-rc-border bg-rc-surface text-rc-cyan focus:ring-rc-cyan focus:ring-offset-0"
                       />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-sm text-rc-text font-semibold">{section.label}</span>
+                          {section.scanScore === 'WARN' && (
+                            <IconShieldExclamation size={14} className="text-amber-400" title="Contains potentially sensitive data" />
+                          )}
+                          {section.scanScore === 'PASS' && (
+                            <IconShieldCheck size={14} className="text-green-400" title="No sensitive data detected" />
+                          )}
+                        </div>
+                        <p className="text-xs text-rc-text-dim">{section.description}</p>
+                        {section.piiWarnings.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {section.piiWarnings.map((w, i) => (
+                              <span key={i} className="text-[10px] font-mono text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">
+                                {w}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <button
-                        onClick={importKey}
-                        disabled={!importNsec.trim()}
-                        className="px-3 py-2 bg-rc-surface border border-rc-border text-rc-text font-mono text-xs rounded-lg hover:border-rc-cyan/40 transition-colors disabled:opacity-40"
+                        onClick={() => setExpandedSection(expandedSection === section.key ? null : section.key)}
+                        className="text-rc-text-muted hover:text-rc-cyan transition-colors"
                       >
-                        Import
+                        {expandedSection === section.key ? <IconChevronDown size={18} /> : <IconChevronRight size={18} />}
                       </button>
                     </div>
+                    {expandedSection === section.key && (
+                      <div className="px-4 pb-4">
+                        <pre className="text-xs font-mono text-rc-text-dim bg-rc-surface p-3 rounded-lg overflow-x-auto max-h-60">
+                          {JSON.stringify(section.content, null, 2)}
+                        </pre>
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            )}
+            </div>
 
-            <button
-              onClick={() => setStep('metadata')}
-              disabled={identityMode !== 'anon' && !keys}
-              className="w-full px-4 py-3 bg-rc-cyan text-rc-bg font-mono text-sm font-bold rounded-xl hover:bg-rc-cyan/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Continue →
-            </button>
+            <div className="flex justify-between">
+              <button
+                onClick={() => setStep('upload')}
+                className="px-4 py-2 bg-rc-surface border border-rc-border text-rc-text font-mono text-sm rounded-lg hover:border-rc-border/40 transition-colors"
+              >
+                Back
+              </button>
+              <button
+                onClick={() => setStep('metadata')}
+                className="px-6 py-2 bg-rc-cyan text-rc-bg font-mono text-sm font-bold rounded-lg hover:bg-rc-cyan/90 transition-colors"
+              >
+                Next: Add Metadata
+              </button>
+            </div>
           </div>
         )}
 
-        {/* ─── Step 4: Metadata + Final Publish ───────────── */}
+        {/* Step 3: Metadata */}
         {step === 'metadata' && (
-          <div className="space-y-4">
-            <div className="bg-rc-surface border border-rc-border rounded-xl p-4 space-y-4">
+          <div className="space-y-6">
+            <div className="bg-rc-surface border border-rc-border rounded-2xl p-6 space-y-4">
+              <h2 className="font-grotesk font-bold text-rc-text text-lg mb-4">Build Metadata</h2>
+              
               <div>
-                <label className="block text-rc-text-dim text-xs font-mono mb-1">Build Name</label>
+                <label className="block text-rc-text-dim text-xs font-mono mb-1.5">Build Name *</label>
                 <input
                   type="text"
                   value={buildName}
                   onChange={(e) => setBuildName(e.target.value)}
+                  placeholder="My Awesome Agent Build"
                   className="w-full px-3 py-2 bg-rc-bg border border-rc-border rounded-lg text-rc-text text-sm focus:outline-none focus:border-rc-cyan"
                 />
               </div>
 
               <div>
-                <label className="block text-rc-text-dim text-xs font-mono mb-1">Tags</label>
-                <div className="flex gap-2 mb-2">
+                <label className="block text-rc-text-dim text-xs font-mono mb-1.5">Description</label>
+                <textarea
+                  value={buildDescription}
+                  onChange={(e) => setBuildDescription(e.target.value)}
+                  placeholder="A powerful AI assistant with voice control, smart home integration, and calendar management"
+                  rows={3}
+                  className="w-full px-3 py-2 bg-rc-bg border border-rc-border rounded-lg text-rc-text text-sm focus:outline-none focus:border-rc-cyan resize-y"
+                />
+              </div>
+
+              <div>
+                <label className="block text-rc-text-dim text-xs font-mono mb-1.5">Tags</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {tags.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="px-2 py-1 bg-rc-magenta/15 border border-rc-magenta/30 text-rc-magenta text-xs font-mono rounded flex items-center gap-1.5"
+                    >
+                      <IconHash size={10} />{tag}
+                      <button onClick={() => setTags(tags.filter((_, ii) => ii !== i))} className="hover:text-rc-magenta/70">
+                        <IconX size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
                   <input
                     type="text"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (newTag.trim() && !tags.includes(newTag.trim())) { setTags([...tags, newTag.trim()]); setNewTag('') } } }}
-                    placeholder="Add tag..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newTag.trim()) {
+                        setTags([...tags, newTag.trim()])
+                        setNewTag('')
+                      }
+                    }}
+                    placeholder="Add tag (press Enter)"
                     className="flex-1 px-3 py-2 bg-rc-bg border border-rc-border rounded-lg text-rc-text text-sm focus:outline-none focus:border-rc-cyan"
                   />
-                  <button
-                    onClick={() => { if (newTag.trim() && !tags.includes(newTag.trim())) { setTags([...tags, newTag.trim()]); setNewTag('') } }}
-                    className="px-4 py-2 bg-rc-surface border border-rc-border text-rc-text font-mono text-sm rounded-lg hover:border-rc-cyan/40 transition-colors"
-                  >
-                    Add
-                  </button>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {tags.map((tag, i) => (
-                    <div key={i} className="flex items-center gap-1 px-2 py-1 bg-rc-magenta/15 border border-rc-magenta/30 rounded-lg">
-                      <span className="text-xs font-mono text-rc-magenta">#{tag}</span>
-                      <button onClick={() => setTags(tags.filter(t => t !== tag))} className="text-rc-magenta/60 hover:text-rc-magenta">
-                        <IconX size={10} />
-                      </button>
-                    </div>
+              </div>
+
+              <div>
+                <label className="block text-rc-text-dim text-xs font-mono mb-1.5">Compatibility (which agents can use this)</label>
+                <div className="flex flex-wrap gap-2">
+                  {['openclaw', 'claude-code', 'cursor', 'windsurf', 'codex'].map(agent => (
+                    <button
+                      key={agent}
+                      onClick={() => {
+                        setCompatibility(prev =>
+                          prev.includes(agent) ? prev.filter(a => a !== agent) : [...prev, agent]
+                        )
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                        compatibility.includes(agent)
+                          ? 'bg-rc-cyan text-rc-bg font-bold'
+                          : 'bg-rc-bg border border-rc-border text-rc-text-dim hover:border-rc-cyan/40'
+                      }`}
+                    >
+                      {agent}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-rc-text-dim text-xs font-mono mb-1.5">Declared Permissions</label>
+                <div className="flex flex-wrap gap-2">
+                  {['filesystem', 'web-search', 'email', 'calendar', 'smart-home', 'message', 'exec', 'browser'].map(perm => (
+                    <button
+                      key={perm}
+                      onClick={() => {
+                        setPermissions(prev =>
+                          prev.includes(perm) ? prev.filter(p => p !== perm) : [...prev, perm]
+                        )
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                        permissions.includes(perm)
+                          ? 'bg-rc-magenta text-rc-bg font-bold'
+                          : 'bg-rc-bg border border-rc-border text-rc-text-dim hover:border-rc-magenta/40'
+                      }`}
+                    >
+                      {perm}
+                    </button>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Summary */}
-            <div className="bg-rc-surface border border-rc-border rounded-xl p-4">
-              <h3 className="font-grotesk font-semibold text-rc-text text-sm mb-3">Publish Summary</h3>
-              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                <div className="text-rc-text-muted">Sections</div>
-                <div className="text-rc-text">{includedCount} of {totalCount}</div>
-                <div className="text-rc-text-muted">Identity</div>
-                <div className="text-rc-text">
-                  {identityMode === 'anon' ? 'Anonymous (throwaway key)' : keys?.npub.slice(0, 16) + '...'}
-                </div>
-                <div className="text-rc-text-muted">Relay</div>
-                <div className="text-rc-text">{RELAYS[0]}</div>
-                <div className="text-rc-text-muted">Event kind</div>
-                <div className="text-rc-text">38333 (NIP-33)</div>
-              </div>
-
-              {hasWarnings && (
-                <div className="mt-3 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                  <p className="text-xs text-amber-400">
-                    <IconAlertTriangle size={12} className="inline mr-1 -mt-0.5" />
-                    Some included sections contain PII. Go back to review and deselect if needed.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3">
+            <div className="flex justify-between">
               <button
                 onClick={() => setStep('review')}
-                className="px-4 py-3 bg-rc-surface border border-rc-border text-rc-text font-mono text-sm rounded-xl hover:border-rc-cyan/40 transition-colors"
+                className="px-4 py-2 bg-rc-surface border border-rc-border text-rc-text font-mono text-sm rounded-lg hover:border-rc-border/40 transition-colors"
               >
-                ← Review
+                Back
               </button>
               <button
-                onClick={publish}
-                disabled={!buildName.trim() || hasCritical}
-                className="flex-1 px-4 py-3 bg-rc-cyan text-rc-bg font-mono text-sm font-bold rounded-xl hover:bg-rc-cyan/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                onClick={() => setStep('output')}
+                disabled={!buildName.trim()}
+                className="px-6 py-2 bg-rc-cyan text-rc-bg font-mono text-sm font-bold rounded-lg hover:bg-rc-cyan/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {hasCritical ? 'Fix Security Issues First' : 'Publish to Nostr'}
+                Generate Output
               </button>
             </div>
           </div>
         )}
 
-        {/* ─── Publishing spinner ─────────────────────────── */}
-        {step === 'publishing' && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-12 h-12 border-2 border-rc-cyan/20 border-t-rc-cyan rounded-full animate-spin mb-4" />
-            <p className="text-rc-text-dim text-sm font-mono">Signing and publishing to relays...</p>
-          </div>
-        )}
+        {/* Step 4: Output */}
+        {step === 'output' && (
+          <div className="space-y-6">
+            <div className="bg-rc-surface border border-rc-border rounded-2xl p-6">
+              <div className="flex items-start gap-3 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-rc-bg border border-rc-cyan flex items-center justify-center shrink-0">
+                  <IconBrandGithub size={24} className="text-rc-cyan" />
+                </div>
+                <div>
+                  <h2 className="font-grotesk font-bold text-rc-text text-lg mb-1">Publish to GitHub</h2>
+                  <p className="text-rc-text-dim text-sm">Your build.json is ready. Follow these steps to publish:</p>
+                </div>
+              </div>
 
-        {/* ─── Success ────────────────────────────────────── */}
-        {step === 'success' && (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-full bg-green-400/15 border border-green-400/30 flex items-center justify-center mx-auto mb-4">
-              <IconCheck size={32} className="text-green-400" />
-            </div>
-            <h2 className="font-grotesk font-bold text-rc-text text-xl mb-2">Published!</h2>
-            <p className="text-rc-text-dim text-sm mb-6">Your build is live on Nostr.</p>
-            {eventId && (
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-rc-surface border border-rc-border rounded-lg mb-6">
-                <span className="text-xs font-mono text-rc-text-muted">Event ID:</span>
-                <span className="text-xs font-mono text-rc-text">{eventId.slice(0, 16)}...</span>
-                <button onClick={() => copyToClipboard(eventId)} className="text-rc-text-muted hover:text-rc-cyan transition-colors">
-                  <IconCopy size={12} />
+              <div className="space-y-4 mb-6">
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-rc-cyan/15 border border-rc-cyan/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-xs font-mono font-bold text-rc-cyan">1</span>
+                  </div>
+                  <div>
+                    <p className="text-rc-text text-sm font-semibold mb-1">Create a new GitHub repository</p>
+                    <p className="text-rc-text-dim text-xs">Make it public so others can discover your build</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-rc-cyan/15 border border-rc-cyan/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-xs font-mono font-bold text-rc-cyan">2</span>
+                  </div>
+                  <div>
+                    <p className="text-rc-text text-sm font-semibold mb-1">Add this <code className="text-rc-cyan">build.json</code> file to the repo root</p>
+                    <p className="text-rc-text-dim text-xs">Copy the JSON below or download the file</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-rc-cyan/15 border border-rc-cyan/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-xs font-mono font-bold text-rc-cyan">3</span>
+                  </div>
+                  <div>
+                    <p className="text-rc-text text-sm font-semibold mb-1">Add the <code className="text-rc-cyan">clawclawgo-build</code> topic</p>
+                    <p className="text-rc-text-dim text-xs">Go to repo settings → Topics → add "clawclawgo-build"</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-rc-cyan/15 border border-rc-cyan/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-xs font-mono font-bold text-rc-cyan">4</span>
+                  </div>
+                  <div>
+                    <p className="text-rc-text text-sm font-semibold mb-1">Your build will appear in the feed within 24 hours</p>
+                    <p className="text-rc-text-dim text-xs">The aggregator indexes GitHub repos with the clawclawgo-build topic</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-rc-text-dim text-xs font-mono">build.json</span>
+                <div className="flex-1 h-px bg-rc-border" />
+                <button
+                  onClick={copyToClipboard}
+                  className="px-3 py-1 bg-rc-bg border border-rc-border text-rc-text-dim hover:text-rc-cyan hover:border-rc-cyan/40 rounded text-xs font-mono transition-colors flex items-center gap-1.5"
+                >
+                  {copied ? <IconCheck size={12} /> : <IconCopy size={12} />}
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+                <button
+                  onClick={downloadBuildJSON}
+                  className="px-3 py-1 bg-rc-cyan text-rc-bg rounded text-xs font-mono font-bold transition-colors flex items-center gap-1.5"
+                >
+                  <IconDownload size={12} />
+                  Download
                 </button>
               </div>
-            )}
-            <div className="flex gap-3 justify-center">
-              <a href="/feed" className="px-4 py-2 bg-rc-cyan text-rc-bg font-mono text-sm font-bold rounded-lg hover:bg-rc-cyan/90 transition-colors">
-                View on Feed
-              </a>
+
+              <pre className="text-xs font-mono text-rc-text-dim bg-rc-bg p-4 rounded-lg overflow-x-auto max-h-96 border border-rc-border">
+                {generateBuildJSON()}
+              </pre>
+            </div>
+
+            <div className="flex justify-between">
               <button
-                onClick={() => { setStep('upload'); setRawContent(null); setSections([]); setEventId(null) }}
-                className="px-4 py-2 bg-rc-surface border border-rc-border text-rc-text font-mono text-sm rounded-lg hover:border-rc-cyan/40 transition-colors"
+                onClick={() => setStep('metadata')}
+                className="px-4 py-2 bg-rc-surface border border-rc-border text-rc-text font-mono text-sm rounded-lg hover:border-rc-border/40 transition-colors"
               >
-                Publish Another
+                Back
+              </button>
+              <button
+                onClick={() => window.location.href = '/feed'}
+                className="px-6 py-2 bg-rc-cyan text-rc-bg font-mono text-sm font-bold rounded-lg hover:bg-rc-cyan/90 transition-colors"
+              >
+                Done
               </button>
             </div>
           </div>

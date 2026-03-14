@@ -10,9 +10,9 @@ interface FAQ {
 const faqs: FAQ[] = [
   { q: 'What is a build?', a: 'A build is a complete agent configuration: the model, integrations, skills, personality, memory, and scheduling that define how an AI agent works. Think of it like a character build in a game, or dotfiles for your AI.' },
   { q: 'Can I search without an account?', a: 'Yes. No accounts, no tracking, no login required. Search and browse builds completely anonymously. Only create an identity if you want to publish builds.' },
-  { q: 'Can I publish anonymously?', a: 'Yes. You can publish builds without any identity attached. Or use Nostr keys to tie builds to a verified identity if you want credit.' },
+  { q: 'Can I publish anonymously?', a: 'Yes. Publish builds under your GitHub username or keep them in a private repo. Your identity is tied to your GitHub account — no extra signup required.' },
   { q: 'What data is shared when I publish?', a: 'Only what you approve. The PII scrubber runs locally and removes phone numbers, emails, API keys, home paths, and other sensitive data before anything leaves your machine. You review the scrubbed output before publishing.' },
-  { q: 'How is this decentralized?', a: 'Builds are published to Nostr relays, a decentralized protocol. No central authority. No single point of failure. Censorship-resistant by design.' },
+  { q: 'Where are builds stored?', a: 'Builds are published as JSON files in GitHub repositories. ClawClawGo aggregates builds from GitHub, ClawHub, and other sources into a single searchable feed.' },
   { q: "Can I copy someone else's build?", a: 'That\'s the whole point. Click any build card, hit "Copy Build," and you\'ve got their full configuration. Swap out what doesn\'t fit, keep what does.' },
   { q: 'What\'s in a typical build?', a: 'Builds contain whatever config your agent uses. Common pieces include model routing (which LLMs), personality (how it talks), skills (what it can do), integrations (what it connects to), automations (heartbeat + cron), and memory config. But builds are flexible.' },
   { q: 'Do I need OpenClaw to use a build?', a: 'Builds are designed for OpenClaw agents, but the concepts are universal. The model choices, integration patterns, and personality approaches apply to any AI agent setup.' },

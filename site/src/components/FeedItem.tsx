@@ -1,10 +1,28 @@
 import { motion } from 'framer-motion'
-import { IconChevronRight, IconGitFork, IconHash, IconShield, IconAlertTriangle, IconAlertCircle } from '@tabler/icons-react'
+import { IconChevronRight, IconHash, IconShield, IconAlertTriangle, IconAlertCircle, IconStar, IconBrandGithub } from '@tabler/icons-react'
 import { formatDate, itemGradients, scanBuild } from '../lib/utils'
 import type { FeedItemProps } from '../types'
 
+// Source icons
+const SOURCE_ICONS = {
+  github: IconBrandGithub,
+  clawhub: IconHash,
+  skillssh: IconHash,
+  local: IconHash,
+}
+
+// Trust tier badges
+const TRUST_BADGES = {
+  verified: { label: 'VERIFIED', color: 'bg-green-400/15 border-green-400/30 text-green-400' },
+  community: { label: 'COMMUNITY', color: 'bg-blue-400/15 border-blue-400/30 text-blue-400' },
+  unreviewed: { label: 'UNREVIEWED', color: 'bg-amber-400/15 border-amber-400/30 text-amber-400' },
+}
+
 export default function FeedItem({ build, index, isNew, onClick, onTagClick }: FeedItemProps) {
   const scanResult = scanBuild(build.content)
+  const SourceIcon = SOURCE_ICONS[build.source] || IconHash
+  const trustBadge = TRUST_BADGES[build.trustTier]
+
   return (
     <motion.div
       layout
@@ -25,7 +43,7 @@ export default function FeedItem({ build, index, isNew, onClick, onTagClick }: F
           <div className="md:w-44 shrink-0 p-5 md:border-r border-rc-border flex md:flex-col items-center md:items-start gap-3 md:gap-2">
             <div className="flex items-center gap-2">
               <span className="text-rc-text-muted text-xs font-mono">
-                {formatDate(typeof build.createdAt === 'number' ? build.createdAt : 0)}
+                {formatDate(build.createdAt)}
               </span>
               {scanResult.score === 'PASS' && (
                 <IconShield size={12} className="text-green-400" title="Security: PASS" />
@@ -38,16 +56,14 @@ export default function FeedItem({ build, index, isNew, onClick, onTagClick }: F
               )}
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {build.isNew && (
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-rc-cyan/15 border border-rc-cyan/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rc-cyan animate-pulse" />
-                  <span className="text-[9px] font-mono font-bold text-rc-cyan tracking-wider">NEW</span>
-                </div>
-              )}
-              {build.fork && (
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-rc-magenta/15 border border-rc-magenta/30">
-                  <IconGitFork size={10} className="text-rc-magenta" />
-                  <span className="text-[9px] font-mono font-bold text-rc-magenta tracking-wider">FORK</span>
+              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${trustBadge.color}`}>
+                <SourceIcon size={10} />
+                <span className="text-[9px] font-mono font-bold tracking-wider">{build.source.toUpperCase()}</span>
+              </div>
+              {build.source === 'github' && build.stars && build.stars > 0 && (
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-rc-yellow/15 border border-rc-yellow/30">
+                  <IconStar size={10} className="text-rc-yellow" />
+                  <span className="text-[9px] font-mono font-bold text-rc-yellow">{build.stars}</span>
                 </div>
               )}
             </div>
@@ -55,13 +71,30 @@ export default function FeedItem({ build, index, isNew, onClick, onTagClick }: F
 
           {/* Middle: name + items */}
           <div className="flex-1 p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <h3 className="font-grotesk font-bold text-rc-text text-base">
-                {build.agentName}
-              </h3>
-              <span className="text-rc-text-muted text-xs font-mono hidden sm:inline">
-                {build.name}
-              </span>
+            <div className="flex items-start gap-2 mb-3 flex-wrap">
+              <div className="flex-1">
+                <h3 className="font-grotesk font-bold text-rc-text text-base">
+                  {build.name}
+                </h3>
+                {build.description && (
+                  <p className="text-rc-text-dim text-xs mt-1 line-clamp-2">
+                    {build.description}
+                  </p>
+                )}
+              </div>
+              {build.compatibility && build.compatibility.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {build.compatibility.slice(0, 3).map((agent, i) => (
+                    <span
+                      key={i}
+                      className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-rc-cyan/15 border border-rc-cyan/30 text-rc-cyan"
+                      title={`Compatible with ${agent}`}
+                    >
+                      {agent}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap gap-1.5">
               {build.items.slice(0, 10).map((item, ii) => (

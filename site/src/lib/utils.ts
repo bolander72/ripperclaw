@@ -1,5 +1,4 @@
-import { nip19 } from 'nostr-tools'
-import type { BuildContent, BuildEvent, Build, BuildItem, ScanResult, PIIFinding, SuspiciousFinding, InfoFinding } from '../types'
+import type { BuildContent, Build, BuildItem, ScanResult, PIIFinding, SuspiciousFinding, InfoFinding, PermissionFinding } from '../types'
 
 // ─── Constants ─────────────────────────────────────────────
 
@@ -12,12 +11,11 @@ export const itemGradients = [
   'from-amber-500/40 to-orange-500/40',
 ]
 
-export const RELAYS = ['wss://relay.clawclawgo.com']
-
 // ─── Helpers ───────────────────────────────────────────────
 
-export function formatDate(timestamp: number): string {
-  const d = new Date(timestamp * 1000)
+export function formatDate(timestamp: number | string): string {
+  const ts = typeof timestamp === 'number' ? timestamp : new Date(timestamp).getTime() / 1000
+  const d = new Date(ts * 1000)
   const now = new Date()
   const diff = Math.floor((now.getTime() - d.getTime()) / 1000)
   if (diff < 5) return 'just now'
@@ -51,40 +49,6 @@ export function extractItems(content: BuildContent): { items: BuildItem[]; keyCo
   return { items, keyCount: configKeys.length }
 }
 
-export function parseBuildEvent(event: BuildEvent): Build | null {
-  try {
-    const content = JSON.parse(event.content) as BuildContent
-    const dTag = event.tags.find(t => t[0] === 'd')?.[1] || 'Unnamed'
-    const tTags = event.tags.filter(t => t[0] === 't').map(t => t[1])
-    const forkTag = event.tags.find(t => t[0] === 'e' && t[3] === 'fork')
-    const authorTag = event.tags.find(t => t[0] === 'p')
-
-    const { items, keyCount } = extractItems(content)
-
-    return {
-      id: event.id,
-      name: dTag,
-      agentName: content.meta?.agentName || content.agentName || dTag,
-      creator: nip19.npubEncode(event.pubkey).slice(0, 12) + '...',
-      createdAt: event.created_at,
-      isNew: (Date.now() / 1000 - event.created_at) < 7 * 24 * 60 * 60,
-      tags: tTags,
-      items,
-      keyCount,
-      content,
-      fork: forkTag ? {
-        eventId: forkTag[1],
-        relay: forkTag[2],
-      } : null,
-      originalAuthor: authorTag ? nip19.npubEncode(authorTag[1]).slice(0, 12) + '...' : null,
-      remixCount: 0,
-    }
-  } catch (e) {
-    console.error('Failed to parse build event:', e)
-    return null
-  }
-}
-
 // ─── Security Scanner ──────────────────────────────────────
 
 interface PIIPattern {
@@ -116,14 +80,28 @@ const SUSPICIOUS_PATTERNS: SuspiciousPattern[] = [
   { name: 'Network exfil', pattern: /(?:nc|netcat|ncat)\s+-[a-z]*\s+\d/gi, severity: 'high' },
 ]
 
+// Tool/permission patterns for permission checker
+const TOOL_PATTERNS: Record<string, RegExp[]> = {
+  'filesystem': [/\bRead\b|\bWrite\b|\bEdit\b|file_path|readFile|writeFile/gi],
+  'web-search': [/web_search|brave.*search|google.*search/gi],
+  'email': [/\bemail\b|message.*email|smtp|imap/gi],
+  'calendar': [/calendar|caldir|icalPal/gi],
+  'smart-home': [/smart.?home|home.?assistant|homekit/gi],
+  'browser': [/\bbrowser\b|playwright|puppeteer/gi],
+  'exec': [/\bexec\b|shell|command|process/gi],
+  'message': [/\bmessage\b|sms|imessage|telegram|discord/gi],
+}
+
 export function scanBuild(content: BuildContent): ScanResult {
   const text = JSON.stringify(content, null, 2)
-  const findings: { pii: PIIFinding[]; suspicious: SuspiciousFinding[]; info: InfoFinding[] } = { 
+  const findings: { pii: PIIFinding[]; suspicious: SuspiciousFinding[]; info: InfoFinding[]; permissions: PermissionFinding[] } = { 
     pii: [], 
     suspicious: [], 
-    info: [] 
+    info: [],
+    permissions: []
   }
 
+  // PII scan
   for (const { name, pattern } of PII_PATTERNS) {
     const matches = text.match(pattern)
     if (matches) {
@@ -131,6 +109,7 @@ export function scanBuild(content: BuildContent): ScanResult {
     }
   }
 
+  // Suspicious patterns scan
   for (const { name, pattern, severity } of SUSPICIOUS_PATTERNS) {
     const matches = text.match(pattern)
     if (matches) {
@@ -138,16 +117,52 @@ export function scanBuild(content: BuildContent): ScanResult {
     }
   }
 
+  // Permission checking
+  const declaredPermissions = content.permissions || content.meta?.permissions || []
+  const detectedTools: Set<string> = new Set()
+
+  for (const [tool, patterns] of Object.entries(TOOL_PATTERNS)) {
+    for (const pattern of patterns) {
+      if (pattern.test(text)) {
+        detectedTools.add(tool)
+        break
+      }
+    }
+  }
+
+  // Check for undeclared permissions
+  for (const tool of detectedTools) {
+    if (!declaredPermissions.includes(tool)) {
+      findings.permissions.push({
+        name: tool,
+        severity: 'warning',
+        message: `Build uses ${tool} but doesn't declare it in permissions`
+      })
+    }
+  }
+
+  // Info section
   const keys = Object.keys(content).filter(k => !['schema', 'meta', 'dependencies'].includes(k))
   findings.info.push({ name: 'Config keys', value: keys.join(', ') })
+  
   if (content.model?.tiers) {
     const models = Object.values(content.model.tiers).map(t => t.alias || `${t.provider}/${t.model}`).join(', ')
     findings.info.push({ name: 'Models', value: models })
   }
+  
   if (content.skills?.items?.length) {
     findings.info.push({ name: 'Skills', value: content.skills.items.map(s => s.name).join(', ') })
   }
 
+  if (content.meta?.compatibility?.length) {
+    findings.info.push({ name: 'Compatibility', value: content.meta.compatibility.join(', ') })
+  }
+
+  if (declaredPermissions.length > 0) {
+    findings.info.push({ name: 'Declared permissions', value: declaredPermissions.join(', ') })
+  }
+
+  // Scoring
   const hasCritical = findings.suspicious.some(f => f.severity === 'high')
   const hasPII = findings.pii.length > 0
   const score = hasCritical ? 'FAIL' : hasPII ? 'WARN' : 'PASS'

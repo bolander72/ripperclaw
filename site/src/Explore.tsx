@@ -1,93 +1,34 @@
 import { useState, useEffect, useRef } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { Relay } from 'nostr-tools'
 import { IconLivePhoto, IconUpload } from '@tabler/icons-react'
-import { parseBuildEvent, RELAYS } from './lib/utils'
+import { extractItems } from './lib/utils'
+import { builds as sampleBuilds } from './builds'
 import FeedItem from './components/FeedItem'
 import BuildDetail from './components/BuildDetail'
 import ApplyWizard from './components/ApplyWizard'
-import PublishModal from './components/PublishModal'
-import type { Build } from './types'
+import LoadingSprite from './components/LoadingSprite'
+import type { Build, BuildContent } from './types'
 
 export default function Explore() {
   const [builds, setBuilds] = useState<Build[]>([])
   const [selectedBuild, setSelectedBuild] = useState<Build | null>(null)
   const [applyBuild, setApplyBuild] = useState<Build | null>(null)
-  const [isConnecting, setIsConnecting] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [newIds, setNewIds] = useState<Set<string>>(new Set())
   const [sortMode, setSortMode] = useState<'recent' | 'hot'>('recent')
   const [tagFilter, setTagFilter] = useState<string | null>(null)
-  const [showPublish, setShowPublish] = useState<boolean>(false)
   const [isDragging, setIsDragging] = useState<boolean>(false)
   
-  const relayRef = useRef<any>(null)
   const seenIds = useRef<Set<string>>(new Set())
-  const isInitialLoad = useRef<boolean>(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Check for publish query param
+  // Load sample builds on mount
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('publish') === 'true') {
-      setShowPublish(true)
-      // Clean up URL
-      window.history.replaceState({}, '', '/feed')
-    }
-  }, [])
-
-  useEffect(() => {
-    let sub: any = null
-    let relay: any = null
-
-    async function connect() {
-      try {
-        relay = await Relay.connect(RELAYS[0])
-        relayRef.current = relay
-
-        sub = relay.subscribe([{ kinds: [38333], limit: 200 }], {
-          onevent(event: any) {
-            if (seenIds.current.has(event.id)) return
-            seenIds.current.add(event.id)
-
-            const build = parseBuildEvent(event)
-            if (build) {
-              setBuilds(prev => {
-                if (prev.find(l => l.id === build.id)) return prev
-                const next = [build, ...prev].sort((a, b) => 
-                  (typeof b.createdAt === 'number' ? b.createdAt : 0) - (typeof a.createdAt === 'number' ? a.createdAt : 0)
-                )
-                return next
-              })
-
-              if (!isInitialLoad.current) {
-                setNewIds(prev => new Set([...prev, build.id]))
-                setTimeout(() => {
-                  setNewIds(prev => {
-                    const next = new Set(prev)
-                    next.delete(build.id)
-                    return next
-                  })
-                }, 2000)
-              }
-            }
-          },
-          oneose() {
-            setIsConnecting(false)
-            setTimeout(() => { isInitialLoad.current = false }, 500)
-          },
-        })
-      } catch (err) {
-        console.error('Failed to connect to relay:', err)
-        setIsConnecting(false)
-      }
-    }
-
-    connect()
-
-    return () => {
-      if (sub) sub.close()
-      if (relay) relay.close()
-    }
+    // Simulate loading
+    setTimeout(() => {
+      setBuilds(sampleBuilds)
+      setIsLoading(false)
+    }, 500)
   }, [])
 
   // File import handlers
@@ -95,22 +36,25 @@ export default function Explore() {
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
-        const content = JSON.parse(e.target?.result as string)
-        const build = {
+        const content = JSON.parse(e.target?.result as string) as BuildContent
+        const { items, keyCount } = extractItems(content)
+        
+        const build: Build = {
           id: 'local-' + Date.now(),
           name: content.meta?.name || 'Imported Build',
-          agentName: content.meta?.agentName || content.agentName || 'Imported',
+          description: content.meta?.description || 'Imported from local file',
+          source: 'local',
           creator: 'local',
           createdAt: Math.floor(Date.now() / 1000),
-          isNew: true,
           tags: content.meta?.tags || [],
-          items: [],
-          keyCount: 0,
+          items,
+          keyCount,
           content,
-          fork: null,
-          originalAuthor: null,
-          remixCount: 0,
+          compatibility: content.meta?.compatibility || [],
+          permissions: content.permissions || content.meta?.permissions,
+          trustTier: 'unreviewed',
         }
+        
         setBuilds(prev => [build, ...prev])
         setNewIds(prev => new Set([...prev, build.id]))
         setTimeout(() => setNewIds(prev => {
@@ -153,10 +97,17 @@ export default function Explore() {
     .filter(build => !tagFilter || build.tags.includes(tagFilter))
     .sort((a, b) => {
       if (sortMode === 'recent') {
-        return (typeof b.createdAt === 'number' ? b.createdAt : 0) - (typeof a.createdAt === 'number' ? a.createdAt : 0)
+        const aTime = typeof a.createdAt === 'number' ? a.createdAt : new Date(a.createdAt).getTime() / 1000
+        const bTime = typeof b.createdAt === 'number' ? b.createdAt : new Date(b.createdAt).getTime() / 1000
+        return bTime - aTime
       } else {
-        // Hot: for now just sort by recency (remix counting requires relay queries)
-        return (typeof b.createdAt === 'number' ? b.createdAt : 0) - (typeof a.createdAt === 'number' ? a.createdAt : 0)
+        // Hot: sort by stars (GitHub) or recency (others)
+        const aScore = a.stars || 0
+        const bScore = b.stars || 0
+        if (aScore !== bScore) return bScore - aScore
+        const aTime = typeof a.createdAt === 'number' ? a.createdAt : new Date(a.createdAt).getTime() / 1000
+        const bTime = typeof b.createdAt === 'number' ? b.createdAt : new Date(b.createdAt).getTime() / 1000
+        return bTime - aTime
       }
     })
 
@@ -197,9 +148,9 @@ export default function Explore() {
             </nav>
 
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rc-surface border border-rc-border shrink-0">
-              <div className={`w-2 h-2 rounded-full ${isConnecting ? 'bg-amber-400 animate-pulse' : 'bg-green-400'}`} />
+              <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-amber-400 animate-pulse' : 'bg-green-400'}`} />
               <span className="text-xs font-mono text-rc-text-dim">
-                {isConnecting ? 'Connecting' : `${builds.length} builds`}
+                {isLoading ? 'Loading' : `${builds.length} builds`}
               </span>
             </div>
           </div>
@@ -258,20 +209,20 @@ export default function Explore() {
             )}
           </div>
           <span className="text-rc-text-muted text-[10px] font-mono">
-            relay.clawclawgo.com
+            Multi-source aggregator
           </span>
         </div>
 
         {/* Loading state */}
-        {isConnecting && builds.length === 0 && (
+        {isLoading && builds.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-12 h-12 border-2 border-rc-cyan/20 border-t-rc-cyan rounded-full animate-spin mb-4" />
-            <p className="text-rc-text-dim text-sm font-mono">Connecting to relay...</p>
+            <LoadingSprite size={64} className="mb-4" />
+            <p className="text-rc-text-dim text-sm font-mono">Loading builds...</p>
           </div>
         )}
 
         {/* Empty state */}
-        {!isConnecting && builds.length === 0 && (
+        {!isLoading && builds.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
               <IconLivePhoto size={32} className="text-rc-text-muted" />
@@ -319,9 +270,6 @@ export default function Explore() {
             build={applyBuild}
             onClose={() => setApplyBuild(null)}
           />
-        )}
-        {showPublish && (
-          <PublishModal onClose={() => setShowPublish(false)} />
         )}
       </AnimatePresence>
     </div>

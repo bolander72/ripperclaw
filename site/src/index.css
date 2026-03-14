@@ -67,6 +67,18 @@
   100% { transform: translateX(-50%); }
 }
 
+@keyframes sprite-step {
+  from { background-position-x: 0%; }
+  to { background-position-x: 100%; }
+}
+
+.loading-sprite {
+  background-image: url('/logo-sprite.png');
+  background-size: 800% 100%;
+  background-repeat: no-repeat;
+  animation: sprite-step 1.6s steps(8) infinite;
+}
+
 body {
   background-color: var(--rc-bg);
   color: var(--rc-text);

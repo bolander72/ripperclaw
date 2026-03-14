@@ -5,7 +5,18 @@ title: CLI Reference
 
 # CLI Reference
 
-The ClawClawGo CLI is a standalone Node.js script at `cli/clawclawgo.mjs`.
+The ClawClawGo CLI is installable via npm/npx. No installation required — just run with `npx`:
+
+```bash
+npx clawclawgo <command>
+```
+
+Or install globally:
+
+```bash
+npm install -g clawclawgo
+clawclawgo <command>
+```
 
 ## Commands
 
@@ -14,14 +25,21 @@ The ClawClawGo CLI is a standalone Node.js script at `cli/clawclawgo.mjs`.
 Export the current agent's configuration as a build JSON document.
 
 ```bash
-node clawclawgo.mjs export
+npx clawclawgo export
 ```
 
 Outputs to stdout. Pipe to a file to save:
 
 ```bash
-node clawclawgo.mjs export > my-build.json
+npx clawclawgo export > my-build.json
 ```
+
+**Options:**
+
+| Flag | Description |
+|------|-------------|
+| `--agent <id>` | Agent ID to export (defaults to main) |
+| `--out <file>` | Write to file instead of stdout |
 
 **What it captures:**
 - Model tiers (main, fast, free) from `openclaw.json`
@@ -31,12 +49,18 @@ node clawclawgo.mjs export > my-build.json
 - Automations (HEARTBEAT.md content)
 - Memory (directory structure and template files)
 
+**Example:**
+
+```bash
+npx clawclawgo export --agent main --out build.json
+```
+
 ### `apply`
 
 Apply a build file to create a new agent.
 
 ```bash
-node clawclawgo.mjs apply <build.json> --agent <agent-id> [options]
+npx clawclawgo apply <build.json> --agent <agent-id> [options]
 ```
 
 **Options:**
@@ -49,17 +73,25 @@ node clawclawgo.mjs apply <build.json> --agent <agent-id> [options]
 | `--skip-deps` | Skip dependency checking |
 | `--skip-security` | Skip security scan (not recommended) |
 
+**Build sources:**
+- Local file: `npx clawclawgo apply build.json --agent test-bot`
+- URL: `npx clawclawgo apply https://example.com/build.json --agent test-bot`
+- Stdin: `cat build.json | npx clawclawgo apply --from-stdin --agent test-bot`
+
 **Example:**
 
 ```bash
 # Preview
-node clawclawgo.mjs apply quinn-build.json --agent test-bot --dry-run
+npx clawclawgo apply quinn-build.json --agent test-bot --dry-run
 
 # Apply
-node clawclawgo.mjs apply quinn-build.json --agent test-bot
+npx clawclawgo apply quinn-build.json --agent test-bot
 
 # Apply with your own models
-node clawclawgo.mjs apply quinn-build.json --agent test-bot --use-my-models
+npx clawclawgo apply quinn-build.json --agent test-bot --use-my-models
+
+# Apply from URL
+npx clawclawgo apply https://raw.githubusercontent.com/user/build/main/build.json --agent prod-bot
 ```
 
 **Safety:**
@@ -83,35 +115,16 @@ node clawclawgo.mjs apply quinn-build.json --agent test-bot --use-my-models
 Scan a build file for security issues without applying it.
 
 ```bash
-node clawclawgo.mjs scan <build.json>
+npx clawclawgo scan <build.json>
 ```
 
-Runs all five security passes and outputs the security report with trust score and findings. See [Security Scanning](/docs/guide/security) for details.
+Runs all security passes and outputs the security report with trust score and findings. See [Security Scanning](/docs/guide/security) for details.
 
 **Example:**
 
 ```bash
-node clawclawgo.mjs scan my-build.json
-```
-
-### `validate`
-
-Validate a build file against the schema and check that setup guides exist.
-
-```bash
-node clawclawgo.mjs validate <build.json>
-```
-
-Checks:
-- JSON structure matches schema
-- All required fields present
-- Integration setup guide URLs resolve (HTTP HEAD)
-- Dependency references are valid
-
-**Example:**
-
-```bash
-node clawclawgo.mjs validate my-build.json
+npx clawclawgo scan my-build.json
+npx clawclawgo scan https://example.com/build.json
 ```
 
 ### `preview`
@@ -119,7 +132,7 @@ node clawclawgo.mjs validate my-build.json
 Preview what an applier would see (security summary, dependency report, guide availability).
 
 ```bash
-node clawclawgo.mjs preview <build.json>
+npx clawclawgo preview <build.json>
 ```
 
 Shows:
@@ -131,7 +144,8 @@ Shows:
 **Example:**
 
 ```bash
-node clawclawgo.mjs preview my-build.json
+npx clawclawgo preview my-build.json
+npx clawclawgo preview https://raw.githubusercontent.com/user/build/main/build.json
 ```
 
 ## Environment
@@ -140,3 +154,44 @@ The CLI expects:
 - `~/.openclaw/openclaw.json` to exist
 - `clawhub` CLI available in PATH (for skill installation)
 - Node.js 18+
+
+## Installation
+
+**Via npx (no install required):**
+
+```bash
+npx clawclawgo <command>
+```
+
+**Global install:**
+
+```bash
+npm install -g clawclawgo
+```
+
+**From source:**
+
+```bash
+git clone https://github.com/bolander72/clawclawgo
+cd clawclawgo
+chmod +x cli/clawclawgo.mjs
+./cli/clawclawgo.mjs <command>
+```
+
+## Publishing Workflow
+
+```bash
+# 1. Export your config
+npx clawclawgo export --agent main --out build.json
+
+# 2. Preview/scan
+npx clawclawgo preview build.json
+npx clawclawgo scan build.json
+
+# 3. Publish to GitHub
+#    - Create repo
+#    - Add build.json
+#    - Tag with 'clawclawgo-build' topic
+```
+
+See [Publishing Guide](/docs/guide/publishing) for details.

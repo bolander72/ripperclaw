@@ -4,7 +4,7 @@
   "description": "Search engine and marketplace for AI agent builds. Privacy-first, decentralized, open source.",
   "type": "module",
   "bin": {
-    "clawclawgo": "./dist/cli.js"
+    "clawclawgo": "./cli/clawclawgo.mjs"
   },
   "scripts": {
     "build": "tsc",
