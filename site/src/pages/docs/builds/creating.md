@@ -5,30 +5,67 @@ title: Creating
 
 # Creating a Build
 
-## From the App
+## Directory Structure
 
-1. Open ClawClawGo
-2. Navigate to **Builds** in the sidebar
-3. Click **Save Current Build**
-4. Enter a name (e.g., "Production Setup", "Lean Ops", "Dev Mode")
-5. Your build is saved to `~/.openclaw/workspace/builds/`
+A build is a directory with skills and agent configs:
 
-## From the CLI
-
-```bash
-# Export to stdout (pipe-friendly)
-node clawclawgo.mjs export
-
-# Save to a specific file
-node clawclawgo.mjs export > my-agent.build.json
+```
+my-build/
+├── skills/
+│   ├── voice-assistant/
+│   │   ├── SKILL.md
+│   │   └── scripts/
+│   └── home-automation/
+│       └── SKILL.md
+├── .cursorrules
+├── CLAUDE.md
+└── README.md
 ```
 
-## From the Feed
+Each skill follows the [Agent Skills](https://agentskills.io) standard — a directory with a `SKILL.md` file containing YAML frontmatter.
 
-When you find a build in the Feed that you like, it's automatically available to save, compare, or apply. There's no separate "download" step.
+## Write a SKILL.md
+
+```markdown
+---
+name: voice-assistant
+description: Process voice commands and respond with TTS
+agents: [openclaw, cursor, windsurf]
+tools: [exec, read, write]
+---
+
+# Voice Assistant
+
+When the user sends a voice message:
+1. Transcribe with Whisper
+2. Process the command
+3. Generate response with TTS
+```
+
+Skills can include scripts, config files, and assets alongside the SKILL.md.
+
+## Pack It
+
+```bash
+npx clawclawgo pack ~/my-build --out build.json
+```
+
+This scans the directory, detects all skills and agent configs, runs a security scan, and outputs `build.json`.
+
+## Add Agent Configs
+
+Include config files for the agents you support:
+
+- `CLAUDE.md` — Claude Code instructions
+- `.cursorrules` — Cursor rules
+- `.windsurfrules` — Windsurf rules
+- `AGENTS.md` — OpenClaw workspace config
+
+The `pack` command auto-detects these and maps them to the right agents.
 
 ## Tips
 
-- **Save before big changes.** Create a build before swapping models, rewriting your SOUL.md, or installing experimental skills.
-- **Name meaningfully.** "Quinn v3: Sonnet main, no voice" is better than "backup2".
-- **Version your builds.** The meta includes a version number. Bump it when you make significant changes before re-publishing.
+- **Name skills clearly.** `seo-audit` beats `skill-1`.
+- **Write good descriptions.** The YAML `description` field is what shows up in search results.
+- **Declare compatibility.** The `agents` field in frontmatter tells ClawClawGo which agents can use each skill.
+- **Keep skills focused.** One skill per capability. Let users pick what they need.

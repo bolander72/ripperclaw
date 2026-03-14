@@ -5,7 +5,7 @@ title: CLI Reference
 
 # CLI Reference
 
-The ClawClawGo CLI is installable via npm/npx. No installation required — just run with `npx`:
+Run with `npx` (no install required):
 
 ```bash
 npx clawclawgo <command>
@@ -15,183 +15,134 @@ Or install globally:
 
 ```bash
 npm install -g clawclawgo
-clawclawgo <command>
 ```
 
 ## Commands
 
-### `export`
+### `pack`
 
-Export the current agent's configuration as a build JSON document.
-
-```bash
-npx clawclawgo export
-```
-
-Outputs to stdout. Pipe to a file to save:
+Scan a directory for agent skills and configs, output a portable `build.json`.
 
 ```bash
-npx clawclawgo export > my-build.json
+npx clawclawgo pack [dir] [--out file]
 ```
 
 **Options:**
 
 | Flag | Description |
 |------|-------------|
-| `--agent <id>` | Agent ID to export (defaults to main) |
+| `[dir]` | Directory to scan (defaults to current directory) |
 | `--out <file>` | Write to file instead of stdout |
 
-**What it captures:**
-- Model tiers (main, fast, free) from `openclaw.json`
-- Persona files (IDENTITY.md, SOUL.md, AGENTS.md) with PII scrubbing
-- Skills (bundled and clawhub-installed)
-- Integrations (types only, no credentials)
-- Automations (HEARTBEAT.md content)
-- Memory (directory structure and template files)
+**What it detects:**
+- `SKILL.md` files (Agent Skills standard)
+- `CLAUDE.md` (Claude Code)
+- `.cursorrules` (Cursor)
+- `.windsurfrules` (Windsurf)
+- `AGENTS.md` (OpenClaw)
+- `codex.json` (Codex)
+- `.clinerules` (Cline)
+- `.aider.conf.yml` (Aider)
+- `.continue/config.json` (Continue)
 
-**Example:**
+Security scan results are baked into the output so anyone reading the file can see the trust score.
+
+**Examples:**
 
 ```bash
-npx clawclawgo export --agent main --out build.json
+npx clawclawgo pack ~/my-skills --out build.json
+npx clawclawgo pack .
 ```
 
-### `apply`
+### `add`
 
-Apply a build file to create a new agent.
+Download a build to your machine. Checks baked-in scan results and blocks flagged builds unless `--force`.
 
 ```bash
-npx clawclawgo apply <build.json> --agent <agent-id> [options]
+npx clawclawgo add <url|file> [--dest dir] [--force]
 ```
 
 **Options:**
 
 | Flag | Description |
 |------|-------------|
-| `--agent <id>` | Agent ID (required, lowercase alphanumeric + hyphens) |
-| `--dry-run` | Preview actions without making changes |
-| `--use-my-models` | Remap build model tiers to your existing config |
-| `--skip-deps` | Skip dependency checking |
-| `--skip-security` | Skip security scan (not recommended) |
+| `<url\|file>` | URL or local path to a build.json |
+| `--dest <dir>` | Where to save (defaults to current directory) |
+| `--force` | Download even if scan found issues |
 
-**Build sources:**
-- Local file: `npx clawclawgo apply build.json --agent test-bot`
-- URL: `npx clawclawgo apply https://example.com/build.json --agent test-bot`
-- Stdin: `cat build.json | npx clawclawgo apply --from-stdin --agent test-bot`
-
-**Example:**
+**Examples:**
 
 ```bash
-# Preview
-npx clawclawgo apply quinn-build.json --agent test-bot --dry-run
-
-# Apply
-npx clawclawgo apply quinn-build.json --agent test-bot
-
-# Apply with your own models
-npx clawclawgo apply quinn-build.json --agent test-bot --use-my-models
-
-# Apply from URL
-npx clawclawgo apply https://raw.githubusercontent.com/user/build/main/build.json --agent prod-bot
+npx clawclawgo add https://example.com/build.json
+npx clawclawgo add ./someone-elses-build.json --dest ~/builds
 ```
 
-**Safety:**
-- Refuses to overwrite existing agent workspaces
-- Backs up `openclaw.json` before changes
-- Adds default agent protection when `agents.list` is empty
-
-### Actions performed during apply:
-
-1. Create workspace at `~/.openclaw/agents/<id>/`
-2. Write IDENTITY.md, SOUL.md, AGENTS.md
-3. Write USER.md template
-4. Install ClawHub skills
-5. Enable bundled skills
-6. Write HEARTBEAT.md
-7. Create memory directories and template files
-8. Add agent config entry to `openclaw.json`
+Give the downloaded file to your AI agent — it'll know what to do with it.
 
 ### `scan`
 
-Scan a build file for security issues without applying it.
+Run the security scanner on any build file. Checks for prompt injection, shell exfiltration, credential access, PII, and dangerous commands.
 
 ```bash
-npx clawclawgo scan <build.json>
+npx clawclawgo scan <file>
 ```
 
-Runs all security passes and outputs the security report with trust score and findings. See [Security Scanning](/docs/guide/security) for details.
+Outputs a trust score (0-100) and list of findings.
 
-**Example:**
+**Examples:**
 
 ```bash
-npx clawclawgo scan my-build.json
-npx clawclawgo scan https://example.com/build.json
+npx clawclawgo scan build.json
+npx clawclawgo scan ~/downloads/someones-build.json
 ```
+
+See [Security](/docs/guide/security) for details on what's scanned.
 
 ### `preview`
 
-Preview what an applier would see (security summary, dependency report, guide availability).
+Pretty-print a build summary — skills, compatibility, scan results.
 
 ```bash
-npx clawclawgo preview <build.json>
+npx clawclawgo preview <file>
 ```
 
-Shows:
-- Security scan summary with trust score
-- Dependency report (installed vs missing)
-- Setup guide availability per integration
-- Section-by-section action plan
-
-**Example:**
+**Examples:**
 
 ```bash
-npx clawclawgo preview my-build.json
-npx clawclawgo preview https://raw.githubusercontent.com/user/build/main/build.json
+npx clawclawgo preview build.json
+npx clawclawgo preview ~/downloads/someones-build.json
 ```
+
+### `publish`
+
+Prepare your repo for the ClawClawGo registry. Detects your git remote, runs `pack` + `scan`, and generates a registry entry.
+
+```bash
+npx clawclawgo publish [dir]
+```
+
+Outputs a JSON entry you can submit as a PR to `registry/builds.json`. See [Publishing](/docs/guide/publishing) for details.
+
+### `search`
+
+Search for builds on ClawClawGo.
+
+```bash
+npx clawclawgo search <query>
+```
+
+Opens [clawclawgo.com/search](https://clawclawgo.com/search) with your query.
 
 ## Environment
 
-The CLI expects:
-- `~/.openclaw/openclaw.json` to exist
-- `clawhub` CLI available in PATH (for skill installation)
 - Node.js 18+
+- No other dependencies required
 
-## Installation
-
-**Via npx (no install required):**
-
-```bash
-npx clawclawgo <command>
-```
-
-**Global install:**
-
-```bash
-npm install -g clawclawgo
-```
-
-**From source:**
+## From Source
 
 ```bash
 git clone https://github.com/bolander72/clawclawgo
 cd clawclawgo
 chmod +x cli/clawclawgo.mjs
-./cli/clawclawgo.mjs <command>
+./cli/clawclawgo.mjs --help
 ```
-
-## Publishing Workflow
-
-```bash
-# 1. Export your config
-npx clawclawgo export --agent main --out build.json
-
-# 2. Preview/scan
-npx clawclawgo preview build.json
-npx clawclawgo scan build.json
-
-# 3. Publish to GitHub
-#    - Create repo
-#    - Add build.json
-#    - Tag with 'clawclawgo-build' topic
-```
-
-See [Publishing Guide](/docs/guide/publishing) for details.

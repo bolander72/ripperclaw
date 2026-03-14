@@ -13,139 +13,61 @@ Visit [clawclawgo.com](https://clawclawgo.com) to search and browse.
 
 ### Search
 
-Use the search bar on the homepage:
-
-```
-voice assistant
-```
-
-Results show:
+Use the search bar on the homepage. Results show:
 - Build name and description
 - Compatible agents
 - Trust score
-- Author
+- Author and source
 - Tags
 
-Click a build to see:
-- Full description
-- List of skills
-- Agent configs
-- Scan results
-- Download instructions
+Click a build to see the full detail view — skills with links to their source, agent configs, scan results, and download options.
 
 ### Feed
 
-The [Feed](https://clawclawgo.com/feed) shows recently added builds.
+The [Feed](https://clawclawgo.com/feed) shows recently added builds from all sources (GitHub, ClawHub, skills.sh, registry).
 
 ### Community Builds
 
-[Community Builds](https://clawclawgo.com/community) lists all builds in the registry, organized by category.
+[Community Builds](https://clawclawgo.com/community) showcases curated builds organized by category.
 
 ## CLI Search
 
-Search from the terminal:
-
 ```bash
-clawclawgo search "voice assistant"
+npx clawclawgo search "voice assistant"
 ```
 
-Output:
-
-```
-Found 3 builds:
-
-1. voice-assistant-pro
-   by @username
-   Voice control, TTS, and smart home integration
-   Compatible: openclaw, cursor, windsurf
-   Score: 95/100
-
-2. basic-voice-commands
-   by @another-user
-   Simple voice command processing
-   Compatible: openclaw
-   Score: 88/100
-
-3. voice-agent-toolkit
-   by @someone
-   Comprehensive voice agent tools
-   Compatible: openclaw, cursor, claude-code
-   Score: 92/100
-```
+Opens the search results on [clawclawgo.com](https://clawclawgo.com/search).
 
 ## Filter by Agent
 
-Find builds for a specific agent:
-
-**Web:**
-Use the agent filter dropdown on the search page.
-
-**CLI:**
-```bash
-clawclawgo search "voice" --agent cursor
-```
+Use the agent filter dropdown on the search page to find builds for a specific agent (Claude Code, Cursor, OpenClaw, etc.).
 
 ## Filter by Tag
 
-Narrow results by category:
-
-**Web:**
-Click a tag on any build card, or use the tag filter.
-
-**CLI:**
-```bash
-clawclawgo search "automation" --tag home-assistant
-```
-
-Common tags:
-- `voice`
-- `coding`
-- `automation`
-- `email`
-- `calendar`
-- `home-assistant`
-- `messaging`
+Click a tag on any build card to filter by category. Common tags:
+- `voice`, `coding`, `automation`, `email`, `calendar`, `smart-home`, `devops`, `security`
 
 ## Check Trust Score
 
-Before downloading, check the security score:
+Every build includes a baked-in security scan. The trust score (0-100) is displayed on build cards. Click into a build to see individual findings.
 
-**Web:**
-The score is displayed on every build card. Click "View Scan Results" to see findings.
-
-**CLI:**
-```bash
-clawclawgo preview https://example.com/build.json
-```
-
-Output includes:
-
-```
-Trust Score: 95/100 ✓
-
-Findings:
-  [LOW] External network call in setup.sh
-```
-
-## Preview Before Downloading
-
-See what's in a build without downloading:
+Preview a build from the CLI:
 
 ```bash
-clawclawgo preview https://example.com/build.json
+npx clawclawgo preview build.json
 ```
 
-Shows:
-- Skills list
-- Agent configs
-- Scan results
-- File tree
+## Download a Build
+
+```bash
+npx clawclawgo add https://example.com/build.json
+```
+
+The `add` command checks the baked-in scan results and blocks flagged builds unless you pass `--force`. Give the downloaded file to your AI agent — it'll know what to do.
 
 ## Registry
 
-The full registry is at [github.com/bolander72/clawclawgo/blob/main/registry/builds.json](https://github.com/bolander72/clawclawgo/blob/main/registry/builds.json).
-
-You can browse it directly or use the web app/CLI.
+The full registry is at [registry/builds.json](https://github.com/bolander72/clawclawgo/blob/main/registry/builds.json).
 
 ## Next Steps
 
