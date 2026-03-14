@@ -1,24 +1,14 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro'
 import Nav from '../components/Nav.tsx'
 import Footer from '../components/Footer.tsx'
+import PublishPage from '../components/PublishPage.tsx'
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Publish - ClawClawGo</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <script>
-      // Redirect to feed with publish modal trigger
-      window.location.href = '/feed?publish=true'
-    </script>
-  </head>
-  <body class="bg-rc-bg text-rc-text">
+<BaseLayout title="Publish - ClawClawGo">
+  <div class="scanlines">
     <Nav client:load />
-    <div class="min-h-screen flex items-center justify-center">
-      <p class="text-rc-text-dim font-mono text-sm">Redirecting to publish...</p>
-    </div>
+    <PublishPage client:load />
     <Footer />
-  </body>
-</html>
+  </div>
+</BaseLayout>
