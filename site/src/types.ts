@@ -5,6 +5,7 @@ export type BuildSource = 'github' | 'clawhub' | 'skillssh' | 'custom'
 export interface Skill {
   name: string
   description: string
+  url?: string             // direct link to the skill (clawhub, skills.sh, github, etc.)
   path?: string            // relative path in repo (e.g. 'skills/plan-ceo-review')
   compatibility?: string   // from SKILL.md frontmatter
   license?: string

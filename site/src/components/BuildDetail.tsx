@@ -126,9 +126,11 @@ export default function BuildDetail({ build, onClose, onExport }: BuildDetailPro
           <p className="text-rc-text-muted text-xs font-mono mb-3">Skills ({build.skills.length}):</p>
           <div className="space-y-2">
             {build.skills.map((skill, i) => {
-              const skillUrl = skill.path && build.repoUrl
-                ? `${build.repoUrl}/tree/main/${skill.path}`
-                : null
+              const skillUrl = skill.url
+                ? skill.url
+                : (skill.path && build.repoUrl && build.source === 'github')
+                  ? `${build.repoUrl}/tree/main/${skill.path}`
+                  : null
 
               return (
                 <motion.div

@@ -1,81 +1,154 @@
 ---
 layout: ../../../layouts/DocLayout.astro
-title: Browsing
+title: Browsing Builds
 ---
 
 # Browsing Builds
 
-## The Feed
+Find builds on ClawClawGo using the web app or CLI.
 
-The **Feed** view in ClawClawGo shows builds published by other users on Nostr. It queries your configured relays for events with kind `38333`.
+## Web App
 
-Each card shows:
-- Build name
-- Author (display name or truncated npub)
+Visit [clawclawgo.com](https://clawclawgo.com) to search and browse.
+
+### Search
+
+Use the search bar on the homepage:
+
+```
+voice assistant
+```
+
+Results show:
+- Build name and description
+- Compatible agents
+- Trust score
+- Author
 - Tags
-- Published date
-- **Remix badge**: indicator if this is a fork of another build
-- **Remix count**: how many times this build has been forked
 
-## Sorting
+Click a build to see:
+- Full description
+- List of skills
+- Agent configs
+- Scan results
+- Download instructions
 
-Control how builds are ordered:
+### Feed
 
-| Sort Mode | Behavior |
-|-----------|----------|
-| **Recent** | Newest first (default) |
-| **Hot** | Most remixed recently (weighted by count and recency) |
+The [Feed](https://clawclawgo.com/feed) shows recently added builds.
 
-Hot sort surfaces builds that are actively being forked and built upon.
+### Community Builds
 
-## Filtering
+[Community Builds](https://clawclawgo.com/community) lists all builds in the registry, organized by category.
 
-Narrow the feed by category:
+## CLI Search
 
-- **By tag**: click any tag on a build card to filter to that tag
-- **By template**: show only builds marked as starter templates
-- **Clear filters**: click the active filter badge to reset
+Search from the terminal:
 
-Filters stack: you can combine template + tag filtering.
+```bash
+clawclawgo search "voice assistant"
+```
 
-## Provenance Tree
+Output:
 
-Click any build card to open the detail panel. The **Provenance** section shows:
+```
+Found 3 builds:
 
-- **Parent build**: the immediate ancestor (if this is a fork)
-- **Original author**: who created the root build
-- **Full ancestry chain**: clickable lineage back to the original
+1. voice-assistant-pro
+   by @username
+   Voice control, TTS, and smart home integration
+   Compatible: openclaw, cursor, windsurf
+   Score: 95/100
 
-Navigate the tree to see how a build evolved through the community.
+2. basic-voice-commands
+   by @another-user
+   Simple voice command processing
+   Compatible: openclaw
+   Score: 88/100
 
-See the [Provenance guide](/docs/guide/provenance) for details on how remix tracking works.
+3. voice-agent-toolkit
+   by @someone
+   Comprehensive voice agent tools
+   Compatible: openclaw, cursor, claude-code
+   Score: 92/100
+```
 
-## Comparing
+## Filter by Agent
 
-Click **Compare** on any build to see a side-by-side diff with your current agent:
+Find builds for a specific agent:
 
-- Which sections differ
-- What models they use vs. yours
-- Skills they have that you don't (and vice versa)
-- Integration differences
+**Web:**
+Use the agent filter dropdown on the search page.
 
-## Importing from File
+**CLI:**
+```bash
+clawclawgo search "voice" --agent cursor
+```
 
-If someone shared a build file directly, you have two options:
+## Filter by Tag
 
-### Drag and Drop
+Narrow results by category:
 
-Drag a `.json` file from your file manager and drop it onto the **Builds** or **Feed** view. The build is imported immediately.
+**Web:**
+Click a tag on any build card, or use the tag filter.
 
-### File Picker
+**CLI:**
+```bash
+clawclawgo search "automation" --tag home-assistant
+```
 
-1. Go to **Builds** in the sidebar
-2. Click **Import File**
-3. Select the `.json` file
-4. The build is saved to your local collection
+Common tags:
+- `voice`
+- `coding`
+- `automation`
+- `email`
+- `calendar`
+- `home-assistant`
+- `messaging`
 
-Once imported, you can compare or apply it like any feed build.
+## Check Trust Score
 
-## Applying
+Before downloading, check the security score:
 
-See the [Applying guide](/docs/guide/applying) for the full apply flow: safety rules, model strategy options, and the step-by-step wizard.
+**Web:**
+The score is displayed on every build card. Click "View Scan Results" to see findings.
+
+**CLI:**
+```bash
+clawclawgo preview https://example.com/build.json
+```
+
+Output includes:
+
+```
+Trust Score: 95/100 ✓
+
+Findings:
+  [LOW] External network call in setup.sh
+```
+
+## Preview Before Downloading
+
+See what's in a build without downloading:
+
+```bash
+clawclawgo preview https://example.com/build.json
+```
+
+Shows:
+- Skills list
+- Agent configs
+- Scan results
+- File tree
+
+## Registry
+
+The full registry is at [github.com/bolander72/clawclawgo/blob/main/registry/builds.json](https://github.com/bolander72/clawclawgo/blob/main/registry/builds.json).
+
+You can browse it directly or use the web app/CLI.
+
+## Next Steps
+
+- [Creating Builds](/docs/builds/creating) — Make your own
+- [Sharing Builds](/docs/builds/sharing) — Publish to the registry
+- [Security](/docs/guide/security) — Understanding trust scores
