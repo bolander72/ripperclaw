@@ -6,7 +6,7 @@ import Nav from './components/Nav'
 import Footer from './components/Footer'
 import FeedItem from './components/FeedItem'
 import BuildDetail from './components/BuildDetail'
-import ApplyWizard from './components/ApplyWizard'
+import ExportWizard from './components/ExportWizard'
 import LoadingSprite from './components/LoadingSprite'
 import type { Build } from './types'
 
@@ -20,7 +20,7 @@ export default function Search() {
   const [searchQuery, setSearchQuery] = useState<string>(initialQuery)
   const [searchFocused, setSearchFocused] = useState<boolean>(false)
   const [selectedBuild, setSelectedBuild] = useState<Build | null>(null)
-  const [applyBuild, setApplyBuild] = useState<Build | null>(null)
+  const [exportBuild, setExportBuild] = useState<Build | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [sourceFilter, setSourceFilter] = useState<string | null>(null)
   const [compatFilter, setCompatFilter] = useState<string | null>(null)
@@ -54,7 +54,8 @@ export default function Search() {
         build.description || '',
         build.creator,
         ...build.tags,
-        ...build.items.map(i => i.name),
+        ...build.skills.map(s => s.name),
+        ...build.skills.map(s => s.description),
         ...(build.compatibility || []),
       ].join(' ').toLowerCase()
       
@@ -134,7 +135,8 @@ export default function Search() {
               ClawHub
             </button>
             <div className="w-px h-6 bg-rc-border" />
-            {['openclaw', 'claude-code', 'cursor'].map(agent => (
+            <span className="text-xs font-mono text-rc-text-muted py-1.5">Agent:</span>
+            {['openclaw', 'claude-code', 'cursor', 'github-copilot', 'windsurf'].map(agent => (
               <button
                 key={agent}
                 onClick={() => setCompatFilter(compatFilter === agent ? null : agent)}
@@ -214,20 +216,20 @@ export default function Search() {
 
       {/* Modals */}
       <AnimatePresence>
-        {selectedBuild && !applyBuild && (
+        {selectedBuild && !exportBuild && (
           <BuildDetail
             build={selectedBuild}
             onClose={() => setSelectedBuild(null)}
-            onApply={(build) => {
+            onExport={(build) => {
               setSelectedBuild(null)
-              setApplyBuild(build)
+              setExportBuild(build)
             }}
           />
         )}
-        {applyBuild && (
-          <ApplyWizard
-            build={applyBuild}
-            onClose={() => setApplyBuild(null)}
+        {exportBuild && (
+          <ExportWizard
+            build={exportBuild}
+            onClose={() => setExportBuild(null)}
           />
         )}
       </AnimatePresence>

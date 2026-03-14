@@ -5,14 +5,14 @@ import { extractItems } from './lib/utils'
 import { builds as sampleBuilds } from './builds'
 import FeedItem from './components/FeedItem'
 import BuildDetail from './components/BuildDetail'
-import ApplyWizard from './components/ApplyWizard'
+import ExportWizard from './components/ExportWizard'
 import LoadingSprite from './components/LoadingSprite'
 import type { Build, BuildContent } from './types'
 
 export default function Explore() {
   const [builds, setBuilds] = useState<Build[]>([])
   const [selectedBuild, setSelectedBuild] = useState<Build | null>(null)
-  const [applyBuild, setApplyBuild] = useState<Build | null>(null)
+  const [exportBuild, setExportBuild] = useState<Build | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [newIds, setNewIds] = useState<Set<string>>(new Set())
   const [sortMode, setSortMode] = useState<'recent' | 'hot'>('recent')
@@ -229,7 +229,7 @@ export default function Explore() {
             </div>
             <p className="text-rc-text text-lg font-grotesk font-medium mb-2">No builds yet</p>
             <p className="text-rc-text-dim text-sm max-w-md text-center">
-              Be the first to publish a build. Share your agent configuration with the community.
+              No builds found. Try importing a build.json file or check back soon.
             </p>
           </div>
         )}
@@ -255,20 +255,20 @@ export default function Explore() {
 
       {/* Modals */}
       <AnimatePresence>
-        {selectedBuild && !applyBuild && (
+        {selectedBuild && !exportBuild && (
           <BuildDetail
             build={selectedBuild}
             onClose={() => setSelectedBuild(null)}
-            onApply={(build) => {
+            onExport={(build) => {
               setSelectedBuild(null)
-              setApplyBuild(build)
+              setExportBuild(build)
             }}
           />
         )}
-        {applyBuild && (
-          <ApplyWizard
-            build={applyBuild}
-            onClose={() => setApplyBuild(null)}
+        {exportBuild && (
+          <ExportWizard
+            build={exportBuild}
+            onClose={() => setExportBuild(null)}
           />
         )}
       </AnimatePresence>

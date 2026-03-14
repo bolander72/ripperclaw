@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { IconChevronRight, IconHash, IconShield, IconAlertTriangle, IconAlertCircle, IconStar, IconBrandGithub } from '@tabler/icons-react'
-import { formatDate, itemGradients, scanBuild } from '../lib/utils'
+import { formatDate } from '../lib/utils'
+import { getAgentsByIds } from '../agents'
 import type { FeedItemProps } from '../types'
 
 // Source icons
@@ -8,20 +9,20 @@ const SOURCE_ICONS = {
   github: IconBrandGithub,
   clawhub: IconHash,
   skillssh: IconHash,
-  local: IconHash,
+  custom: IconHash,
 }
 
 // Trust tier badges
 const TRUST_BADGES = {
-  verified: { label: 'VERIFIED', color: 'bg-green-400/15 border-green-400/30 text-green-400' },
-  community: { label: 'COMMUNITY', color: 'bg-blue-400/15 border-blue-400/30 text-blue-400' },
-  unreviewed: { label: 'UNREVIEWED', color: 'bg-amber-400/15 border-amber-400/30 text-amber-400' },
+  verified: { label: 'VERIFIED', color: 'bg-green-400/15 border-green-400/30 text-green-400', icon: IconShield },
+  community: { label: 'COMMUNITY', color: 'bg-blue-400/15 border-blue-400/30 text-blue-400', icon: null },
+  unreviewed: { label: 'UNREVIEWED', color: 'bg-amber-400/15 border-amber-400/30 text-amber-400', icon: IconAlertTriangle },
 }
 
 export default function FeedItem({ build, index, isNew, onClick, onTagClick }: FeedItemProps) {
-  const scanResult = scanBuild(build.content)
   const SourceIcon = SOURCE_ICONS[build.source] || IconHash
   const trustBadge = TRUST_BADGES[build.trustTier]
+  const agents = getAgentsByIds(build.compatibility.slice(0, 3))
 
   return (
     <motion.div
@@ -45,18 +46,9 @@ export default function FeedItem({ build, index, isNew, onClick, onTagClick }: F
               <span className="text-rc-text-muted text-xs font-mono">
                 {formatDate(build.createdAt)}
               </span>
-              {scanResult.score === 'PASS' && (
-                <IconShield size={12} className="text-green-400" title="Security: PASS" />
-              )}
-              {scanResult.score === 'WARN' && (
-                <IconAlertTriangle size={12} className="text-amber-400" title="Security: WARN" />
-              )}
-              {scanResult.score === 'FAIL' && (
-                <IconAlertCircle size={12} className="text-red-400" title="Security: FAIL" />
-              )}
             </div>
             <div className="flex flex-wrap gap-1.5">
-              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${trustBadge.color}`}>
+              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md border ${trustBadge.color}`}>
                 <SourceIcon size={10} />
                 <span className="text-[9px] font-mono font-bold tracking-wider">{build.source.toUpperCase()}</span>
               </div>
@@ -69,9 +61,9 @@ export default function FeedItem({ build, index, isNew, onClick, onTagClick }: F
             </div>
           </div>
 
-          {/* Middle: name + items */}
+          {/* Middle: name + description + skills + tags */}
           <div className="flex-1 p-5">
-            <div className="flex items-start gap-2 mb-3 flex-wrap">
+            <div className="flex items-start gap-2 mb-3">
               <div className="flex-1">
                 <h3 className="font-grotesk font-bold text-rc-text text-base">
                   {build.name}
@@ -82,35 +74,32 @@ export default function FeedItem({ build, index, isNew, onClick, onTagClick }: F
                   </p>
                 )}
               </div>
-              {build.compatibility && build.compatibility.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {build.compatibility.slice(0, 3).map((agent, i) => (
-                    <span
-                      key={i}
-                      className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-rc-cyan/15 border border-rc-cyan/30 text-rc-cyan"
-                      title={`Compatible with ${agent}`}
-                    >
-                      {agent}
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {build.items.slice(0, 10).map((item, ii) => (
-                <span
-                  key={ii}
-                  className={`px-2 py-1 rounded-lg bg-gradient-to-br ${itemGradients[ii % itemGradients.length]} border border-white/10 text-[11px] font-mono font-medium text-rc-text`}
-                >
-                  {item.name}
-                </span>
-              ))}
-              {build.items.length > 10 && (
-                <span className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-mono text-rc-text-muted">
-                  +{build.items.length - 10}
-                </span>
-              )}
-            </div>
+
+            {/* Compatibility badges */}
+            {agents.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {agents.map((agent) => (
+                  <span
+                    key={agent.id}
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-mono bg-rc-cyan/15 border border-rc-cyan/30 ${agent.color || 'text-rc-cyan'}`}
+                    title={`Compatible with ${agent.name}`}
+                  >
+                    {agent.name}
+                  </span>
+                ))}
+                {build.compatibility.length > 3 && (
+                  <span
+                    className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-rc-cyan/15 border border-rc-cyan/30 text-rc-cyan"
+                    title={`+${build.compatibility.length - 3} more agents`}
+                  >
+                    +{build.compatibility.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Tags */}
             {build.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {build.tags.slice(0, 4).map((tag, i) => (
@@ -129,13 +118,13 @@ export default function FeedItem({ build, index, isNew, onClick, onTagClick }: F
             )}
           </div>
 
-          {/* Right: creator + arrow */}
+          {/* Right: creator + skill count + arrow */}
           <div className="md:w-36 shrink-0 p-5 flex items-center justify-between md:justify-end md:flex-col md:items-end gap-2">
             <span className="text-rc-cyan/70 text-xs font-mono">
               {build.creator}
             </span>
             <span className="text-rc-text-muted text-xs font-mono">
-              {build.items.length} items
+              {build.skills.length} {build.skills.length === 1 ? 'skill' : 'skills'}
             </span>
             <IconChevronRight size={16} className="text-rc-text-muted group-hover:text-rc-cyan transition-colors hidden md:block" />
           </div>

@@ -8,16 +8,16 @@ interface FAQ {
 }
 
 const faqs: FAQ[] = [
-  { q: 'What is a build?', a: 'A build is a complete agent configuration: the model, integrations, skills, personality, memory, and scheduling that define how an AI agent works. Think of it like a character build in a game, or dotfiles for your AI.' },
-  { q: 'Can I search without an account?', a: 'Yes. No accounts, no tracking, no login required. Search and browse builds completely anonymously. Only create an identity if you want to publish builds.' },
-  { q: 'Can I publish anonymously?', a: 'Yes. Publish builds under your GitHub username or keep them in a private repo. Your identity is tied to your GitHub account — no extra signup required.' },
-  { q: 'What data is shared when I publish?', a: 'Only what you approve. The PII scrubber runs locally and removes phone numbers, emails, API keys, home paths, and other sensitive data before anything leaves your machine. You review the scrubbed output before publishing.' },
-  { q: 'Where are builds stored?', a: 'Builds are published as JSON files in GitHub repositories. ClawClawGo aggregates builds from GitHub, ClawHub, and other sources into a single searchable feed.' },
-  { q: "Can I copy someone else's build?", a: 'That\'s the whole point. Click any build card, hit "Copy Build," and you\'ve got their full configuration. Swap out what doesn\'t fit, keep what does.' },
-  { q: 'What\'s in a typical build?', a: 'Builds contain whatever config your agent uses. Common pieces include model routing (which LLMs), personality (how it talks), skills (what it can do), integrations (what it connects to), automations (heartbeat + cron), and memory config. But builds are flexible.' },
-  { q: 'Do I need OpenClaw to use a build?', a: 'Builds are designed for OpenClaw agents, but the concepts are universal. The model choices, integration patterns, and personality approaches apply to any AI agent setup.' },
-  { q: 'Is this free?', a: 'ClawClawGo is free. OpenClaw is free and open source. You\'ll pay for AI model API calls depending on which providers you use, or run fully local models for zero cost.' },
-  { q: 'How do I get started?', a: 'Search for a build that matches your use case. Explore how it\'s configured. Copy it and apply it to your agent. Or install OpenClaw, create your own build, and publish it for others.' },
+  { q: 'What is ClawClawGo?', a: 'ClawClawGo is a cross-platform agent skills search engine. It aggregates skills from GitHub, ClawHub, skills.sh, and other sources so you can find and export skills for Claude Code, Cursor, OpenClaw, and 30+ other AI agents.' },
+  { q: 'What agents are supported?', a: 'ClawClawGo supports 30+ agents via the Agent Skills standard (agentskills.io) — including Claude Code, Claude, OpenAI Codex, GitHub Copilot, VS Code, Cursor, Windsurf, Gemini CLI, Roo Code, Goose, OpenHands, OpenCode, and more. If it uses SKILL.md format, it works.' },
+  { q: 'How do I use a build?', a: 'Find a build you like. Click to view details. Export as SKILL.md folders, download the JSON, or copy the CLI command. Give the export to your AI agent — it will handle the installation. No manual setup required.' },
+  { q: 'What\'s the Agent Skills standard?', a: 'Agent Skills is an open format (agentskills.io) originally developed by Anthropic, now adopted by 30+ agents. It defines how skills are structured (SKILL.md files with YAML frontmatter) so they work across platforms.' },
+  { q: 'Can I contribute my own builds?', a: 'Yes! Create a GitHub repo with SKILL.md files following the Agent Skills format. ClawClawGo will index public repos automatically. You can also submit your repo URL via the GitHub discussions.' },
+  { q: 'Where do builds come from?', a: 'ClawClawGo aggregates from multiple sources: GitHub repos with SKILL.md files, ClawHub (OpenClaw skill registry), skills.sh (Vercel\'s leaderboard), official repos from Anthropic and Microsoft, and curated community collections.' },
+  { q: 'What\'s in a typical build?', a: 'A build is a collection of skills. Each skill has a name, description, compatibility requirements, and optional scripts/docs/assets. Builds range from single skills to full stacks with dozens of capabilities.' },
+  { q: 'Do I need OpenClaw?', a: 'No. ClawClawGo works with 30+ agents. OpenClaw is one of them, but you can use Claude Code, Cursor, GitHub Copilot, or any other agent that supports the Agent Skills format.' },
+  { q: 'Is this free?', a: 'Yes. ClawClawGo is free. The skills are open source. Your AI agent may have costs (API calls for cloud models), but you can also run fully local models for zero cost.' },
+  { q: 'What are trust tiers?', a: 'Builds are tagged as "verified" (official sources like Anthropic, Microsoft), "community" (from known developers with GitHub stars), or "unreviewed" (new or unknown sources). Stars and forks help gauge quality.' },
 ]
 
 export default function FAQAccordion() {

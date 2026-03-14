@@ -1,10 +1,14 @@
 // ─── Core Types ────────────────────────────────────────────
 
-export type BuildSource = 'github' | 'clawhub' | 'skillssh' | 'local'
+export type BuildSource = 'github' | 'clawhub' | 'skillssh' | 'custom'
 
-export interface BuildItem {
+export interface Skill {
   name: string
-  color?: string
+  description: string
+  compatibility?: string   // from SKILL.md frontmatter
+  license?: string
+  metadata?: Record<string, string>
+  allowedTools?: string[]
 }
 
 export interface Build {
@@ -22,60 +26,11 @@ export interface Build {
   creator: string
   createdAt: number | string
   tags: string[]
-  items: BuildItem[]
-  keyCount: number
-  content: BuildContent
-  compatibility: string[] // e.g. ['openclaw', 'claude-code', 'cursor']
-  permissions?: string[] // declared tool access e.g. ['filesystem', 'web-search', 'email']
+  skills: Skill[]           // the actual skills in this build
+  compatibility: string[]   // which agents this works with (agent IDs)
   trustTier: 'verified' | 'community' | 'unreviewed'
-}
-
-export interface BuildContent {
-  schema?: number | string
-  meta?: {
-    name?: string
-    description?: string
-    agentName?: string
-    compatibility?: string[]
-    permissions?: string[]
-    tags?: string[]
-    source?: BuildSource
-    repoUrl?: string
-    [key: string]: unknown
-  }
-  agentName?: string
-  dependencies?: unknown
-  model?: {
-    tiers?: Record<string, {
-      alias?: string
-      model?: string
-      provider?: string
-      [key: string]: unknown
-    }>
-    [key: string]: unknown
-  }
-  skills?: {
-    items?: Array<{ name: string; [key: string]: unknown }>
-    [key: string]: unknown
-  }
-  integrations?: {
-    items?: Array<{ name: string; [key: string]: unknown }>
-    [key: string]: unknown
-  }
-  automations?: {
-    heartbeat?: unknown
-    cron?: unknown[]
-    [key: string]: unknown
-  }
-  persona?: {
-    identity?: {
-      name?: string
-      [key: string]: unknown
-    }
-    [key: string]: unknown
-  }
-  permissions?: string[]
-  [key: string]: unknown
+  // Detection info
+  detectedFiles?: string[]  // e.g. ['SKILL.md', 'CLAUDE.md', '.cursorrules']
 }
 
 // ─── Security Scanner Types ────────────────────────────────
@@ -127,10 +82,10 @@ export interface FeedItemProps {
 export interface BuildDetailProps {
   build: Build
   onClose: () => void
-  onApply: (build: Build) => void
+  onExport: (build: Build) => void
 }
 
-export interface ApplyWizardProps {
+export interface ExportWizardProps {
   build: Build
   onClose: () => void
 }

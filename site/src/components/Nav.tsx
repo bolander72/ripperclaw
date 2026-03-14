@@ -20,10 +20,9 @@ export default function Nav({ minimal }: NavProps) {
           <a href="/feed" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-1">
             <IconLivePhoto size={14} /> Feed
           </a>
+          <a href="/search" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Search</a>
           <a href="/community" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Community</a>
           <a href="/docs/" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Docs</a>
-          <a href="/publish" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Publish</a>
-          <a href="/settings" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Settings</a>
         </nav>
 
         {/* Mobile Menu Toggle */}
@@ -42,10 +41,9 @@ export default function Nav({ minimal }: NavProps) {
             <a href="/feed" className="text-rc-text-dim hover:text-rc-cyan transition-colors flex items-center gap-2">
               <IconLivePhoto size={14} /> Feed
             </a>
+            <a href="/search" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Search</a>
             <a href="/community" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Community</a>
             <a href="/docs/" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Docs</a>
-            <a href="/publish" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Publish</a>
-            <a href="/settings" className="text-rc-text-dim hover:text-rc-cyan transition-colors">Settings</a>
           </nav>
         </div>
       )}

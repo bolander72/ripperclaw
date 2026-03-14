@@ -25,9 +25,13 @@ export default function HomeHero() {
         transition={{ duration: 0.6, ease: 'easeOut' }}
         className="text-center max-w-2xl relative z-10 w-full"
       >
-        <h1 className="text-4xl md:text-5xl font-grotesk font-bold text-rc-text mb-6 leading-[1.1] tracking-tight">
-          ClawClawGo
+        <h1 className="text-4xl md:text-5xl font-grotesk font-bold text-rc-text mb-3 leading-[1.1] tracking-tight">
+          The Agent Skills Search Engine
         </h1>
+        <p className="text-rc-text-dim text-base md:text-lg mb-6 font-grotesk">
+          Find skills for Claude Code, Cursor, OpenClaw, and 30+ AI agents.<br />
+          One search. Every source.
+        </p>
 
         {/* Search bar */}
         <form onSubmit={handleSearch} className="relative w-full max-w-xl mx-auto">
