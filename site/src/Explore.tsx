@@ -14,6 +14,8 @@ export default function Explore() {
   const [applyBuild, setApplyBuild] = useState<Build | null>(null)
   const [isConnecting, setIsConnecting] = useState<boolean>(true)
   const [newIds, setNewIds] = useState<Set<string>>(new Set())
+  const [sortMode, setSortMode] = useState<'recent' | 'hot'>('recent')
+  const [tagFilter, setTagFilter] = useState<string | null>(null)
   
   const relayRef = useRef<any>(null)
   const seenIds = useRef<Set<string>>(new Set())
@@ -74,6 +76,18 @@ export default function Explore() {
     }
   }, [])
 
+  // Filter and sort builds
+  const filteredAndSortedBuilds = builds
+    .filter(build => !tagFilter || build.tags.includes(tagFilter))
+    .sort((a, b) => {
+      if (sortMode === 'recent') {
+        return (typeof b.createdAt === 'number' ? b.createdAt : 0) - (typeof a.createdAt === 'number' ? a.createdAt : 0)
+      } else {
+        // Hot: for now just sort by recency (remix counting requires relay queries)
+        return (typeof b.createdAt === 'number' ? b.createdAt : 0) - (typeof a.createdAt === 'number' ? a.createdAt : 0)
+      }
+    })
+
   return (
     <div className="min-h-screen bg-rc-bg">
       {/* Header */}
@@ -107,11 +121,41 @@ export default function Explore() {
 
       {/* Feed */}
       <main className="max-w-4xl mx-auto px-4 py-6">
-        {/* Feed header */}
-        <div className="flex items-center justify-between mb-6">
-          <span className="text-rc-text-muted text-xs font-mono">
-            Newest builds appear at the top
-          </span>
+        {/* Feed header with sort controls and tag filter */}
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSortMode('recent')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                sortMode === 'recent'
+                  ? 'bg-rc-cyan text-rc-bg font-bold'
+                  : 'bg-rc-surface border border-rc-border text-rc-text-dim hover:text-rc-cyan hover:border-rc-cyan/40'
+              }`}
+            >
+              Recent
+            </button>
+            <button
+              onClick={() => setSortMode('hot')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                sortMode === 'hot'
+                  ? 'bg-rc-cyan text-rc-bg font-bold'
+                  : 'bg-rc-surface border border-rc-border text-rc-text-dim hover:text-rc-cyan hover:border-rc-cyan/40'
+              }`}
+            >
+              Hot
+            </button>
+            {tagFilter && (
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-rc-magenta/15 border border-rc-magenta/30">
+                <span className="text-xs font-mono text-rc-magenta">#{tagFilter}</span>
+                <button
+                  onClick={() => setTagFilter(null)}
+                  className="text-rc-magenta hover:text-rc-magenta/70 transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
           <span className="text-rc-text-muted text-[10px] font-mono">
             relay.clawclawgo.com
           </span>
@@ -142,13 +186,14 @@ export default function Explore() {
         {builds.length > 0 && (
           <div className="space-y-3">
             <AnimatePresence initial={false}>
-              {builds.map((build, i) => (
+              {filteredAndSortedBuilds.map((build, i) => (
                 <FeedItem
                   key={build.id}
                   build={build}
                   index={i}
                   isNew={newIds.has(build.id)}
                   onClick={() => setSelectedBuild(build)}
+                  onTagClick={(tag) => setTagFilter(tag)}
                 />
               ))}
             </AnimatePresence>

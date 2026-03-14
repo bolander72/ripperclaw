@@ -10,6 +10,8 @@ export default function Footer() {
             <ul className="space-y-2.5">
               <li><a href="/feed" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Feed</a></li>
               <li><a href="/community" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Community Builds</a></li>
+              <li><a href="/publish" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Publish</a></li>
+              <li><a href="/settings" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Settings</a></li>
               <li><a href="/docs/" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">Documentation</a></li>
               <li><a href="https://github.com/bolander72/clawclawgo" target="_blank" rel="noopener" className="text-rc-text-dim text-sm hover:text-rc-text transition-colors">GitHub</a></li>
             </ul>
