@@ -9,23 +9,23 @@ import type { ExportWizardProps } from '../types'
 
 const STEPS = ['review', 'format', 'export']
 
-export default function ExportWizard({ build, onClose }: ExportWizardProps) {
+export default function ExportWizard({ kit, onClose }: ExportWizardProps) {
   const [step, setStep] = useState<number>(0)
   const [selectedFormat, setSelectedFormat] = useState<'skill-md' | 'cli' | 'json' | 'raw'>('skill-md')
   const [copied, setCopied] = useState<boolean>(false)
 
-  const agents = getAgentsByIds(build.compatibility)
-  const buildJson = JSON.stringify({
-    name: build.name,
-    description: build.description,
-    source: build.source,
-    skills: build.skills,
-    compatibility: build.compatibility,
-    tags: build.tags,
+  const agents = getAgentsByIds(kit.compatibility)
+  const kitJson = JSON.stringify({
+    name: kit.name,
+    description: kit.description,
+    source: kit.source,
+    skills: kit.skills,
+    compatibility: kit.compatibility,
+    tags: kit.tags,
   }, null, 2)
 
-  const cliCommand = build.repoUrl 
-    ? `npx clawclawgo export ${build.repoUrl}`
+  const cliCommand = kit.repoUrl 
+    ? `npx clawclawgo export ${kit.repoUrl}`
     : `# No repo URL available`
 
   function handleCopyAndClose(text: string) {
@@ -39,11 +39,11 @@ export default function ExportWizard({ build, onClose }: ExportWizardProps) {
   }
 
   function handleDownloadJson() {
-    const blob = new Blob([buildJson], { type: 'application/json' })
+    const blob = new Blob([kitJson], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${build.id}.json`
+    a.download = `${kit.id}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -68,7 +68,7 @@ export default function ExportWizard({ build, onClose }: ExportWizardProps) {
         <div className="p-6 border-b border-rc-border">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-grotesk font-bold text-rc-text">
-              Export: {build.name}
+              Export: {kit.name}
             </h2>
             <button
               onClick={onClose}
@@ -103,9 +103,9 @@ export default function ExportWizard({ build, onClose }: ExportWizardProps) {
             {/* Step 1: Review */}
             {step === 0 && (
               <motion.div key="review" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <h3 className="text-lg font-grotesk font-semibold text-rc-text mb-4">Review build contents</h3>
+                <h3 className="text-lg font-grotesk font-semibold text-rc-text mb-4">Review kit contents</h3>
                 <div className="space-y-3 mb-6">
-                  {build.skills.map((skill, i) => (
+                  {kit.skills.map((skill, i) => (
                     <div key={i} className="px-4 py-3 bg-white/5 rounded-xl border border-rc-border">
                       <p className="text-sm font-grotesk font-semibold text-rc-text">{skill.name}</p>
                       <p className="text-xs text-rc-text-dim mt-1">{skill.description}</p>
@@ -143,7 +143,7 @@ export default function ExportWizard({ build, onClose }: ExportWizardProps) {
                     <p className="text-sm font-grotesk font-semibold text-rc-text">Agent Skills (SKILL.md)</p>
                     <p className="text-xs text-rc-text-dim mt-1">Universal format — works with 30+ agents</p>
                   </button>
-                  {build.repoUrl && (
+                  {kit.repoUrl && (
                     <button
                       onClick={() => setSelectedFormat('cli')}
                       className={`w-full text-left px-4 py-4 rounded-xl border transition-colors ${
@@ -165,7 +165,7 @@ export default function ExportWizard({ build, onClose }: ExportWizardProps) {
                     }`}
                   >
                     <p className="text-sm font-grotesk font-semibold text-rc-text">Download as JSON</p>
-                    <p className="text-xs text-rc-text-dim mt-1">Build metadata in JSON format</p>
+                    <p className="text-xs text-rc-text-dim mt-1">Kit metadata in JSON format</p>
                   </button>
                   <button
                     onClick={() => setSelectedFormat('raw')}
@@ -193,9 +193,9 @@ export default function ExportWizard({ build, onClose }: ExportWizardProps) {
                       <p className="text-xs text-rc-text-dim mb-3">
                         Agent Skills (SKILL.md) is the universal format. Compatible with Claude Code, Cursor, OpenClaw, and 30+ other agents.
                       </p>
-                      {build.repoUrl && (
+                      {kit.repoUrl && (
                         <a
-                          href={build.repoUrl}
+                          href={kit.repoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-sm font-grotesk text-rc-cyan hover:underline"
@@ -206,12 +206,12 @@ export default function ExportWizard({ build, onClose }: ExportWizardProps) {
                       )}
                     </div>
                     <p className="text-xs text-rc-text-muted">
-                      Tell your agent: "Install the skills from this build" and paste the repo URL (or use the CLI command).
+                      Tell your agent: "Install the skills from this kit" and paste the repo URL (or use the CLI command).
                     </p>
                   </div>
                 )}
 
-                {selectedFormat === 'cli' && build.repoUrl && (
+                {selectedFormat === 'cli' && kit.repoUrl && (
                   <div className="space-y-4">
                     <div className="bg-black/30 rounded-xl p-4 border border-rc-border">
                       <code className="text-xs font-mono text-rc-text break-all">
@@ -226,7 +226,7 @@ export default function ExportWizard({ build, onClose }: ExportWizardProps) {
                       {copied ? 'Copied!' : 'Copy command'}
                     </button>
                     <p className="text-xs text-rc-text-muted">
-                      Run this in your terminal to export the build locally.
+                      Run this in your terminal to export the kit locally.
                     </p>
                   </div>
                 )}
@@ -238,10 +238,10 @@ export default function ExportWizard({ build, onClose }: ExportWizardProps) {
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-rc-cyan text-rc-bg rounded-xl hover:bg-rc-cyan/90 transition-colors text-sm font-grotesk font-semibold"
                     >
                       <IconDownload size={16} />
-                      Download {build.id}.json
+                      Download {kit.id}.json
                     </button>
                     <p className="text-xs text-rc-text-muted">
-                      Download the build as JSON. Give this file to your AI agent — it'll know what to do.
+                      Download the kit as JSON. Give this file to your AI agent — it'll know what to do.
                     </p>
                   </div>
                 )}
@@ -249,10 +249,10 @@ export default function ExportWizard({ build, onClose }: ExportWizardProps) {
                 {selectedFormat === 'raw' && (
                   <div className="space-y-4">
                     <pre className="bg-black/30 rounded-xl p-4 text-xs font-mono text-rc-text-dim overflow-auto max-h-60 border border-rc-border">
-                      {buildJson}
+                      {kitJson}
                     </pre>
                     <button
-                      onClick={() => handleCopyAndClose(buildJson)}
+                      onClick={() => handleCopyAndClose(kitJson)}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-rc-cyan text-rc-bg rounded-xl hover:bg-rc-cyan/90 transition-colors text-sm font-grotesk font-semibold"
                     >
                       {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}

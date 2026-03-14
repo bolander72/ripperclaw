@@ -8,7 +8,7 @@ The agent skills search engine. Find, pack, and share skills for Claude Code, Cu
 
 ClawClawGo is a search engine for AI agent skills. It aggregates skills from GitHub repos, indexes them, and lets you search across all of them in one place.
 
-A "build" is a collection of skills and agent configs packaged together. Builds follow the [Agent Skills](https://agentskills.io) open standard — a SKILL.md file with YAML frontmatter describing what the skill does, which agents it works with, and what tools it needs.
+A "kit" is a collection of skills and agent configs packaged together. Kits follow the [Agent Skills](https://agentskills.io) open standard — a SKILL.md file with YAML frontmatter describing what the skill does, which agents it works with, and what tools it needs.
 
 ## CLI
 
@@ -18,38 +18,38 @@ npx clawclawgo <command>
 
 | Command | What it does |
 |---------|-------------|
-| `pack [dir]` | Scan a directory, detect agent files, output a build.json with scan results baked in |
-| `add <url\|file>` | Download a build to your machine |
-| `scan <file>` | Security scan a build (trust score + findings) |
-| `preview <file>` | Pretty-print a build summary |
+| `pack [dir]` | Scan a directory, detect agent files, output a kit.json with scan results baked in |
+| `add <url\|file>` | Download a kit to your machine |
+| `scan <file>` | Security scan a kit (trust score + findings) |
+| `preview <file>` | Pretty-print a kit summary |
 | `publish [dir]` | Prepare your repo for the registry |
-| `search <query>` | Search for builds on clawclawgo.com |
+| `search <query>` | Search for kits on clawclawgo.com |
 
 ### Pack
 
-Scans your directory for agent config files and SKILL.md files, detects which agents they're compatible with, and generates a `build.json`. Security scan results are baked into the output so anyone reading the file can see the trust score.
+Scans your directory for agent config files and SKILL.md files, detects which agents they're compatible with, and generates a `kit.json`. Security scan results are baked into the output so anyone reading the file can see the trust score.
 
 ```bash
-clawclawgo pack ~/my-skills --out build.json
+clawclawgo pack ~/my-skills --out kit.json
 ```
 
 Detected files: SKILL.md, CLAUDE.md, .cursorrules, .windsurfrules, AGENTS.md, openclaw.json, codex.json, .clinerules, .aider.conf.yml, .continue/config.json
 
 ### Add
 
-Download a build to your machine. Checks the baked-in scan results and blocks anything flagged (unless `--force`).
+Download a kit to your machine. Checks the baked-in scan results and blocks anything flagged (unless `--force`).
 
 ```bash
-clawclawgo add https://example.com/build.json
-clawclawgo add ./someone-elses-build.json --dest ~/builds
+clawclawgo add https://example.com/kit.json
+clawclawgo add ./someone-elses-kit.json --dest ~/kits
 ```
 
 ### Scan
 
-Run the security scanner on any build. Checks for prompt injection, shell exfiltration, credential access, PII, and dangerous commands. Outputs a trust score (0-100).
+Run the security scanner on any kit. Checks for prompt injection, shell exfiltration, credential access, PII, and dangerous commands. Outputs a trust score (0-100).
 
 ```bash
-clawclawgo scan build.json
+clawclawgo scan kit.json
 ```
 
 ## Supported Agents
@@ -62,11 +62,11 @@ See [AGENT-COMPATIBILITY.md](AGENT-COMPATIBILITY.md) for the full list.
 
 ## Registry
 
-The registry is a simple JSON file at `registry/builds.json`. To add your build:
+The registry is a simple JSON file at `registry/kits.json`. To add your kit:
 
 1. `clawclawgo pack` your repo
 2. `clawclawgo publish` to generate the registry entry
-3. Submit a PR adding the entry to `registry/builds.json`
+3. Submit a PR adding the entry to `registry/kits.json`
 
 ## Development
 

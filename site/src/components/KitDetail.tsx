@@ -4,7 +4,7 @@ import { IconEye, IconDownload, IconHash, IconBrandGithub, IconCopy, IconExterna
 import { formatDate } from '../lib/utils'
 import { getAgentsByIds } from '../agents'
 import CopyButton from './CopyButton'
-import type { BuildDetailProps } from '../types'
+import type { KitDetailProps } from '../types'
 
 const TRUST_BADGES = {
   verified: { label: 'VERIFIED', color: 'bg-green-400/15 border-green-400/30 text-green-400', icon: IconShield },
@@ -12,29 +12,29 @@ const TRUST_BADGES = {
   unreviewed: { label: 'UNREVIEWED', color: 'bg-amber-400/15 border-amber-400/30 text-amber-400', icon: IconAlertTriangle },
 }
 
-export default function BuildDetail({ build, onClose, onExport }: BuildDetailProps) {
+export default function KitDetail({ kit, onClose, onExport }: KitDetailProps) {
   const [showRaw, setShowRaw] = useState<boolean>(false)
-  const trustBadge = TRUST_BADGES[build.trustTier]
+  const trustBadge = TRUST_BADGES[kit.trustTier]
   const TrustIcon = trustBadge.icon
-  const agents = getAgentsByIds(build.compatibility)
+  const agents = getAgentsByIds(kit.compatibility)
 
-  const cliCommand = build.repoUrl 
-    ? `npx clawclawgo add ${build.repoUrl}`
+  const cliCommand = kit.repoUrl 
+    ? `npx clawclawgo add ${kit.repoUrl}`
     : `# No repo URL available`
 
-  const buildJson = JSON.stringify({
-    name: build.name,
-    description: build.description,
-    source: build.source,
-    ...(build.repoUrl && { repoUrl: build.repoUrl }),
-    ...(build.owner && { owner: build.owner }),
-    compatibility: build.compatibility,
-    trustTier: build.trustTier,
-    tags: build.tags,
-    skills: build.skills.map(s => ({
+  const kitJson = JSON.stringify({
+    name: kit.name,
+    description: kit.description,
+    source: kit.source,
+    ...(kit.repoUrl && { repoUrl: kit.repoUrl }),
+    ...(kit.owner && { owner: kit.owner }),
+    compatibility: kit.compatibility,
+    trustTier: kit.trustTier,
+    tags: kit.tags,
+    skills: kit.skills.map(s => ({
       name: s.name,
       description: s.description,
-      ...(s.url ? { url: s.url } : s.path && build.repoUrl ? { url: `${build.repoUrl}/tree/main/${s.path}` } : {}),
+      ...(s.url ? { url: s.url } : s.path && kit.repoUrl ? { url: `${kit.repoUrl}/tree/main/${s.path}` } : {}),
     })),
   }, null, 2)
 
@@ -61,7 +61,7 @@ export default function BuildDetail({ build, onClose, onExport }: BuildDetailPro
               <div className="flex items-center gap-2 mb-3 flex-wrap">
                 {/* Source badge */}
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rc-cyan/15 border border-rc-cyan/30">
-                  <span className="text-[10px] font-mono font-bold text-rc-cyan tracking-wider">{build.source.toUpperCase()}</span>
+                  <span className="text-[10px] font-mono font-bold text-rc-cyan tracking-wider">{kit.source.toUpperCase()}</span>
                 </div>
                 {/* Trust tier badge */}
                 <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${trustBadge.color}`}>
@@ -69,27 +69,27 @@ export default function BuildDetail({ build, onClose, onExport }: BuildDetailPro
                   <span className="text-[10px] font-mono font-bold tracking-wider">{trustBadge.label}</span>
                 </div>
                 {/* GitHub stars */}
-                {build.source === 'github' && build.stars && (
+                {kit.source === 'github' && kit.stars && (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rc-yellow/15 border border-rc-yellow/30">
                     <IconBrandGithub size={12} className="text-rc-yellow" />
-                    <span className="text-[10px] font-mono font-bold text-rc-yellow">{build.stars} ⭐</span>
+                    <span className="text-[10px] font-mono font-bold text-rc-yellow">{kit.stars} ⭐</span>
                   </div>
                 )}
               </div>
               <h2 className="text-3xl font-grotesk font-bold text-rc-text mb-1">
-                {build.name}
+                {kit.name}
               </h2>
               <p className="text-rc-text-dim text-sm mb-3">
-                {build.description}
+                {kit.description}
               </p>
               <p className="text-rc-text-muted text-xs">
-                <span className="text-rc-cyan/70 font-mono">{build.creator}</span>
+                <span className="text-rc-cyan/70 font-mono">{kit.creator}</span>
                 {' · '}
-                <span className="font-mono">{formatDate(build.createdAt)}</span>
+                <span className="font-mono">{formatDate(kit.createdAt)}</span>
               </p>
-              {build.tags && build.tags.length > 0 && (
+              {kit.tags && kit.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-3">
-                  {build.tags.map((tag, i) => (
+                  {kit.tags.map((tag, i) => (
                     <span
                       key={i}
                       className="px-2.5 py-1 bg-white/5 rounded-lg text-xs font-mono text-rc-text-dim flex items-center gap-1"
@@ -130,13 +130,13 @@ export default function BuildDetail({ build, onClose, onExport }: BuildDetailPro
 
         {/* Skills list */}
         <div className="p-6 md:p-8 border-b border-rc-border">
-          <p className="text-rc-text-muted text-xs font-mono mb-3">Skills ({build.skills.length}):</p>
+          <p className="text-rc-text-muted text-xs font-mono mb-3">Skills ({kit.skills.length}):</p>
           <div className="space-y-2">
-            {build.skills.map((skill, i) => {
+            {kit.skills.map((skill, i) => {
               const skillUrl = skill.url
                 ? skill.url
-                : (skill.path && build.repoUrl && build.source === 'github')
-                  ? `${build.repoUrl}/tree/main/${skill.path}`
+                : (skill.path && kit.repoUrl && kit.source === 'github')
+                  ? `${kit.repoUrl}/tree/main/${skill.path}`
                   : null
 
               return (
@@ -183,13 +183,13 @@ export default function BuildDetail({ build, onClose, onExport }: BuildDetailPro
 
         {/* Export section */}
         <div className="p-6 md:p-8 border-b border-rc-border bg-rc-bg/50">
-          <h3 className="text-lg font-grotesk font-bold text-rc-text mb-2">Get This Build</h3>
+          <h3 className="text-lg font-grotesk font-bold text-rc-text mb-2">Get This Kit</h3>
           <p className="text-xs text-rc-text-dim mb-4">
             Give this file to your AI agent — it'll know what to do.
           </p>
           <div className="space-y-3">
             {/* CLI command */}
-            {build.repoUrl && (
+            {kit.repoUrl && (
               <div>
                 <p className="text-rc-text-muted text-xs font-mono mb-2">Copy CLI command:</p>
                 <div className="flex items-center gap-2 bg-black/30 rounded-lg p-3 border border-rc-border">
@@ -204,22 +204,22 @@ export default function BuildDetail({ build, onClose, onExport }: BuildDetailPro
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => {
-                  const blob = new Blob([buildJson], { type: 'application/json' })
+                  const blob = new Blob([kitJson], { type: 'application/json' })
                   const url = URL.createObjectURL(blob)
                   const a = document.createElement('a')
                   a.href = url
-                  a.download = `${build.id}.json`
+                  a.download = `${kit.id}.json`
                   a.click()
                   URL.revokeObjectURL(url)
                 }}
                 className="flex items-center gap-2 px-4 py-2.5 bg-rc-cyan text-rc-bg rounded-xl hover:bg-rc-cyan/90 transition-colors text-sm font-grotesk font-semibold"
               >
                 <IconDownload size={16} />
-                Download build.json
+                Download kit.json
               </button>
-              {build.repoUrl && (
+              {kit.repoUrl && (
                 <a
-                  href={build.repoUrl}
+                  href={kit.repoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-rc-text rounded-xl border border-rc-border transition-colors text-sm font-grotesk"
@@ -245,11 +245,11 @@ export default function BuildDetail({ build, onClose, onExport }: BuildDetailPro
           {showRaw && (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-rc-text-muted text-xs font-mono">Raw build JSON</p>
-                <CopyButton text={buildJson} />
+                <p className="text-rc-text-muted text-xs font-mono">Raw kit JSON</p>
+                <CopyButton text={kitJson} />
               </div>
               <pre className="bg-black/30 rounded-xl p-4 text-xs font-mono text-rc-text-dim overflow-auto max-h-80 border border-rc-border">
-                {buildJson}
+                {kitJson}
               </pre>
             </div>
           )}

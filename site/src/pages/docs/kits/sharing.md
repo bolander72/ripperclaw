@@ -3,11 +3,11 @@ layout: ../../../layouts/DocLayout.astro
 title: Sharing
 ---
 
-# Sharing Builds
+# Sharing Kits
 
 ## Push to GitHub
 
-The primary way to share builds. Your skills and configs live in a GitHub repo — that's the build.
+The primary way to share kits. Your skills and configs live in a GitHub repo — that's the kit.
 
 ```
 You → Pack → Push to GitHub → Others find it on ClawClawGo
@@ -22,7 +22,7 @@ See the [Publishing guide](/docs/guide/publishing) for full details.
 
 ## Submit to the Registry
 
-The ClawClawGo registry at `registry/builds.json` is a lightweight URL index. Submitting adds a pointer to your repo — ClawClawGo never hosts your content.
+The ClawClawGo registry at `registry/kits.json` is a lightweight URL index. Submitting adds a pointer to your repo — ClawClawGo never hosts your content.
 
 ```bash
 npx clawclawgo publish
@@ -43,7 +43,7 @@ The recipient can download with `clawclawgo add` or just give the file to their 
 
 ## What Gets Shared
 
-Everything in the build is designed to be safe to share.
+Everything in the kit is designed to be safe to share.
 
 **What's included:**
 - Skill names, descriptions, and paths

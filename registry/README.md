@@ -1,13 +1,13 @@
 # ClawClawGo Registry
 
-The ClawClawGo registry is a decentralized index of agent skills and builds. It's a list of pointers to GitHub repos and other sources — not a centralized store.
+The ClawClawGo registry is a decentralized index of agent skills and kits. It's a list of pointers to GitHub repos and other sources — not a centralized store.
 
 ## What's in the Registry?
 
 Each entry points to a repository containing:
 - Agent Skills (SKILL.md files)
 - Agent-specific configs (.cursorrules, CLAUDE.md, etc.)
-- Skills stacks and complete builds
+- Skills stacks and complete kits
 
 ## How to Add Your Repo
 
@@ -19,15 +19,15 @@ Each entry points to a repository containing:
 
 2. Run `clawclawgo publish` in your repo to generate the entry
 
-3. Submit a PR to this repo adding your entry to `registry/builds.json`
+3. Submit a PR to this repo adding your entry to `registry/kits.json`
 
 ## Entry Format
 
 ```json
 {
   "url": "https://github.com/username/repo",
-  "name": "Build Name",
-  "description": "What this build does",
+  "name": "Kit Name",
+  "description": "What this kit does",
   "compatibility": ["agent-skills", "claude-code", "cursor"],
   "tags": ["productivity", "coding", "automation"],
   "addedAt": "2026-03-14T22:00:00Z"
@@ -43,4 +43,4 @@ Each entry points to a repository containing:
 
 ## License
 
-Each build maintains its own license. Check the linked repository before use.
+Each kit maintains its own license. Check the linked repository before use.

@@ -1,4 +1,4 @@
-import type { BuildContent, Build, BuildItem, ScanResult, PIIFinding, SuspiciousFinding, InfoFinding, PermissionFinding } from '../types'
+import type { KitContent, Kit, KitItem, ScanResult, PIIFinding, SuspiciousFinding, InfoFinding, PermissionFinding } from '../types'
 
 // ─── Constants ─────────────────────────────────────────────
 
@@ -28,8 +28,8 @@ export function formatDate(timestamp: number | string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function extractItems(content: BuildContent): { items: BuildItem[]; keyCount: number } {
-  const items: BuildItem[] = []
+export function extractItems(content: KitContent): { items: KitItem[]; keyCount: number } {
+  const items: KitItem[] = []
   if (content.model?.tiers) {
     Object.values(content.model.tiers).forEach(tier => {
       if (tier?.alias) items.push({ name: tier.alias })
@@ -92,7 +92,7 @@ const TOOL_PATTERNS: Record<string, RegExp[]> = {
   'message': [/\bmessage\b|sms|imessage|telegram|discord/gi],
 }
 
-export function scanBuild(content: BuildContent): ScanResult {
+export function scanBuild(content: KitContent): ScanResult {
   const text = JSON.stringify(content, null, 2)
   const findings: { pii: PIIFinding[]; suspicious: SuspiciousFinding[]; info: InfoFinding[]; permissions: PermissionFinding[] } = { 
     pii: [], 
@@ -136,7 +136,7 @@ export function scanBuild(content: BuildContent): ScanResult {
       findings.permissions.push({
         name: tool,
         severity: 'warning',
-        message: `Build uses ${tool} but doesn't declare it in permissions`
+        message: `Kit uses ${tool} but doesn't declare it in permissions`
       })
     }
   }

@@ -5,7 +5,7 @@ title: Security
 
 # Security
 
-ClawClawGo bakes security scanning into every build. The `scan` command checks for common threats in agent skills and configs.
+ClawClawGo bakes security scanning into every kit. The `scan` command checks for common threats in agent skills and configs.
 
 ## What Gets Scanned
 
@@ -20,19 +20,19 @@ The scanner looks for:
 
 ## Trust Score
 
-Every build gets a score from 0-100:
+Every kit gets a score from 0-100:
 
 - **90-100** — Safe to use
 - **70-89** — Review findings, use with caution
 - **Below 70** — High risk, don't use without thorough review
 
-The score is baked into `build.json` so you can see it before downloading.
+The score is baked into `kit.json` so you can see it before downloading.
 
 ## Running a Scan
 
 ```bash
-# Scan a build
-clawclawgo scan build.json
+# Scan a kit
+clawclawgo scan kit.json
 
 # Scan before packing
 clawclawgo pack --scan
@@ -54,7 +54,7 @@ Findings:
 
 ## How It Works
 
-When you run `pack`, the scan runs automatically and results are stored in the `build.json`:
+When you run `pack`, the scan runs automatically and results are stored in the `kit.json`:
 
 ```json
 {
@@ -74,12 +74,12 @@ When you run `pack`, the scan runs automatically and results are stored in the `
 }
 ```
 
-## Using Builds with Findings
+## Using Kits with Findings
 
-When you `add` a build:
+When you `add` a kit:
 
 ```bash
-clawclawgo add https://example.com/build.json
+clawclawgo add https://example.com/kit.json
 ```
 
 ClawClawGo checks the baked-in scan:
@@ -93,13 +93,13 @@ ClawClawGo checks the baked-in scan:
 Don't trust scores blindly. Read the findings:
 
 ```bash
-clawclawgo scan build.json
+clawclawgo scan kit.json
 ```
 
 Check:
 - What files are flagged?
 - Are the warnings legitimate or false positives?
-- Do you trust the build author?
+- Do you trust the kit author?
 
 ## False Positives
 
@@ -109,12 +109,12 @@ Some legitimate patterns trigger warnings:
 - **Package installs** — Flagged as shell execution
 - **API calls** — Flagged as external connections
 
-If the build is from a trusted source and the findings make sense, it's safe to proceed.
+If the kit is from a trusted source and the findings make sense, it's safe to proceed.
 
 ## Best Practices
 
 **Before publishing:**
-1. Run `clawclawgo scan build.json`
+1. Run `clawclawgo scan kit.json`
 2. Fix any high-severity findings
 3. Document why low-severity findings are safe
 
@@ -122,7 +122,7 @@ If the build is from a trusted source and the findings make sense, it's safe to 
 1. Check the trust score
 2. Review findings
 3. Inspect flagged files yourself
-4. Only use builds from sources you trust
+4. Only use kits from sources you trust
 
 **Red flags:**
 - Score below 70
@@ -133,10 +133,10 @@ If the build is from a trusted source and the findings make sense, it's safe to 
 
 ## Reporting Issues
 
-Found a malicious build in the registry?
+Found a malicious kit in the registry?
 
 1. Open an issue: [github.com/bolander72/clawclawgo/issues](https://github.com/bolander72/clawclawgo/issues)
 2. Tag it `security`
-3. Include the build ID and findings
+3. Include the kit ID and findings
 
 We'll review and remove if confirmed.

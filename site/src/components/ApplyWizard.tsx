@@ -10,25 +10,25 @@ import type { ApplyWizardProps, ScanResult } from '../types'
 
 const STEPS = ['review', 'security', 'apply']
 
-export default function ApplyWizard({ build, onClose }: ApplyWizardProps) {
+export default function ApplyWizard({ kit, onClose }: ApplyWizardProps) {
   const [step, setStep] = useState<number>(0)
   const [scanResult, setScanResult] = useState<ScanResult | null>(null)
   const [copied, setCopied] = useState<boolean>(false)
   const [agentId, setAgentId] = useState<string>('')
 
   useEffect(() => {
-    const result = scanBuild(build.content)
+    const result = scanBuild(kit.content)
     setScanResult(result)
-  }, [build])
+  }, [kit])
 
-  const buildJson = JSON.stringify(build.content, null, 2)
+  const kitJson = JSON.stringify(kit.content, null, 2)
 
   const simpleCommand = agentId
     ? `pbpaste | clawclawgo apply --from-stdin --agent ${agentId}`
     : null
 
   function handleCopyAndCommand() {
-    navigator.clipboard.writeText(buildJson).then(() => {
+    navigator.clipboard.writeText(kitJson).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 3000)
     })
@@ -54,7 +54,7 @@ export default function ApplyWizard({ build, onClose }: ApplyWizardProps) {
         <div className="p-6 border-b border-rc-border">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-grotesk font-bold text-rc-text">
-              Apply: {build.agentName}
+              Apply: {kit.agentName}
             </h2>
             <button
               onClick={onClose}
@@ -88,22 +88,22 @@ export default function ApplyWizard({ build, onClose }: ApplyWizardProps) {
           <AnimatePresence mode="wait">
             {step === 0 && (
               <motion.div key="review" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <h3 className="text-lg font-grotesk font-semibold text-rc-text mb-4">Review build contents</h3>
+                <h3 className="text-lg font-grotesk font-semibold text-rc-text mb-4">Review kit contents</h3>
                 <div className="space-y-3 mb-6">
-                  {build.items.map((item, i) => (
+                  {kit.items.map((item, i) => (
                     <div key={i} className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-xl border border-rc-border">
                       <div className="w-2 h-2 rounded-full bg-rc-cyan" />
                       <span className="text-sm font-grotesk text-rc-text">{item.name}</span>
                     </div>
                   ))}
                 </div>
-                {build.content.dependencies && (
+                {kit.content.dependencies && (
                   <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <IconPackage size={16} className="text-amber-400" />
                       <span className="text-sm font-grotesk font-medium text-amber-300">Dependencies</span>
                     </div>
-                    <p className="text-xs text-rc-text-dim">This build declares dependencies. The CLI will check them during apply.</p>
+                    <p className="text-xs text-rc-text-dim">This kit declares dependencies. The CLI will check them during apply.</p>
                   </div>
                 )}
               </motion.div>
@@ -139,7 +139,7 @@ export default function ApplyWizard({ build, onClose }: ApplyWizardProps) {
                       </div>
                       <div>
                         <h3 className="text-lg font-grotesk font-semibold text-red-400">Security issues found</h3>
-                        <p className="text-xs text-rc-text-dim">This build contains suspicious patterns</p>
+                        <p className="text-xs text-rc-text-dim">This kit contains suspicious patterns</p>
                       </div>
                     </>
                   )}
@@ -182,7 +182,7 @@ export default function ApplyWizard({ build, onClose }: ApplyWizardProps) {
 
                 {scanResult.findings.info.length > 0 && (
                   <div>
-                    <p className="text-xs font-mono text-rc-text-muted mb-2">Build info:</p>
+                    <p className="text-xs font-mono text-rc-text-muted mb-2">Kit info:</p>
                     <div className="space-y-1">
                       {scanResult.findings.info.map((f, i) => (
                         <div key={i} className="flex items-start gap-2 text-xs">
@@ -215,14 +215,14 @@ export default function ApplyWizard({ build, onClose }: ApplyWizardProps) {
                 {agentId && (
                   <>
                     <div className="mb-6 p-4 rounded-xl bg-white/5 border border-rc-border">
-                      <p className="text-xs font-mono text-rc-text-muted mb-3">Option 1: Copy build to clipboard, then run</p>
+                      <p className="text-xs font-mono text-rc-text-muted mb-3">Option 1: Copy kit to clipboard, then run</p>
                       <div className="flex items-center gap-2 mb-3">
                         <button
                           onClick={handleCopyAndCommand}
                           className="flex items-center gap-2 px-3 py-2 bg-rc-cyan text-rc-bg rounded-lg text-xs font-grotesk font-semibold hover:bg-rc-cyan/90 transition-colors"
                         >
                           {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
-                          {copied ? 'Copied!' : 'Copy build JSON'}
+                          {copied ? 'Copied!' : 'Copy kit JSON'}
                         </button>
                       </div>
                       <div className="bg-black/40 rounded-lg p-3 font-mono text-xs text-rc-cyan break-all select-all">
@@ -235,22 +235,22 @@ export default function ApplyWizard({ build, onClose }: ApplyWizardProps) {
                       <div className="flex items-center gap-2 mb-3">
                         <button
                           onClick={() => {
-                            const blob = new Blob([buildJson], { type: 'application/json' })
+                            const blob = new Blob([kitJson], { type: 'application/json' })
                             const url = URL.createObjectURL(blob)
                             const a = document.createElement('a')
                             a.href = url
-                            a.download = `${build.name || 'build'}.json`
+                            a.download = `${kit.name || 'kit'}.json`
                             a.click()
                             URL.revokeObjectURL(url)
                           }}
                           className="flex items-center gap-2 px-3 py-2 bg-white/10 text-rc-text rounded-lg text-xs font-grotesk font-semibold hover:bg-white/15 transition-colors"
                         >
                           <IconDownload size={14} />
-                          Download {build.name || 'build'}.json
+                          Download {kit.name || 'kit'}.json
                         </button>
                       </div>
                       <div className="bg-black/40 rounded-lg p-3 font-mono text-xs text-rc-cyan break-all select-all">
-                        clawclawgo apply {build.name || 'build'}.json --agent {agentId}
+                        clawclawgo apply {kit.name || 'kit'}.json --agent {agentId}
                       </div>
                     </div>
                   </>

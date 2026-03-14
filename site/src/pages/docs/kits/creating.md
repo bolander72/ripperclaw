@@ -3,14 +3,14 @@ layout: ../../../layouts/DocLayout.astro
 title: Creating
 ---
 
-# Creating a Build
+# Creating a Kit
 
 ## Directory Structure
 
-A build is a directory with skills and agent configs:
+A kit is a directory with skills and agent configs:
 
 ```
-my-build/
+my-kit/
 ├── skills/
 │   ├── voice-assistant/
 │   │   ├── SKILL.md
@@ -47,10 +47,10 @@ Skills can include scripts, config files, and assets alongside the SKILL.md.
 ## Pack It
 
 ```bash
-npx clawclawgo pack ~/my-build --out build.json
+npx clawclawgo pack ~/my-kit --out kit.json
 ```
 
-This scans the directory, detects all skills and agent configs, runs a security scan, and outputs `build.json`.
+This scans the directory, detects all skills and agent configs, runs a security scan, and outputs `kit.json`.
 
 ## Add Agent Configs
 

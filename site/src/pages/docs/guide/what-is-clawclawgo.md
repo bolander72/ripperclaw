@@ -23,17 +23,17 @@ ClawClawGo solves this by:
 
 1. **Aggregating** — Pulls skills from GitHub repos into one index
 2. **Standardizing** — Supports the [Agent Skills](https://agentskills.io) open standard plus all major agent formats
-3. **Searching** — Full-text search across all indexed builds
+3. **Searching** — Full-text search across all indexed kits
 4. **Scanning** — Built-in security analysis with trust scores
-5. **Packaging** — Bundle skills + configs into portable builds
+5. **Packaging** — Bundle skills + configs into portable kits
 
-## What's a Build?
+## What's a Kit?
 
-A build is a collection of skills and agent configs packaged together. Think of it as a recipe:
+A kit is a collection of skills and agent configs packaged together. Think of it as a recipe:
 
 ```json
 {
-  "name": "Voice Assistant Build",
+  "name": "Voice Assistant Kit",
   "description": "Skills for voice-controlled agents",
   "skills": [
     { "path": "skills/voice-commands/SKILL.md" },
@@ -50,7 +50,7 @@ A build is a collection of skills and agent configs packaged together. Think of 
 }
 ```
 
-Builds can be:
+Kits can be:
 - Shared via GitHub repos
 - Published to the ClawClawGo registry
 - Downloaded with the CLI
@@ -58,13 +58,13 @@ Builds can be:
 
 ## How It Works
 
-**For build creators:**
+**For kit creators:**
 1. Organize your skills and configs in a directory
-2. Run `clawclawgo pack` to generate build.json
+2. Run `clawclawgo pack` to generate kit.json
 3. Push to GitHub
 4. Submit to the registry
 
-**For build users:**
+**For kit users:**
 1. Search on [clawclawgo.com](https://clawclawgo.com)
 2. Download with `clawclawgo add`
 3. Review scan results
@@ -111,13 +111,13 @@ ClawClawGo works with 30+ AI agents:
 
 ## Security
 
-Every build includes security scan results:
+Every kit includes security scan results:
 
 - Trust score (0-100)
 - List of findings (prompt injection, shell exfiltration, credential access, etc.)
 - Timestamp of scan
 
-The `add` command checks the score before downloading. Low-scoring builds are blocked by default.
+The `add` command checks the score before downloading. Low-scoring kits are blocked by default.
 
 ## Not OpenClaw-Specific
 
@@ -130,11 +130,11 @@ OpenClaw is just one of 30+ supported agents.
 ClawClawGo is MIT licensed and open source:
 
 - **Repo:** [github.com/bolander72/clawclawgo](https://github.com/bolander72/clawclawgo)
-- **Registry:** `registry/builds.json` (submit PRs to add builds)
+- **Registry:** `registry/kits.json` (submit PRs to add kits)
 - **CLI:** Node.js, zero dependencies — run with `npx clawclawgo`
 
 ## Next Steps
 
 - [Get started](/docs/guide/quickstart)
 - [Learn about security](/docs/guide/security)
-- [Explore builds](https://clawclawgo.com/explore)
+- [Explore kits](https://clawclawgo.com/explore)

@@ -26,29 +26,29 @@ chmod +x cli/clawclawgo.mjs
 
 ## Web App
 
-No installation needed. Visit [clawclawgo.com](https://clawclawgo.com) to search and browse builds.
+No installation needed. Visit [clawclawgo.com](https://clawclawgo.com) to search and browse kits.
 
 ## Requirements
 
 - **Node.js** 18+ (for CLI)
-- **Git** (for publishing builds)
+- **Git** (for publishing kits)
 - **GitHub CLI** (`gh`) — optional, for auto-publishing PRs
 
 ## CLI Commands
 
 ```bash
-npx clawclawgo pack       # Pack a directory into build.json
-npx clawclawgo add        # Download a build
-npx clawclawgo scan       # Security scan a build
-npx clawclawgo preview    # Preview build details
+npx clawclawgo pack       # Pack a directory into kit.json
+npx clawclawgo add        # Download a kit
+npx clawclawgo scan       # Security scan a kit
+npx clawclawgo preview    # Preview kit details
 npx clawclawgo publish    # Submit to the registry
-npx clawclawgo search     # Search for builds
+npx clawclawgo search     # Search for kits
 ```
 
 Run `npx clawclawgo --help` for full usage.
 
 ## Next Steps
 
-- [Quickstart](/docs/guide/quickstart) — Pack your first build
+- [Quickstart](/docs/guide/quickstart) — Pack your first kit
 - [Packing](/docs/guide/packing) — Learn the pack command
 - [Publishing](/docs/guide/publishing) — Share on the registry

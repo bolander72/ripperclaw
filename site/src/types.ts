@@ -1,6 +1,6 @@
 // ─── Core Types ────────────────────────────────────────────
 
-export type BuildSource = 'github' | 'clawhub' | 'skillssh' | 'custom'
+export type KitSource = 'github' | 'clawhub' | 'skillssh' | 'custom'
 
 export interface Skill {
   name: string
@@ -13,11 +13,11 @@ export interface Skill {
   allowedTools?: string[]
 }
 
-export interface Build {
+export interface Kit {
   id: string
   name: string
   description: string
-  source: BuildSource
+  source: KitSource
   // GitHub-specific
   repoUrl?: string
   owner?: string
@@ -28,7 +28,7 @@ export interface Build {
   creator: string
   createdAt: number | string
   tags: string[]
-  skills: Skill[]           // the actual skills in this build
+  skills: Skill[]           // the actual skills in this kit
   compatibility: string[]   // which agents this works with (agent IDs)
   trustTier: 'verified' | 'community' | 'unreviewed'
   // Detection info
@@ -74,21 +74,21 @@ export interface ScanResult {
 // ─── Component Props ───────────────────────────────────────
 
 export interface FeedItemProps {
-  build: Build
+  kit: Kit
   index: number
   isNew: boolean
   onClick: () => void
   onTagClick?: (tag: string) => void
 }
 
-export interface BuildDetailProps {
-  build: Build
+export interface KitDetailProps {
+  kit: Kit
   onClose: () => void
-  onExport: (build: Build) => void
+  onExport: (kit: Kit) => void
 }
 
 export interface ExportWizardProps {
-  build: Build
+  kit: Kit
   onClose: () => void
 }
 

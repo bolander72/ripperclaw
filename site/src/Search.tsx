@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { IconSearch, IconX } from '@tabler/icons-react'
-import { builds as sampleBuilds } from './builds'
+import { kits as sampleKits } from './kits'
 import Nav from './components/Nav'
 import Footer from './components/Footer'
 import FeedItem from './components/FeedItem'
-import BuildDetail from './components/BuildDetail'
+import KitDetail from './components/KitDetail'
 import ExportWizard from './components/ExportWizard'
 import LoadingSprite from './components/LoadingSprite'
-import type { Build } from './types'
+import type { Kit } from './types'
 
 export default function Search() {
   // Get initial query from URL
@@ -16,52 +16,52 @@ export default function Search() {
     ? new URLSearchParams(window.location.search).get('q') || ''
     : ''
   
-  const [builds, setBuilds] = useState<Build[]>([])
+  const [kits, setKits] = useState<Kit[]>([])
   const [searchQuery, setSearchQuery] = useState<string>(initialQuery)
   const [searchFocused, setSearchFocused] = useState<boolean>(false)
-  const [selectedBuild, setSelectedBuild] = useState<Build | null>(null)
-  const [exportBuild, setExportBuild] = useState<Build | null>(null)
+  const [selectedKit, setSelectedKit] = useState<Kit | null>(null)
+  const [exportKit, setExportKit] = useState<Kit | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [sourceFilter, setSourceFilter] = useState<string | null>(null)
   const [compatFilter, setCompatFilter] = useState<string | null>(null)
 
-  // Load builds
+  // Load kits
   useEffect(() => {
     setTimeout(() => {
-      setBuilds(sampleBuilds)
+      setKits(sampleKits)
       setIsLoading(false)
     }, 300)
   }, [])
 
-  // Filter builds by search query + filters
-  const filteredBuilds = useMemo(() => {
+  // Filter kits by search query + filters
+  const filteredKits = useMemo(() => {
     if (!searchQuery.trim() && !sourceFilter && !compatFilter) return []
     const q = searchQuery.toLowerCase().trim()
     const terms = q.split(/\s+/)
     
-    return builds.filter(build => {
+    return kits.filter(kit => {
       // Source filter
-      if (sourceFilter && build.source !== sourceFilter) return false
+      if (sourceFilter && kit.source !== sourceFilter) return false
       
       // Compatibility filter
-      if (compatFilter && !build.compatibility.includes(compatFilter)) return false
+      if (compatFilter && !kit.compatibility.includes(compatFilter)) return false
       
       // Text search
       if (!q) return true
       
       const searchable = [
-        build.name,
-        build.description || '',
-        build.creator,
-        ...build.tags,
-        ...build.skills.map(s => s.name),
-        ...build.skills.map(s => s.description),
-        ...(build.compatibility || []),
+        kit.name,
+        kit.description || '',
+        kit.creator,
+        ...kit.tags,
+        ...kit.skills.map(s => s.name),
+        ...kit.skills.map(s => s.description),
+        ...(kit.compatibility || []),
       ].join(' ').toLowerCase()
       
       return terms.every(term => searchable.includes(term))
     })
-  }, [builds, searchQuery, sourceFilter, compatFilter])
+  }, [kits, searchQuery, sourceFilter, compatFilter])
 
   // Sync search query to URL
   const handleSearchChange = (value: string) => {
@@ -97,7 +97,7 @@ export default function Search() {
               onChange={(e) => handleSearchChange(e.target.value)}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
-              placeholder="Search for builds by name, skill, model, or tag"
+              placeholder="Search for kits by name, skill, model, or tag"
               className="flex-1 py-4 px-2 bg-transparent text-rc-text font-grotesk text-base placeholder:text-rc-text-muted/50 focus:outline-none"
               autoFocus
             />
@@ -156,7 +156,7 @@ export default function Search() {
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-20">
             <LoadingSprite size={64} className="mb-4" />
-            <p className="text-rc-text-dim text-sm font-mono">Loading builds...</p>
+            <p className="text-rc-text-dim text-sm font-mono">Loading kits...</p>
           </div>
         )}
 
@@ -166,7 +166,7 @@ export default function Search() {
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
               <IconSearch size={32} className="text-rc-text-muted" />
             </div>
-            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">Search builds</p>
+            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">Search kits</p>
             <p className="text-rc-text-dim text-sm max-w-md text-center">
               Start typing to search by name, skill, model, tags, or filter by source and compatibility.
             </p>
@@ -174,12 +174,12 @@ export default function Search() {
         )}
 
         {/* No results */}
-        {!isLoading && (searchQuery.trim() || sourceFilter || compatFilter) && filteredBuilds.length === 0 && (
+        {!isLoading && (searchQuery.trim() || sourceFilter || compatFilter) && filteredKits.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
               <IconX size={32} className="text-rc-text-muted" />
             </div>
-            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">No builds found</p>
+            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">No kits found</p>
             <p className="text-rc-text-dim text-sm max-w-md text-center">
               Try adjusting your search or filters.
             </p>
@@ -187,22 +187,22 @@ export default function Search() {
         )}
 
         {/* Results */}
-        {!isLoading && filteredBuilds.length > 0 && (
+        {!isLoading && filteredKits.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-4">
               <p className="text-rc-text-dim text-sm font-mono">
-                {filteredBuilds.length} {filteredBuilds.length === 1 ? 'build' : 'builds'} found
+                {filteredKits.length} {filteredKits.length === 1 ? 'kit' : 'kits'} found
               </p>
             </div>
             <div className="space-y-3">
               <AnimatePresence>
-                {filteredBuilds.map((build, i) => (
+                {filteredKits.map((kit, i) => (
                   <FeedItem
-                    key={build.id}
-                    build={build}
+                    key={kit.id}
+                    kit={kit}
                     index={i}
                     isNew={false}
-                    onClick={() => setSelectedBuild(build)}
+                    onClick={() => setSelectedBuild(kit)}
                     onTagClick={(tag) => handleSearchChange(tag)}
                   />
                 ))}
@@ -216,19 +216,19 @@ export default function Search() {
 
       {/* Modals */}
       <AnimatePresence>
-        {selectedBuild && !exportBuild && (
-          <BuildDetail
-            build={selectedBuild}
+        {selectedKit && !exportKit && (
+          <KitDetail
+            kit={selectedKit}
             onClose={() => setSelectedBuild(null)}
-            onExport={(build) => {
+            onExport={(kit) => {
               setSelectedBuild(null)
-              setExportBuild(build)
+              setExportBuild(kit)
             }}
           />
         )}
-        {exportBuild && (
+        {exportKit && (
           <ExportWizard
-            build={exportBuild}
+            kit={exportKit}
             onClose={() => setExportBuild(null)}
           />
         )}

@@ -2,17 +2,17 @@ import { useState, useEffect, useRef } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { IconLivePhoto } from '@tabler/icons-react'
 import { extractItems } from './lib/utils'
-import { builds as sampleBuilds } from './builds'
+import { kits as sampleKits } from './kits'
 import FeedItem from './components/FeedItem'
-import BuildDetail from './components/BuildDetail'
+import KitDetail from './components/KitDetail'
 import ExportWizard from './components/ExportWizard'
 import LoadingSprite from './components/LoadingSprite'
-import type { Build, BuildContent } from './types'
+import type { Kit, KitContent } from './types'
 
 export default function Explore() {
-  const [builds, setBuilds] = useState<Build[]>([])
-  const [selectedBuild, setSelectedBuild] = useState<Build | null>(null)
-  const [exportBuild, setExportBuild] = useState<Build | null>(null)
+  const [kits, setKits] = useState<Kit[]>([])
+  const [selectedKit, setSelectedKit] = useState<Kit | null>(null)
+  const [exportKit, setExportKit] = useState<Kit | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [newIds, setNewIds] = useState<Set<string>>(new Set())
   const [sortMode, setSortMode] = useState<'recent' | 'hot'>('recent')
@@ -20,18 +20,18 @@ export default function Explore() {
   
   const seenIds = useRef<Set<string>>(new Set())
 
-  // Load sample builds on mount
+  // Load sample kits on mount
   useEffect(() => {
     // Simulate loading
     setTimeout(() => {
-      setBuilds(sampleBuilds)
+      setKits(sampleKits)
       setIsLoading(false)
     }, 500)
   }, [])
 
-  // Filter and sort builds
-  const filteredAndSortedBuilds = builds
-    .filter(build => !tagFilter || build.tags.includes(tagFilter))
+  // Filter and sort kits
+  const filteredAndSortedBuilds = kits
+    .filter(kit => !tagFilter || kit.tags.includes(tagFilter))
     .sort((a, b) => {
       if (sortMode === 'recent') {
         const aTime = typeof a.createdAt === 'number' ? a.createdAt : new Date(a.createdAt).getTime() / 1000
@@ -68,7 +68,7 @@ export default function Explore() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rc-surface border border-rc-border shrink-0">
               <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-amber-400 animate-pulse' : 'bg-green-400'}`} />
               <span className="text-xs font-mono text-rc-text-dim">
-                {isLoading ? 'Loading' : `${builds.length} builds`}
+                {isLoading ? 'Loading' : `${kits.length} kits`}
               </span>
             </div>
           </div>
@@ -118,37 +118,37 @@ export default function Explore() {
         </div>
 
         {/* Loading state */}
-        {isLoading && builds.length === 0 && (
+        {isLoading && kits.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <LoadingSprite size={64} className="mb-4" />
-            <p className="text-rc-text-dim text-sm font-mono">Loading builds...</p>
+            <p className="text-rc-text-dim text-sm font-mono">Loading kits...</p>
           </div>
         )}
 
         {/* Empty state */}
-        {!isLoading && builds.length === 0 && (
+        {!isLoading && kits.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
               <IconLivePhoto size={32} className="text-rc-text-muted" />
             </div>
-            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">No builds yet</p>
+            <p className="text-rc-text text-lg font-grotesk font-medium mb-2">No kits yet</p>
             <p className="text-rc-text-dim text-sm max-w-md text-center">
-              No builds found. Check back soon.
+              No kits found. Check back soon.
             </p>
           </div>
         )}
 
-        {/* Build list */}
-        {builds.length > 0 && (
+        {/* Kit list */}
+        {kits.length > 0 && (
           <div className="space-y-3">
             <AnimatePresence initial={false}>
-              {filteredAndSortedBuilds.map((build, i) => (
+              {filteredAndSortedBuilds.map((kit, i) => (
                 <FeedItem
-                  key={build.id}
-                  build={build}
+                  key={kit.id}
+                  kit={kit}
                   index={i}
-                  isNew={newIds.has(build.id)}
-                  onClick={() => setSelectedBuild(build)}
+                  isNew={newIds.has(kit.id)}
+                  onClick={() => setSelectedBuild(kit)}
                   onTagClick={(tag) => setTagFilter(tag)}
                 />
               ))}
@@ -159,20 +159,20 @@ export default function Explore() {
 
       {/* Modals */}
       <AnimatePresence>
-        {selectedBuild && !exportBuild && (
-          <BuildDetail
-            build={selectedBuild}
+        {selectedKit && !exportKit && (
+          <KitDetail
+            kit={selectedKit}
             onClose={() => setSelectedBuild(null)}
-            onExport={(build) => {
+            onExport={(kit) => {
               setSelectedBuild(null)
-              setExportBuild(build)
+              setExportKit(kit)
             }}
           />
         )}
-        {exportBuild && (
+        {exportKit && (
           <ExportWizard
-            build={exportBuild}
-            onClose={() => setExportBuild(null)}
+            kit={exportKit}
+            onClose={() => setExportKit(null)}
           />
         )}
       </AnimatePresence>

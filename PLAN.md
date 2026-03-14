@@ -4,8 +4,8 @@
 
 ### GitHub Pivot (March 2026)
 - ✅ Removed all Nostr dependencies and code
-- ✅ New Build schema v4 with `source`, `compatibility`, `permissions`, `trustTier`
-- ✅ GitHub-based publishing flow (export → create repo → tag with `clawclawgo-build`)
+- ✅ New Kit schema v4 with `source`, `compatibility`, `permissions`, `trustTier`
+- ✅ GitHub-based publishing flow (export → create repo → tag with `clawclawgo-kit`)
 - ✅ Multi-source aggregation (GitHub, ClawHub, skills.sh)
 - ✅ Enhanced security scanner with permission cross-checking
 - ✅ Trust tier assignment based on GitHub signals (stars, forks, activity)
@@ -17,21 +17,21 @@
 
 ### Core Features (Phase 1-2)
 - ✅ CLI: export, apply, scan, preview
-- ✅ Build schema v4 with 6 core sections (model, persona, skills, integrations, automations, memory)
+- ✅ Kit schema v4 with 6 core sections (model, persona, skills, integrations, automations, memory)
 - ✅ Security scanner (5 passes: PII, prompt injection, automation safety, skill verification, exfiltration)
 - ✅ Dependency resolution
 - ✅ Static site with Astro + React
-- ✅ Feed view with sample builds
+- ✅ Feed view with sample kits
 - ✅ Search functionality
-- ✅ Build detail modals
+- ✅ Kit detail modals
 - ✅ Apply wizard
 
 ## 🚧 In Progress / Next Up
 
 ### Aggregator Backend
 Build a Node.js service that:
-- Polls GitHub API for repos tagged `clawclawgo-build`
-- Fetches `build.json` from each repo
+- Polls GitHub API for repos tagged `clawclawgo-kit`
+- Fetches `kit.json` from each repo
 - Runs security scanner
 - Assigns trust tier based on stars, forks, age, contributors
 - Stores metadata in SQLite or JSON
@@ -45,55 +45,55 @@ Build a Node.js service that:
 - Runs as cron job or long-running service
 
 ### ClawHub Integration
-- Query ClawHub API for published builds
-- Map ClawHub skill metadata to Build schema
-- Show ClawHub builds in feed with `source: 'clawhub'`
+- Query ClawHub API for published kits
+- Map ClawHub skill metadata to Kit schema
+- Show ClawHub kits in feed with `source: 'clawhub'`
 
 ### skills.sh Integration
 - Query skills.sh API (if available)
-- Map Vercel skill metadata to Build schema
-- Show skills.sh builds in feed with `source: 'skillssh'`
+- Map Vercel skill metadata to Kit schema
+- Show skills.sh kits in feed with `source: 'skillssh'`
 
 ### Trust Signals
 - Display GitHub stats: stars, forks, last updated
 - Show contributor count
 - Show repo age
 - Verify email domains for verified badge
-- Manual curation for featured builds
+- Manual curation for featured kits
 
 ## 🎯 Backlog
 
-### Build Management
-- **Import from URL** — apply builds directly from GitHub raw URLs
-- **Build versioning** — track updates to published builds
-- **Build collections** — curated lists of related builds
-- **Build templates** — starter templates for common use cases
+### Kit Management
+- **Import from URL** — apply kits directly from GitHub raw URLs
+- **Kit versioning** — track updates to published kits
+- **Kit collections** — curated lists of related kits
+- **Kit templates** — starter templates for common use cases
 
 ### Discovery
 - **Advanced filters** — by model, skill type, integration, permission level
 - **Sort options** — by stars, recency, trust score
-- **Tag browsing** — browse all builds by tag
-- **Creator profiles** — view all builds from a creator
+- **Tag browsing** — browse all kits by tag
+- **Creator profiles** — view all kits from a creator
 
 ### Community
 - **Comments/reviews** — GitHub Discussions integration or separate comment system
-- **Usage stats** — download/apply counts per build
-- **Featured builds** — manually curated showcase
-- **Build of the week** — highlight exceptional builds
+- **Usage stats** — download/apply counts per kit
+- **Featured kits** — manually curated showcase
+- **Kit of the week** — highlight exceptional kits
 
 ### Developer Experience
-- **TypeScript SDK** — programmatic access to build schema and CLI
-- **VS Code extension** — export/apply builds from editor
-- **Build linter** — validate builds before publishing
-- **Build diff tool** — compare two builds visually
+- **TypeScript SDK** — programmatic access to kit schema and CLI
+- **VS Code extension** — export/apply kits from editor
+- **Kit linter** — validate kits before publishing
+- **Kit diff tool** — compare two kits visually
 
 ### Analytics (Privacy-First)
 - **Plausible.io** integration (no cookies, GDPR-compliant)
-- Track: page views, popular builds, search queries (anonymized)
+- Track: page views, popular kits, search queries (anonymized)
 - No user tracking, no session recording
 
 ### Performance
-- **Build CDN** — cache popular build.json files on edge
+- **Kit CDN** — cache popular kit.json files on edge
 - **Search index** — full-text search with Meilisearch or similar
 - **Image optimization** — compress/optimize all assets
 - **Code splitting** — lazy-load React components
@@ -101,29 +101,29 @@ Build a Node.js service that:
 ## 🔬 Research & Exploration
 
 ### Decentralized Index
-- IPFS for build storage
+- IPFS for kit storage
 - Filecoin for archival
 - Arweave for permanent storage
 
 ### Smart Contracts (Optional)
-- On-chain build registry
+- On-chain kit registry
 - Reputation/trust via blockchain
 - Donation/tip mechanism for creators
 
 ### AI-Powered Features
-- **Build recommendations** — suggest builds based on current config
-- **Auto-tagging** — analyze build.json and suggest tags
-- **Similar builds** — find builds with overlapping skills/integrations
-- **Build composition** — merge multiple builds intelligently
+- **Kit recommendations** — suggest kits based on current config
+- **Auto-tagging** — analyze kit.json and suggest tags
+- **Similar kits** — find kits with overlapping skills/integrations
+- **Kit composition** — merge multiple kits intelligently
 
 ## 📊 Metrics to Track
 
-- Total builds indexed
+- Total kits indexed
 - Builds by source (GitHub, ClawHub, skills.sh)
 - Trust tier distribution
 - Most popular tags
-- Most starred builds
-- Most applied builds (if we add tracking)
+- Most starred kits
+- Most applied kits (if we add tracking)
 - Security scan failure rate
 
 ## 🎨 Design Principles
@@ -137,7 +137,7 @@ Build a Node.js service that:
 ## 🚀 Launch Checklist (v1.0)
 
 - [ ] Aggregator backend deployed and indexing GitHub
-- [ ] At least 20 real builds in feed
+- [ ] At least 20 real kits in feed
 - [ ] Documentation complete
 - [ ] CLI published to npm
 - [ ] Domain configured (clawclawgo.com)
@@ -146,6 +146,6 @@ Build a Node.js service that:
 
 ## Vision
 
-ClawClawGo becomes the **de facto registry** for AI agent builds across all platforms (OpenClaw, Claude Code, Cursor, Windsurf, etc.). Developers publish builds to GitHub, tag with `clawclawgo-build`, and users discover them via the feed.
+ClawClawGo becomes the **de facto registry** for AI agent kits across all platforms (OpenClaw, Claude Code, Cursor, Windsurf, etc.). Developers publish kits to GitHub, tag with `clawclawgo-kit`, and users discover them via the feed.
 
 Long-term: expand beyond OpenClaw to any AI agent framework that can consume a JSON config.

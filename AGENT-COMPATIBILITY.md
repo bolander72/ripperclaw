@@ -80,7 +80,7 @@ Frontmatter fields:
 
 ## What ClawClawGo Needs to Understand
 
-### A "build" / "stack" / "rig" = a collection of:
+### A "kit" / "stack" / "rig" = a collection of:
 - Skills (SKILL.md folders — the universal unit)
 - Config files (agent-specific: CLAUDE.md, .cursorrules, openclaw.json, etc.)
 - System prompts / personas (SOUL.md, custom instructions)
@@ -92,8 +92,8 @@ Frontmatter fields:
 - `CLAUDE.md` or `.claude/` → Claude Code config
 - `AGENTS.md` → Codex/OpenClaw config
 - `.windsurfrules` → Windsurf config
-- `openclaw.json` → OpenClaw build
-- `clawclawgo.json` or `build.json` → ClawClawGo native build
+- `openclaw.json` → OpenClaw kit
+- `clawclawgo.json` or `kit.json` → ClawClawGo native kit
 - Multiple SKILL.md files + setup script → "stack" (like gstack)
 
 ### Compatibility tagging:
@@ -104,7 +104,7 @@ Frontmatter fields:
 
 ## Export Formats (what ClawClawGo generates)
 
-When a user finds skills/builds they want, ClawClawGo should generate:
+When a user finds skills/kits they want, ClawClawGo should generate:
 1. **Agent Skills format** (SKILL.md) — works with 30+ agents
 2. **Agent-specific configs** — .cursorrules, CLAUDE.md, etc.
 3. **CLI one-liner** — `npx clawclawgo apply <url>`
@@ -116,7 +116,7 @@ ClawClawGo should:
 - Adopt Agent Skills (SKILL.md) as the canonical internal format
 - Index ALL sources (GitHub, skills.sh, ClawHub, curated lists)
 - Auto-detect compatibility based on file structure
-- Let users remix: pick skills from different builds, combine them
+- Let users remix: pick skills from different kits, combine them
 - Generate agent-specific output (not just SKILL.md — also .cursorrules, CLAUDE.md, etc.)
 - Track which agents a skill is known to work with
 

@@ -1,18 +1,18 @@
 ---
 layout: ../../../layouts/DocLayout.astro
-title: Builds Overview
+title: Kits Overview
 ---
 
-# Builds Overview
+# Kits Overview
 
-A build is a collection of skills and agent configs packaged together. Think of it as a portable skill pack for AI agents.
+A kit is a collection of skills and agent configs packaged together. Think of it as a portable skill pack for AI agents.
 
 ## Structure
 
-A typical build directory looks like:
+A typical kit directory looks like:
 
 ```
-my-build/
+my-kit/
 ├── skills/
 │   ├── voice-assistant/
 │   │   ├── SKILL.md
@@ -23,11 +23,11 @@ my-build/
 ├── .cursorrules
 ├── CLAUDE.md
 ├── openclaw.json
-├── build.json
+├── kit.json
 └── README.md
 ```
 
-When you run `clawclawgo pack`, it scans this directory and generates `build.json`:
+When you run `clawclawgo pack`, it scans this directory and generates `kit.json`:
 
 ```json
 {
@@ -76,11 +76,11 @@ When you run `clawclawgo pack`, it scans this directory and generates `build.jso
     ],
     "timestamp": "2024-03-14T17:00:00Z"
   },
-  "repository": "https://github.com/yourusername/my-build"
+  "repository": "https://github.com/yourusername/my-kit"
 }
 ```
 
-## What's in a Build
+## What's in a Kit
 
 ### Skills
 
@@ -121,30 +121,30 @@ These are agent-specific and vary in format.
 
 ### Scan Results
 
-Every build includes security scan results:
+Every kit includes security scan results:
 
 - **Trust score** (0-100) — Overall safety rating
 - **Findings** — List of potential issues
 - **Timestamp** — When the scan was run
 
-The scan is baked into `build.json` so users can see it before downloading.
+The scan is baked into `kit.json` so users can see it before downloading.
 
-## Build Lifecycle
+## Kit Lifecycle
 
 1. **Create** — Organize skills and configs in a directory
-2. **Pack** — `clawclawgo pack` generates build.json
+2. **Pack** — `clawclawgo pack` generates kit.json
 3. **Scan** — Security analysis runs automatically
 4. **Publish** — Push to GitHub, submit to registry
 5. **Share** — Others download with `clawclawgo add`
 
-## Build Format
+## Kit Format
 
-Builds are just directories with a `build.json`. No special format required. The pack command handles the detection and metadata generation.
+Kits are just directories with a `kit.json`. No special format required. The pack command handles the detection and metadata generation.
 
-You can create builds manually or use the CLI. Either way, the result is a portable package that works across agents.
+You can create kits manually or use the CLI. Either way, the result is a portable package that works across agents.
 
 ## Next Steps
 
-- [Creating Builds](/docs/builds/creating) — How to make your own
-- [Browsing Builds](/docs/builds/browsing) — Finding builds on ClawClawGo
-- [Sharing Builds](/docs/builds/sharing) — Publishing to the registry
+- [Creating Kits](/docs/kits/creating) — How to make your own
+- [Browsing Kits](/docs/kits/browsing) — Finding kits on ClawClawGo
+- [Sharing Kits](/docs/kits/sharing) — Publishing to the registry

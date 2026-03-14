@@ -1,9 +1,9 @@
-import type { Build } from './types'
+import type { Kit } from './types'
 
-// Sample builds showcasing real repos and skills
+// Sample kits showcasing real repos and skills
 // In production these would come from the indexer (GitHub, ClawHub, skills.sh, etc.)
 
-export const builds: Build[] = [
+export const kits: Kit[] = [
   {
     id: 'anthropics-skills',
     name: 'Anthropic Skills',

@@ -23,7 +23,7 @@ chmod +x clawclawgo/cli/clawclawgo.mjs
 
 ### `pack`
 
-Scan a directory for agent skills and configs, output a portable `build.json`.
+Scan a directory for agent skills and configs, output a portable `kit.json`.
 
 ```bash
 npx clawclawgo pack [dir] [--out file]
@@ -52,13 +52,13 @@ Security scan results are baked into the output so anyone reading the file can s
 **Examples:**
 
 ```bash
-npx clawclawgo pack ~/my-skills --out build.json
+npx clawclawgo pack ~/my-skills --out kit.json
 npx clawclawgo pack .
 ```
 
 ### `add`
 
-Download a build to your machine. Checks baked-in scan results and blocks flagged builds unless `--force`.
+Download a kit to your machine. Checks baked-in scan results and blocks flagged kits unless `--force`.
 
 ```bash
 npx clawclawgo add <url|file> [--dest dir] [--force]
@@ -68,22 +68,22 @@ npx clawclawgo add <url|file> [--dest dir] [--force]
 
 | Flag | Description |
 |------|-------------|
-| `<url\|file>` | URL or local path to a build.json |
+| `<url\|file>` | URL or local path to a kit.json |
 | `--dest <dir>` | Where to save (defaults to current directory) |
 | `--force` | Download even if scan found issues |
 
 **Examples:**
 
 ```bash
-npx clawclawgo add https://example.com/build.json
-npx clawclawgo add ./someone-elses-build.json --dest ~/builds
+npx clawclawgo add https://example.com/kit.json
+npx clawclawgo add ./someone-elses-kit.json --dest ~/kits
 ```
 
 Give the downloaded file to your AI agent — it'll know what to do with it.
 
 ### `scan`
 
-Run the security scanner on any build file. Checks for prompt injection, shell exfiltration, credential access, PII, and dangerous commands.
+Run the security scanner on any kit file. Checks for prompt injection, shell exfiltration, credential access, PII, and dangerous commands.
 
 ```bash
 npx clawclawgo scan <file>
@@ -94,15 +94,15 @@ Outputs a trust score (0-100) and list of findings.
 **Examples:**
 
 ```bash
-npx clawclawgo scan build.json
-npx clawclawgo scan ~/downloads/someones-build.json
+npx clawclawgo scan kit.json
+npx clawclawgo scan ~/downloads/someones-kit.json
 ```
 
 See [Security](/docs/guide/security) for details on what's scanned.
 
 ### `preview`
 
-Pretty-print a build summary — skills, compatibility, scan results.
+Pretty-print a kit summary — skills, compatibility, scan results.
 
 ```bash
 npx clawclawgo preview <file>
@@ -111,8 +111,8 @@ npx clawclawgo preview <file>
 **Examples:**
 
 ```bash
-npx clawclawgo preview build.json
-npx clawclawgo preview ~/downloads/someones-build.json
+npx clawclawgo preview kit.json
+npx clawclawgo preview ~/downloads/someones-kit.json
 ```
 
 ### `publish`
@@ -123,11 +123,11 @@ Prepare your repo for the ClawClawGo registry. Detects your git remote, runs `pa
 npx clawclawgo publish [dir]
 ```
 
-Outputs a JSON entry you can submit as a PR to `registry/builds.json`. See [Publishing](/docs/guide/publishing) for details.
+Outputs a JSON entry you can submit as a PR to `registry/kits.json`. See [Publishing](/docs/guide/publishing) for details.
 
 ### `search`
 
-Search for builds on ClawClawGo.
+Search for kits on ClawClawGo.
 
 ```bash
 npx clawclawgo search <query>
