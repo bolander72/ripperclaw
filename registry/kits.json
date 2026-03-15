@@ -12,7 +12,7 @@
       "trustTier": "verified",
       "stars": 93508,
       "forks": 10019,
-      "skillCount": 17,
+      "skillCount": 18,
       "detectedFiles": ["SKILL.md"],
       "addedAt": "2026-03-15T01:40:00Z"
     },
@@ -25,8 +25,8 @@
       "trustTier": "community",
       "stars": 38457,
       "forks": 3256,
-      "skillCount": 179,
-      "detectedFiles": [".cursorrules"],
+      "skillCount": 1114,
+      "detectedFiles": [".cursorrules", ".mdc"],
       "addedAt": "2026-03-15T01:40:00Z"
     },
     {
@@ -38,7 +38,7 @@
       "trustTier": "verified",
       "stars": 10595,
       "forks": 1260,
-      "skillCount": 8,
+      "skillCount": 20,
       "detectedFiles": ["SKILL.md", "CLAUDE.md"],
       "addedAt": "2026-03-15T01:40:00Z"
     },
@@ -51,7 +51,7 @@
       "trustTier": "verified",
       "stars": 25178,
       "forks": 2882,
-      "skillCount": 100,
+      "skillCount": 322,
       "detectedFiles": ["SKILL.md", "AGENTS.md"],
       "addedAt": "2026-03-15T01:40:00Z"
     },
@@ -77,7 +77,7 @@
       "trustTier": "verified",
       "stars": 154,
       "forks": 100,
-      "skillCount": 25,
+      "skillCount": 31,
       "detectedFiles": ["SKILL.md"],
       "addedAt": "2026-03-15T01:40:00Z"
     },
@@ -90,7 +90,7 @@
       "trustTier": "community",
       "stars": 14879,
       "forks": 1639,
-      "skillCount": 200,
+      "skillCount": 175,
       "detectedFiles": ["SKILL.md"],
       "addedAt": "2026-03-15T01:40:00Z"
     }
