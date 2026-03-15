@@ -12,7 +12,7 @@ Get started with ClawClawGo in 3 steps.
 No install required — use `npx`:
 
 ```bash
-npx clawclawgo --help
+npx clawclawgo
 ```
 
 ## 1. Add a Kit
@@ -23,7 +23,7 @@ Find a kit on [clawclawgo.com](https://clawclawgo.com/explore) or grab one direc
 npx clawclawgo add garrytan/gstack
 ```
 
-This clones the repo, finds all SKILL.md files, and runs a security scan. The skills are now on your machine — point your agent at the directory.
+This clones the repo, finds all SKILL.md files, runs a security scan, and generates a `CLAWCLAWGO.md` explaining what's inside.
 
 ## 2. Pack Your Own Kit
 
@@ -37,8 +37,7 @@ my-agent-skills/
 │   └── home-automation/
 │       └── SKILL.md
 ├── .cursorrules
-├── CLAUDE.md
-└── AGENTS.md
+└── CLAUDE.md
 ```
 
 Pack it:
@@ -48,9 +47,9 @@ cd my-agent-skills
 npx clawclawgo pack --out kit.json
 ```
 
-This generates `kit.json` with your skills, detected configs, and security scan baked in.
+This generates `kit.json` with your skills, detected configs, and security scan baked in. Sensitive files (SOUL.md, MEMORY.md, USER.md, memory/) are automatically excluded.
 
-## 3. Publish (Optional)
+## 3. Push to Registry
 
 To share your kit on [clawclawgo.com](https://clawclawgo.com):
 
@@ -60,21 +59,16 @@ git init && git add . && git commit -m "Initial kit"
 git remote add origin https://github.com/yourname/my-skills.git
 git push -u origin main
 
-# Publish (auto-creates PR to registry)
-npx clawclawgo publish
+# Push to registry (auto-creates PR)
+npx clawclawgo push
 ```
 
-## Common Commands
+## All Commands
 
 ```bash
-npx clawclawgo add anthropics/skills              # Clone a kit repo
-npx clawclawgo add garrytan/gstack --dest ~/kits   # Clone to specific directory
-npx clawclawgo pack .                              # Pack current directory
-npx clawclawgo pack ~/my-skills --out kit.json     # Pack with output file
-npx clawclawgo scan kit.json                       # Security scan
-npx clawclawgo preview kit.json                    # Preview contents
-npx clawclawgo publish                             # Submit to registry
-npx clawclawgo search "voice assistant"            # Search on web
+npx clawclawgo pack [dir] [--out file]         # Pack your skills into a kit
+npx clawclawgo push [dir]                      # Push your kit to the registry
+npx clawclawgo add <owner/repo> [--dest dir]   # Add a kit from GitHub
 ```
 
 ## Next Steps

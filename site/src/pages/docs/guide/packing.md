@@ -5,14 +5,14 @@ title: Packing
 
 # Packing
 
-The `pack` command scans your directory for agent config files and SKILL.md files, detects which agents they're compatible with, and generates a `kit.json`.
+The `pack` command scans your directory for agent config files and SKILL.md files, detects which agents they're compatible with, and generates a `kit.json` with security scan results baked in.
 
-Security scan results are baked into the output.
+Sensitive files (SOUL.md, USER.md, MEMORY.md, IDENTITY.md, memory/, .env) are automatically excluded.
 
 ## Usage
 
 ```bash
-npx clawclawgo pack [directory] [--out file]
+npx clawclawgo pack [dir] [--out file]
 ```
 
 **Options:**
@@ -38,26 +38,14 @@ The pack command looks for:
 ## Example
 
 ```bash
-# Pack current directory
-npx clawclawgo pack
-
-# Pack a specific directory
-npx clawclawgo pack ~/my-agent-skills
-
-# Specify output file
-npx clawclawgo pack --out kit.json
+npx clawclawgo pack                              # Pack current directory
+npx clawclawgo pack ~/my-agent-skills             # Pack a specific directory
+npx clawclawgo pack --out kit.json                # Write to file
 ```
-
-## What Goes in kit.json
-
-The pack command generates metadata about your kit — skill names, descriptions, detected agent configs, compatibility, and security scan results. This is used by the ClawClawGo registry and web app for indexing.
-
-See [Schema Reference](/docs/reference/schema) for the full format.
 
 ## Next Steps
 
 Once packed:
 1. Review the generated `kit.json`
-2. Run `npx clawclawgo scan kit.json` to see detailed security findings
-3. Push your repo to GitHub
-4. Publish to the registry with `npx clawclawgo publish`
+2. Push your repo to GitHub
+3. Push to the registry with `npx clawclawgo push`

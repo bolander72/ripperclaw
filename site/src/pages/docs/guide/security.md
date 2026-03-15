@@ -5,7 +5,7 @@ title: Security
 
 # Security
 
-ClawClawGo scans every kit for common threats. The `scan` command and the `add` command both run the same security checks.
+ClawClawGo scans every kit for common threats. Both `pack` and `add` run the same security checks automatically.
 
 ## What Gets Scanned
 
@@ -36,14 +36,6 @@ npx clawclawgo add garrytan/gstack
 
 The `add` command clones the repo, scans all files, and reports findings. If blocking issues are found, it removes the clone and exits unless `--force` is passed.
 
-### Standalone Scan
-
-```bash
-npx clawclawgo scan kit.json
-```
-
-Scans a kit.json file and outputs the trust score and findings.
-
 ### When Packing
 
 ```bash
@@ -52,26 +44,13 @@ npx clawclawgo pack --out kit.json
 
 Security scan runs automatically and results are baked into the kit.json.
 
-## Scan Output
+### When Pushing
 
-```
-Security Scan Results
-━━━━━━━━━━━━━━━━━━━━━
-
-Trust Score: 95/100 ✓
-
-Findings:
-  [WARN] External curl usage
-    → curl https://example.com/install.sh
+```bash
+npx clawclawgo push
 ```
 
-## Review Findings Yourself
-
-Don't trust scores blindly. Read the findings:
-
-- What files are flagged?
-- Are the warnings legitimate or false positives?
-- Do you trust the kit author?
+Push runs pack + scan. Kits with blocking issues can't be pushed to the registry.
 
 ## False Positives
 
@@ -80,9 +59,9 @@ Some legitimate patterns trigger warnings:
 - **Git clone commands** — Flagged as network access
 - **Package installs** — Flagged as shell execution
 - **API calls** — Flagged as external connections
-- **Documentation mentioning dangerous commands** — Flagged even in context of explaining what NOT to do
+- **Documentation mentioning dangerous commands** — Flagged even in educational context
 
-If the kit is from a trusted source and the findings make sense, it's safe to proceed with `--force`.
+If the kit is from a trusted source and the findings make sense, proceed with `--force`.
 
 ## Trust Tiers (Web App)
 
@@ -98,14 +77,8 @@ On [clawclawgo.com](https://clawclawgo.com), kits show trust tier badges:
 - Credential access attempts
 - Obfuscated commands (`eval $(base64 -d ...)`)
 - Unexpected external network calls
-- Author you don't recognize
+- Unknown author
 
 ## Reporting Issues
 
-Found a malicious kit in the registry?
-
-1. Open an issue: [github.com/bolander72/clawclawgo/issues](https://github.com/bolander72/clawclawgo/issues)
-2. Tag it `security`
-3. Include the kit URL and findings
-
-We'll review and remove if confirmed.
+Found a malicious kit? Open an issue tagged `security` at [github.com/bolander72/clawclawgo/issues](https://github.com/bolander72/clawclawgo/issues).

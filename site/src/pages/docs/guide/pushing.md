@@ -1,21 +1,21 @@
 ---
 layout: ../../../layouts/DocLayout.astro
-title: Publishing
+title: Pushing
 ---
 
-# Publishing
+# Pushing to the Registry
 
-Publishing makes your kit discoverable on [clawclawgo.com](https://clawclawgo.com) by adding a pointer to your repo in the registry.
+Pushing makes your kit discoverable on [clawclawgo.com](https://clawclawgo.com) by adding a pointer to your repo in the registry.
 
 ## How It Works
 
-Your kit lives in your GitHub repo. Publishing adds a registry entry (URL + metadata) to `registry/kits.json` in the ClawClawGo repo. ClawClawGo never hosts your content — the registry is just an index.
+Your kit lives in your GitHub repo. Pushing adds a registry entry (URL + metadata) to `registry/kits.json` in the ClawClawGo repo. ClawClawGo never hosts your content — the registry is just an index.
 
-## Quick Publish
+## Quick Push
 
 ```bash
 cd ~/my-agent-skills
-npx clawclawgo publish
+npx clawclawgo push
 ```
 
 This will:
@@ -50,14 +50,13 @@ If the auto-PR doesn't work (no `gh` CLI, private fork, etc.):
 2. Add your entry to `registry/kits.json`
 3. Submit a PR
 
-The `publish` command outputs the JSON entry even if it can't create the PR, so you can copy-paste it.
+The `push` command outputs the JSON entry even if it can't create the PR, so you can copy-paste it.
 
 ## Best Practices
 
-**Scan before publishing:**
+**Pack first to check your score:**
 ```bash
 npx clawclawgo pack --out kit.json
-npx clawclawgo scan kit.json
 ```
 Aim for 90+ trust score. Kits with blocking issues won't be merged.
 
@@ -65,8 +64,6 @@ Aim for 90+ trust score. Kits with blocking issues won't be merged.
 
 **List compatibility** — The more agents listed in your SKILL.md frontmatter, the more discoverable your kit.
 
-**Keep it updated** — When you add skills, push to GitHub. Users re-clone with `npx clawclawgo add`.
-
-## Unpublishing
+## Removing from Registry
 
 Submit a PR removing your entry from `registry/kits.json`. Your repo stays on GitHub — only the registry link is removed.

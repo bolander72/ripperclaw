@@ -5,7 +5,7 @@ title: Browsing Kits
 
 # Browsing Kits
 
-Find kits on ClawClawGo using the web app or CLI.
+Find kits on ClawClawGo using the web app.
 
 ## Web App
 
@@ -13,14 +13,9 @@ Visit [clawclawgo.com](https://clawclawgo.com) to search and browse.
 
 ### Search
 
-Use the search bar on the homepage. Results show:
-- Kit name and description
-- Compatible agents
-- Trust tier badge
-- Author and source
-- Tags
+Use the search bar on the homepage. Results show kit name, description, compatible agents, trust tier badge, author, and source.
 
-Click a kit to see the full detail page — skills with links to their source code, agent compatibility, and ways to add the kit.
+Click a kit to see the full detail page — skills with links to source code, agent compatibility, and how to add it.
 
 ### Explore
 
@@ -28,38 +23,25 @@ The [Explore](https://clawclawgo.com/explore) page shows kits from all sources (
 
 ### Filter by Agent
 
-Use the agent filter dropdown on the search page to find kits for a specific agent (Claude Code, Cursor, OpenClaw, etc.).
-
-### Filter by Tag
-
-Click a tag on any kit card to filter by category. Common tags:
-- `voice`, `coding`, `automation`, `email`, `calendar`, `smart-home`, `devops`, `security`
-
-## CLI
-
-```bash
-npx clawclawgo search "voice assistant"
-```
-
-Opens the search results on [clawclawgo.com](https://clawclawgo.com/search).
+Use the agent filter dropdown to find kits for a specific agent (Claude Code, Cursor, OpenClaw, etc.).
 
 ## Adding a Kit
 
-From a kit's detail page, you can:
+From a kit's detail page:
 
 1. **View on GitHub** — go straight to the source repo
 2. **Clone it** — `git clone` one-liner
 3. **Use the CLI** — `npx clawclawgo add owner/repo` clones the repo and runs a security scan
 
-The CLI `add` command is the recommended way — it clones, scans, and reports what skills it found in one step.
-
 ```bash
 npx clawclawgo add garrytan/gstack
-npx clawclawgo add https://github.com/anthropics/skills --dest ~/kits
+npx clawclawgo add anthropics/skills --dest ~/kits
 ```
+
+The `add` command generates a `CLAWCLAWGO.md` in the cloned directory describing the kit and its skills.
 
 ## Next Steps
 
 - [Creating Kits](/docs/kits/creating) — Make your own
-- [Sharing Kits](/docs/kits/sharing) — Publish to the registry
+- [Sharing Kits](/docs/kits/sharing) — Push to the registry
 - [Security](/docs/guide/security) — Understanding trust scores

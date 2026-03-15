@@ -42,8 +42,6 @@ When the user sends a voice message:
 3. Generate response with TTS
 ```
 
-Skills can include scripts, config files, and assets alongside the SKILL.md.
-
 ## Add Agent Configs
 
 Include config files for the agents you support:
@@ -59,10 +57,11 @@ The `pack` command auto-detects these and maps them to the right agents.
 
 ```bash
 npx clawclawgo pack --out kit.json
-npx clawclawgo scan kit.json
 ```
 
-This generates metadata and runs a security scan. Fix any blocking findings before publishing.
+This generates metadata and runs a security scan. Fix any blocking findings before pushing.
+
+Sensitive files (SOUL.md, MEMORY.md, USER.md, memory/) are automatically excluded from the pack output.
 
 ## Tips
 

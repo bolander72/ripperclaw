@@ -5,123 +5,66 @@ title: CLI Reference
 
 # CLI Reference
 
-Run with `npx` (no install required):
+Three commands. No install required.
 
-```bash
-npx clawclawgo <command>
-```
+## `pack`
 
-## Commands
-
-### `add`
-
-Clone a kit repo and run a security scan on it.
-
-```bash
-npx clawclawgo add <repo-url|owner/repo> [--dest dir] [--force]
-```
-
-**Options:**
-
-| Flag | Description |
-|------|-------------|
-| `<repo>` | GitHub URL or `owner/repo` shorthand |
-| `--dest <dir>` | Where to clone (defaults to current directory) |
-| `--force` | Clone even if scan finds blocking issues |
-
-Clones the repo (shallow, no `.git` history), finds all SKILL.md files and agent configs, runs a security scan, and reports what it found.
-
-**Examples:**
-
-```bash
-npx clawclawgo add garrytan/gstack
-npx clawclawgo add https://github.com/anthropics/skills --dest ~/kits
-```
-
-### `pack`
-
-Scan a directory for agent skills and configs, output a portable `kit.json`.
+Pack your skills into a `kit.json` file with security scan baked in. Sensitive files (SOUL.md, MEMORY.md, USER.md, memory/, .env) are automatically excluded.
 
 ```bash
 npx clawclawgo pack [dir] [--out file]
 ```
 
-**Options:**
-
-| Flag | Description |
-|------|-------------|
-| `[dir]` | Directory to scan (defaults to current directory) |
+| Arg | Description |
+|-----|-------------|
+| `[dir]` | Directory to scan (default: `.`) |
 | `--out <file>` | Write to file instead of stdout |
 
-**What it detects:**
-- `SKILL.md` files (Agent Skills standard — 30+ compatible agents)
-- `CLAUDE.md` (Claude Code)
-- `.cursorrules` (Cursor)
-- `.windsurfrules` (Windsurf)
-- `AGENTS.md` (OpenClaw, Codex)
-- `codex.json` (Codex)
-- `.clinerules` (Cline)
-- `.aider.conf.yml` (Aider)
-- `.continue/config.json` (Continue)
+**Detects:** SKILL.md files, CLAUDE.md, .cursorrules, .windsurfrules, AGENTS.md, codex.json, .clinerules, .aider.conf.yml, .continue/config.json
 
-Security scan results are baked into the output.
+## `push`
 
-**Examples:**
+Push your kit to the ClawClawGo registry. Runs `pack` + security scan, then auto-creates a PR to `registry/kits.json`.
 
 ```bash
-npx clawclawgo pack ~/my-skills --out kit.json
-npx clawclawgo pack .
+npx clawclawgo push [dir]
 ```
 
-### `scan`
+| Arg | Description |
+|-----|-------------|
+| `[dir]` | Directory to push (default: `.`) |
 
-Run the security scanner on any kit file. Checks for prompt injection, shell exfiltration, credential access, PII, and dangerous commands.
+**Requires:** Git remote configured, [GitHub CLI](https://cli.github.com/) (`gh`) authenticated. If `gh` isn't available, prints the registry entry JSON for manual submission.
+
+Kits with blocking security issues can't be pushed.
+
+## `add`
+
+Clone a kit repo from GitHub, scan it, and generate a `CLAWCLAWGO.md` describing the kit.
 
 ```bash
-npx clawclawgo scan <file>
+npx clawclawgo add <owner/repo> [--dest dir]
 ```
 
-Outputs a trust score (0-100) and list of findings. See [Security](/docs/guide/security) for details.
+| Arg | Description |
+|-----|-------------|
+| `<owner/repo>` | GitHub repo (e.g. `garrytan/gstack`) or full URL |
+| `--dest <dir>` | Clone destination (default: current directory) |
+| `--force` | Override security blocks |
 
-### `preview`
+If the security scan finds blocking issues, the clone is removed. Use `--force` to keep it anyway.
 
-Pretty-print a kit summary — skills, compatibility, scan results.
+## Requirements
 
-```bash
-npx clawclawgo preview <file>
-```
+- **Node.js** 18+
+- **Git** (for `add`)
+- **GitHub CLI** (`gh`) — optional, for `push` auto-PRs
 
-### `publish`
-
-Submit your repo to the ClawClawGo registry. Detects your git remote, runs `pack` + `scan`, and auto-creates a PR to `registry/kits.json` via `gh` CLI.
-
-```bash
-npx clawclawgo publish [dir]
-```
-
-Requires [GitHub CLI](https://cli.github.com/) (`gh`). See [Publishing](/docs/guide/publishing) for details.
-
-### `search`
-
-Search for kits on ClawClawGo.
+## Examples
 
 ```bash
-npx clawclawgo search <query>
-```
-
-Opens [clawclawgo.com/search](https://clawclawgo.com/search) with your query.
-
-## Environment
-
-- Node.js 18+
-- `git` (for `add` command)
-- `gh` CLI (optional, for `publish` command)
-
-## From Source
-
-```bash
-git clone https://github.com/bolander72/clawclawgo
-cd clawclawgo
-chmod +x cli/clawclawgo.mjs
-./cli/clawclawgo.mjs --help
+npx clawclawgo pack --out kit.json
+npx clawclawgo push
+npx clawclawgo add garrytan/gstack
+npx clawclawgo add anthropics/skills --dest ~/kits
 ```
