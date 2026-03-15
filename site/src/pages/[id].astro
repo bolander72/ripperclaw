@@ -17,9 +17,7 @@ let readme = ''
 if (kit.repoUrl) {
   const repoPath = kit.repoUrl.replace('https://github.com/', '')
   try {
-    const res = await fetch(`https://api.github.com/repos/${repoPath}/readme`, {
-      headers: { 'Accept': 'application/vnd.github.raw', 'User-Agent': 'ClawClawGo' },
-    })
+    const res = await fetch(`https://raw.githubusercontent.com/${repoPath}/main/README.md`)
     if (res.ok) {
       readme = await res.text()
     }
