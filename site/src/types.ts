@@ -92,6 +92,9 @@ export interface ExportWizardProps {
   onClose: () => void
 }
 
+// Note: KitDetail and ExportWizard are legacy modal components.
+// Kit pages now use KitPage component at /kit/[id].
+
 export interface CopyButtonProps {
   text: string
   label?: string

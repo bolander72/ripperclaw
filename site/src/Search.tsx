@@ -5,13 +5,10 @@ import { kits as sampleKits } from './kits'
 import Nav from './components/Nav'
 import Footer from './components/Footer'
 import FeedItem from './components/FeedItem'
-import KitDetail from './components/KitDetail'
-import ExportWizard from './components/ExportWizard'
 import LoadingSprite from './components/LoadingSprite'
 import type { Kit } from './types'
 
 export default function Search() {
-  // Get initial query from URL
   const initialQuery = typeof window !== 'undefined' 
     ? new URLSearchParams(window.location.search).get('q') || ''
     : ''
@@ -19,13 +16,10 @@ export default function Search() {
   const [kits, setKits] = useState<Kit[]>([])
   const [searchQuery, setSearchQuery] = useState<string>(initialQuery)
   const [searchFocused, setSearchFocused] = useState<boolean>(false)
-  const [selectedKit, setSelectedKit] = useState<Kit | null>(null)
-  const [exportKit, setExportKit] = useState<Kit | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [sourceFilter, setSourceFilter] = useState<string | null>(null)
   const [compatFilter, setCompatFilter] = useState<string | null>(null)
 
-  // Load kits
   useEffect(() => {
     setTimeout(() => {
       setKits(sampleKits)
@@ -33,20 +27,14 @@ export default function Search() {
     }, 300)
   }, [])
 
-  // Filter kits by search query + filters
   const filteredKits = useMemo(() => {
     if (!searchQuery.trim() && !sourceFilter && !compatFilter) return []
     const q = searchQuery.toLowerCase().trim()
     const terms = q.split(/\s+/)
     
     return kits.filter(kit => {
-      // Source filter
       if (sourceFilter && kit.source !== sourceFilter) return false
-      
-      // Compatibility filter
       if (compatFilter && !kit.compatibility.includes(compatFilter)) return false
-      
-      // Text search
       if (!q) return true
       
       const searchable = [
@@ -63,7 +51,6 @@ export default function Search() {
     })
   }, [kits, searchQuery, sourceFilter, compatFilter])
 
-  // Sync search query to URL
   const handleSearchChange = (value: string) => {
     setSearchQuery(value)
     if (typeof window !== 'undefined') {
@@ -152,14 +139,12 @@ export default function Search() {
           </div>
         </div>
 
-        {/* Loading state */}
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-20">
             <LoadingSprite size={64} />
           </div>
         )}
 
-        {/* Empty state — no search query */}
         {!isLoading && !searchQuery.trim() && !sourceFilter && !compatFilter && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
@@ -172,7 +157,6 @@ export default function Search() {
           </div>
         )}
 
-        {/* No results */}
         {!isLoading && (searchQuery.trim() || sourceFilter || compatFilter) && filteredKits.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
@@ -185,7 +169,6 @@ export default function Search() {
           </div>
         )}
 
-        {/* Results */}
         {!isLoading && filteredKits.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -201,7 +184,7 @@ export default function Search() {
                     kit={kit}
                     index={i}
                     isNew={false}
-                    onClick={() => setSelectedKit(kit)}
+                    onClick={() => { window.location.href = `/kit/${kit.id}` }}
                     onTagClick={(tag) => handleSearchChange(tag)}
                   />
                 ))}
@@ -212,26 +195,6 @@ export default function Search() {
       </main>
 
       <Footer />
-
-      {/* Modals */}
-      <AnimatePresence>
-        {selectedKit && !exportKit && (
-          <KitDetail
-            kit={selectedKit}
-            onClose={() => setSelectedKit(null)}
-            onExport={(kit) => {
-              setSelectedKit(null)
-              setExportKit(kit)
-            }}
-          />
-        )}
-        {exportKit && (
-          <ExportWizard
-            kit={exportKit}
-            onClose={() => setExportKit(null)}
-          />
-        )}
-      </AnimatePresence>
     </div>
   )
 }

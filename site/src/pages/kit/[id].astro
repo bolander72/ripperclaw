@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { kits } from '../../kits'
+
+export function getStaticPaths() {
+  return kits.map(kit => ({
+    params: { id: kit.id },
+    props: { kit },
+  }))
+}
+
+const { kit } = Astro.props
+---
+
+<BaseLayout title={`${kit.name} — ClawClawGo`} description={kit.description}>
+  <div id="kit-page-root" data-kit={JSON.stringify(kit)}></div>
+  <script>
+    import { createElement } from 'react'
+    import { createRoot } from 'react-dom/client'
+    import KitPage from '../../components/KitPage'
+
+    const el = document.getElementById('kit-page-root')!
+    const kit = JSON.parse(el.dataset.kit!)
+    createRoot(el).render(createElement(KitPage, { kit }))
+  </script>
+</BaseLayout>
