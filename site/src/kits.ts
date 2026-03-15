@@ -1,7 +1,7 @@
 import type { Kit } from './types'
 
-// Sample kits showcasing real repos and skills
-// In production these would come from the indexer (GitHub, ClawHub, skills.sh, etc.)
+// Sample kits showcasing real repos
+// In production these would come from the registry + GitHub API indexing
 
 export const kits: Kit[] = [
   {
@@ -20,18 +20,7 @@ export const kits: Kit[] = [
     compatibility: ['claude-code', 'claude', 'openai-codex', 'github-copilot', 'vs-code', 'cursor', 'gemini-cli', 'roo-code', 'goose', 'openclaw'],
     trustTier: 'verified',
     detectedFiles: ['SKILL.md'],
-    skills: [
-      { name: 'pdf', description: 'Extract text, tables, and metadata from PDF documents', path: 'skills/pdf' },
-      { name: 'docx', description: 'Parse Word documents with formatting preservation', path: 'skills/docx' },
-      { name: 'pptx', description: 'Extract slide content and speaker notes from PowerPoint', path: 'skills/pptx' },
-      { name: 'xlsx', description: 'Process Excel spreadsheets with formula and chart support', path: 'skills/xlsx' },
-      { name: 'frontend-design', description: 'Generate frontend designs from descriptions', path: 'skills/frontend-design' },
-      { name: 'webapp-testing', description: 'Automated web application testing', path: 'skills/webapp-testing' },
-      { name: 'mcp-builder', description: 'Build Model Context Protocol servers', path: 'skills/mcp-builder' },
-      { name: 'skill-creator', description: 'Create new Agent Skills from scratch', path: 'skills/skill-creator' },
-      { name: 'claude-api', description: 'Work with the Claude API directly', path: 'skills/claude-api' },
-      { name: 'canvas-design', description: 'Design visual layouts on canvas', path: 'skills/canvas-design' },
-    ],
+    skillCount: 17,
   },
   {
     id: '984c0770-c52b-4d3a-b6b5-4057f22abe00',
@@ -49,16 +38,7 @@ export const kits: Kit[] = [
     compatibility: ['cursor', 'windsurf'],
     trustTier: 'community',
     detectedFiles: ['.cursorrules'],
-    skills: [
-      { name: 'react', description: 'React best practices: hooks, composition, performance', path: 'rules-new/react.mdc' },
-      { name: 'nextjs', description: 'Next.js patterns: App Router, server components, caching', path: 'rules-new/nextjs.mdc' },
-      { name: 'vue', description: 'Vue 3 conventions: Composition API, Pinia, TypeScript', path: 'rules-new/vue.mdc' },
-      { name: 'svelte', description: 'Svelte coding style and SvelteKit patterns', path: 'rules-new/svelte.mdc' },
-      { name: 'fastapi', description: 'FastAPI structure: dependency injection, async patterns', path: 'rules-new/fastapi.mdc' },
-      { name: 'typescript', description: 'TypeScript strict mode and type safety patterns', path: 'rules-new/typescript.mdc' },
-      { name: 'tailwind', description: 'Tailwind CSS utility-first patterns', path: 'rules-new/tailwind.mdc' },
-      { name: 'rust', description: 'Rust idioms and safety patterns', path: 'rules-new/rust.mdc' },
-    ],
+    skillCount: 179,
   },
   {
     id: '06465063-6a42-410f-9240-ee3ebce78bc9',
@@ -76,16 +56,7 @@ export const kits: Kit[] = [
     compatibility: ['claude-code'],
     trustTier: 'verified',
     detectedFiles: ['SKILL.md', 'CLAUDE.md'],
-    skills: [
-      { name: 'plan-ceo-review', description: 'CEO-level planning and prioritization before building features', path: 'plan-ceo-review' },
-      { name: 'plan-eng-review', description: 'Engineering review of implementation approach and edge cases', path: 'plan-eng-review' },
-      { name: 'review', description: 'Code review with startup velocity focus — practical feedback, not nitpicks', path: 'review' },
-      { name: 'ship', description: 'Deploy and announce features with confidence', path: 'ship' },
-      { name: 'browse', description: 'Browser automation for testing user flows and competitor research', path: 'browse' },
-      { name: 'qa', description: 'Systematic QA checklist for critical paths', path: 'qa' },
-      { name: 'setup-browser-cookies', description: 'Authenticate browser sessions for realistic testing', path: 'setup-browser-cookies' },
-      { name: 'retro', description: 'Post-ship retrospective: what worked, what didn\'t, what\'s next', path: 'retro' },
-    ],
+    skillCount: 8,
   },
   {
     id: '984d745e-07a7-45cf-979f-43563b605061',
@@ -103,14 +74,7 @@ export const kits: Kit[] = [
     compatibility: ['github-copilot', 'vs-code'],
     trustTier: 'verified',
     detectedFiles: ['SKILL.md', 'AGENTS.md'],
-    skills: [
-      { name: 'azure-deploy', description: 'Deploy applications to Azure services', path: 'skills/azure-deployment-preflight' },
-      { name: 'azure-cost-optimize', description: 'Analyze and optimize Azure cloud spending', path: 'skills/az-cost-optimize' },
-      { name: 'architecture-blueprint', description: 'Generate architecture diagrams and blueprints', path: 'skills/architecture-blueprint-generator' },
-      { name: 'appinsights-instrumentation', description: 'Add Application Insights telemetry to projects', path: 'skills/appinsights-instrumentation' },
-      { name: 'bigquery-pipeline-audit', description: 'Audit BigQuery data pipelines', path: 'skills/bigquery-pipeline-audit' },
-      { name: 'agentic-eval', description: 'Evaluate and test AI agent configurations', path: 'skills/agentic-eval' },
-    ],
+    skillCount: 100,
   },
   {
     id: 'd376e7d0-5191-4fe9-8802-340721587088',
@@ -128,13 +92,7 @@ export const kits: Kit[] = [
     compatibility: ['claude-code', 'cursor', 'github-copilot', 'vs-code', 'gemini-cli'],
     trustTier: 'verified',
     detectedFiles: ['SKILL.md', 'AGENTS.md', 'CLAUDE.md'],
-    skills: [
-      { name: 'react-best-practices', description: 'React patterns, hooks, and component architecture', path: 'skills/react-best-practices' },
-      { name: 'web-design-guidelines', description: 'Web design principles and UI/UX guidelines', path: 'skills/web-design-guidelines' },
-      { name: 'composition-patterns', description: 'Component composition and reuse patterns', path: 'skills/composition-patterns' },
-      { name: 'deploy-to-vercel', description: 'Deploy projects to Vercel platform', path: 'skills/deploy-to-vercel' },
-      { name: 'react-native-skills', description: 'React Native development patterns', path: 'skills/react-native-skills' },
-    ],
+    skillCount: 5,
   },
   {
     id: 'bc31b9a3-0d7e-43c6-a43e-d563fb629768',
@@ -152,15 +110,7 @@ export const kits: Kit[] = [
     compatibility: ['github-copilot', 'vs-code'],
     trustTier: 'verified',
     detectedFiles: ['SKILL.md'],
-    skills: [
-      { name: 'azure-deploy', description: 'Deploy applications to Azure compute services', path: 'plugin/skills/azure-deploy' },
-      { name: 'azure-cost-optimization', description: 'Analyze and optimize cloud spending', path: 'plugin/skills/azure-cost-optimization' },
-      { name: 'azure-diagnostics', description: 'Diagnose and troubleshoot Azure resources', path: 'plugin/skills/azure-diagnostics' },
-      { name: 'azure-compliance', description: 'Check compliance and security posture', path: 'plugin/skills/azure-compliance' },
-      { name: 'azure-ai', description: 'Azure AI services integration', path: 'plugin/skills/azure-ai' },
-      { name: 'azure-aigateway', description: 'Azure AI Gateway configuration', path: 'plugin/skills/azure-aigateway' },
-      { name: 'azure-resource-visualizer', description: 'Visualize Azure resource relationships', path: 'plugin/skills/azure-resource-visualizer' },
-    ],
+    skillCount: 25,
   },
   {
     id: 'b5ab332f-8c0f-443c-9680-f25c17638674',
@@ -178,9 +128,7 @@ export const kits: Kit[] = [
     compatibility: ['claude-code'],
     trustTier: 'community',
     detectedFiles: ['SKILL.md'],
-    skills: [
-      { name: 'planning-with-files', description: 'Persistent markdown planning: create, update, and track plans as files' },
-    ],
+    skillCount: 1,
   },
   {
     id: 'c1330bf7-19dd-4830-a6de-9ed3d27b7aba',
@@ -198,16 +146,6 @@ export const kits: Kit[] = [
     compatibility: ['claude-code', 'claude'],
     trustTier: 'community',
     detectedFiles: ['SKILL.md'],
-    skills: [
-      { name: 'arxiv-database', description: 'Search and retrieve papers from arXiv', path: 'scientific-skills/arxiv-database' },
-      { name: 'literature-review', description: 'Systematic literature review and synthesis', path: 'scientific-skills/literature-review' },
-      { name: 'scientific-writing', description: 'Academic paper writing with proper structure', path: 'scientific-skills/scientific-writing' },
-      { name: 'exploratory-data-analysis', description: 'EDA with statistical summaries and visualizations', path: 'scientific-skills/exploratory-data-analysis' },
-      { name: 'rdkit', description: 'Molecular chemistry with RDKit', path: 'scientific-skills/rdkit' },
-      { name: 'alphafold-database', description: 'Protein structure prediction via AlphaFold', path: 'scientific-skills/alphafold-database' },
-      { name: 'qiskit', description: 'Quantum computing with Qiskit', path: 'scientific-skills/qiskit' },
-      { name: 'statistical-analysis', description: 'Statistical testing and inference', path: 'scientific-skills/statistical-analysis' },
-    ],
+    skillCount: 200,
   },
-
 ]

@@ -128,7 +128,7 @@ export default function FeedItem({ kit, index, isNew, onClick, onTagClick }: Fee
               {kit.creator}
             </span>
             <span className="text-rc-text-muted text-xs font-mono">
-              {kit.skills.length} {kit.skills.length === 1 ? 'skill' : 'skills'}
+              {kit.skillCount} {kit.skillCount === 1 ? 'skill' : 'skills'}
             </span>
             <IconChevronRight size={16} className="text-rc-text-muted group-hover:text-rc-cyan transition-colors hidden md:block" />
           </div>

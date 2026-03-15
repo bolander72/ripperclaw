@@ -42,8 +42,8 @@ export default function Search() {
         kit.description || '',
         kit.creator,
         ...kit.tags,
-        ...kit.skills.map(s => s.name),
-        ...kit.skills.map(s => s.description),
+        kit.name,
+        kit.description,
         ...(kit.compatibility || []),
       ].join(' ').toLowerCase()
       

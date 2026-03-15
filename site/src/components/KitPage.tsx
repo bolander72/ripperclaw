@@ -31,11 +31,7 @@ export default function KitPage({ kit }: { kit: Kit }) {
     compatibility: kit.compatibility,
     trustTier: kit.trustTier,
     tags: kit.tags,
-    skills: kit.skills.map(s => ({
-      name: s.name,
-      description: s.description,
-      ...(s.url ? { url: s.url } : s.path && kit.repoUrl ? { url: `${kit.repoUrl}/tree/main/${s.path}` } : {}),
-    })),
+    skillCount: kit.skillCount,
   }, null, 2)
 
   return (
@@ -165,53 +161,24 @@ export default function KitPage({ kit }: { kit: Kit }) {
           </div>
         )}
 
-        {/* Skills list */}
+        {/* Skills count + repo link */}
         <div className="pb-6 mb-6 border-b border-rc-border">
-          <p className="text-rc-text-muted text-xs font-mono mb-3">Skills ({kit.skills.length}):</p>
-          <div className="space-y-2">
-            {kit.skills.map((skill, i) => {
-              const skillUrl = skill.url
-                ? skill.url
-                : (skill.path && kit.repoUrl && kit.source === 'github')
-                  ? `${kit.repoUrl}/tree/main/${skill.path}`
-                  : null
-
-              return (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 p-3 bg-white/5 rounded-xl border border-rc-border hover:border-rc-cyan/30 transition-colors"
-                >
-                  <div className="w-2 h-2 rounded-full bg-rc-cyan mt-1.5 shrink-0" />
-                  <div className="flex-1">
-                    {skillUrl ? (
-                      <a
-                        href={skillUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-grotesk font-semibold text-sm text-rc-cyan hover:underline inline-flex items-center gap-1.5"
-                      >
-                        {skill.name}
-                        <IconExternalLink size={12} className="opacity-50" />
-                      </a>
-                    ) : (
-                      <p className="font-grotesk font-semibold text-sm text-rc-text">{skill.name}</p>
-                    )}
-                    <p className="text-xs text-rc-text-dim mt-0.5">{skill.description}</p>
-                    {skill.path && (
-                      <p className="text-[10px] text-rc-text-muted font-mono mt-1 flex items-center gap-1">
-                        <IconFolder size={10} />
-                        {skill.path}
-                      </p>
-                    )}
-                    {skill.compatibility && (
-                      <p className="text-[10px] text-rc-text-muted font-mono mt-1">
-                        Compatibility: {skill.compatibility}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
+          <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-rc-border">
+            <div className="flex items-center gap-2 text-rc-text font-grotesk">
+              <IconFolder size={18} className="text-rc-cyan" />
+              <span className="font-semibold">{kit.skillCount} {kit.skillCount === 1 ? 'skill' : 'skills'}</span>
+            </div>
+            {kit.repoUrl && (
+              <a
+                href={kit.repoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto text-sm text-rc-cyan hover:underline inline-flex items-center gap-1.5 font-grotesk"
+              >
+                Browse on GitHub
+                <IconExternalLink size={14} />
+              </a>
+            )}
           </div>
         </div>
 
