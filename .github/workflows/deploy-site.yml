@@ -1,11 +1,11 @@
-name: Deploy Site + Docs
+name: Deploy Site
 
 on:
   push:
     branches: [main]
     paths:
       - 'site/**'
-      - 'docs/**'
+      - 'registry/**'
   workflow_dispatch:
 
 permissions:
@@ -27,22 +27,11 @@ jobs:
         with:
           node-version: 22
       
-      - name: Build landing site
+      - name: Build site
         working-directory: site
         run: |
           npm install
           npm run build
-      
-      - name: Build docs
-        working-directory: docs
-        run: |
-          npm install
-          npm run build
-      
-      - name: Merge outputs
-        run: |
-          # Copy docs into site/dist/docs/
-          cp -r docs/.vitepress/dist site/dist/docs
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
