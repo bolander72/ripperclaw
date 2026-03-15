@@ -1,6 +1,6 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro'
-import { kits } from '../../kits'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { kits } from '../kits'
 
 export function getStaticPaths() {
   return kits.map(kit => ({
@@ -17,7 +17,7 @@ const { kit } = Astro.props
   <script>
     import { createElement } from 'react'
     import { createRoot } from 'react-dom/client'
-    import KitPage from '../../components/KitPage'
+    import KitPage from '../components/KitPage'
 
     const el = document.getElementById('kit-page-root')!
     const kit = JSON.parse(el.dataset.kit!)

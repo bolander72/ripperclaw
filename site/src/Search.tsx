@@ -184,7 +184,7 @@ export default function Search() {
                     kit={kit}
                     index={i}
                     isNew={false}
-                    onClick={() => { window.location.href = `/kit/${kit.id}` }}
+                    onClick={() => { window.location.href = `/${kit.id}` }}
                     onTagClick={(tag) => handleSearchChange(tag)}
                   />
                 ))}
