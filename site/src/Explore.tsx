@@ -1,38 +1,25 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { IconLivePhoto } from '@tabler/icons-react'
-import { kits as sampleKits } from './kits'
 import FeedItem from './components/FeedItem'
-import LoadingSprite from './components/LoadingSprite'
 import type { Kit } from './types'
 
-export default function Explore() {
-  const [kits, setKits] = useState<Kit[]>([])
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+interface ExploreProps {
+  kits: Kit[]
+}
+
+export default function Explore({ kits }: ExploreProps) {
   const [sortMode, setSortMode] = useState<'recent' | 'hot'>('recent')
 
-  useEffect(() => {
-    setTimeout(() => {
-      setKits(sampleKits)
-      setIsLoading(false)
-    }, 500)
-  }, [])
-
-  const filteredAndSortedKits = kits
-    .sort((a, b) => {
-      if (sortMode === 'recent') {
-        const aTime = typeof a.createdAt === 'number' ? a.createdAt : new Date(a.createdAt).getTime() / 1000
-        const bTime = typeof b.createdAt === 'number' ? b.createdAt : new Date(b.createdAt).getTime() / 1000
-        return bTime - aTime
-      } else {
-        const aScore = a.stars || 0
-        const bScore = b.stars || 0
-        if (aScore !== bScore) return bScore - aScore
-        const aTime = typeof a.createdAt === 'number' ? a.createdAt : new Date(a.createdAt).getTime() / 1000
-        const bTime = typeof b.createdAt === 'number' ? b.createdAt : new Date(b.createdAt).getTime() / 1000
-        return bTime - aTime
-      }
-    })
+  const sortedKits = [...kits].sort((a, b) => {
+    if (sortMode === 'recent') {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    } else {
+      const starDiff = (b.stars || 0) - (a.stars || 0)
+      if (starDiff !== 0) return starDiff
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    }
+  })
 
   return (
     <div className="min-h-screen bg-rc-bg">
@@ -49,13 +36,9 @@ export default function Explore() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rc-surface border border-rc-border shrink-0">
-              <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-amber-400 animate-pulse' : 'bg-green-400'}`} />
-              <span className="text-xs font-mono text-rc-text-dim">
-                {isLoading ? 'Loading' : `${kits.length} kits`}
-              </span>
-            </div>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rc-surface border border-rc-border shrink-0">
+            <div className="w-2 h-2 rounded-full bg-green-400" />
+            <span className="text-xs font-mono text-rc-text-dim">{kits.length} kits</span>
           </div>
         </div>
       </header>
@@ -83,20 +66,13 @@ export default function Explore() {
             >
               Hot
             </button>
-
           </div>
           <span className="text-rc-text-muted text-[10px] font-mono">
             Multi-source aggregator
           </span>
         </div>
 
-        {isLoading && kits.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <LoadingSprite size={64} />
-          </div>
-        )}
-
-        {!isLoading && kits.length === 0 && (
+        {kits.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
               <IconLivePhoto size={32} className="text-rc-text-muted" />
@@ -111,7 +87,7 @@ export default function Explore() {
         {kits.length > 0 && (
           <div className="space-y-3">
             <AnimatePresence initial={false}>
-              {filteredAndSortedKits.map((kit, i) => (
+              {sortedKits.map((kit, i) => (
                 <FeedItem
                   key={kit.id}
                   kit={kit}

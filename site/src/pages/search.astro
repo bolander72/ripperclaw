@@ -1,8 +1,19 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import Search from '../Search'
+import { getKits } from '../data/kits'
+
+const kits = getKits()
 ---
 
-<BaseLayout title="Search - ClawClawGo" description="Search for AI agent kits by name, skill, model, or tag.">
-  <Search client:only="react" />
+<BaseLayout title="Search - ClawClawGo" description="Search for AI agent kits by name, skill, model, or compatibility.">
+  <div id="search-root" data-kits={JSON.stringify(kits)}></div>
+  <script>
+    import { createElement } from 'react'
+    import { createRoot } from 'react-dom/client'
+    import Search from '../Search'
+
+    const el = document.getElementById('search-root')!
+    const kits = JSON.parse(el.dataset.kits!)
+    createRoot(el).render(createElement(Search, { kits }))
+  </script>
 </BaseLayout>

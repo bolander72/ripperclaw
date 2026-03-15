@@ -1,7 +1,7 @@
 {
   "$schema": "./schema.json",
   "version": 1,
-  "updatedAt": "2026-03-15T01:40:00Z",
+  "updatedAt": "2026-03-15T01:43:00Z",
   "kits": [
     {
       "id": "092d35eb-eb8b-4ce2-a57b-6788657263f3",
@@ -9,6 +9,11 @@
       "description": "Public repository for Agent Skills",
       "repoUrl": "https://github.com/anthropics/skills",
       "compatibility": ["claude-code", "claude", "openai-codex", "github-copilot", "vs-code", "cursor", "gemini-cli", "roo-code", "goose", "openclaw"],
+      "trustTier": "verified",
+      "stars": 93508,
+      "forks": 10019,
+      "skillCount": 17,
+      "detectedFiles": ["SKILL.md"],
       "addedAt": "2026-03-15T01:40:00Z"
     },
     {
@@ -17,6 +22,11 @@
       "description": "Configuration files that enhance Cursor AI editor experience with custom rules and behaviors",
       "repoUrl": "https://github.com/PatrickJS/awesome-cursorrules",
       "compatibility": ["cursor", "windsurf"],
+      "trustTier": "community",
+      "stars": 38457,
+      "forks": 3256,
+      "skillCount": 179,
+      "detectedFiles": [".cursorrules"],
       "addedAt": "2026-03-15T01:40:00Z"
     },
     {
@@ -25,6 +35,11 @@
       "description": "Use Garry Tan's exact Claude Code setup: 6 opinionated tools that serve as CEO, Eng Manager, Release Manager and QA Engineer",
       "repoUrl": "https://github.com/garrytan/gstack",
       "compatibility": ["claude-code"],
+      "trustTier": "verified",
+      "stars": 10595,
+      "forks": 1260,
+      "skillCount": 8,
+      "detectedFiles": ["SKILL.md", "CLAUDE.md"],
       "addedAt": "2026-03-15T01:40:00Z"
     },
     {
@@ -33,6 +48,11 @@
       "description": "Community-contributed instructions, agents, skills, and configurations to help you make the most of GitHub Copilot.",
       "repoUrl": "https://github.com/github/awesome-copilot",
       "compatibility": ["github-copilot", "vs-code"],
+      "trustTier": "verified",
+      "stars": 25178,
+      "forks": 2882,
+      "skillCount": 100,
+      "detectedFiles": ["SKILL.md", "AGENTS.md"],
       "addedAt": "2026-03-15T01:40:00Z"
     },
     {
@@ -41,6 +61,11 @@
       "description": "Vercel's official collection of agent skills",
       "repoUrl": "https://github.com/vercel-labs/agent-skills",
       "compatibility": ["claude-code", "cursor", "github-copilot", "vs-code", "gemini-cli"],
+      "trustTier": "verified",
+      "stars": 22997,
+      "forks": 2067,
+      "skillCount": 5,
+      "detectedFiles": ["SKILL.md", "AGENTS.md", "CLAUDE.md"],
       "addedAt": "2026-03-15T01:40:00Z"
     },
     {
@@ -49,6 +74,11 @@
       "description": "GitHub Copilot for Azure",
       "repoUrl": "https://github.com/microsoft/GitHub-Copilot-for-Azure",
       "compatibility": ["github-copilot", "vs-code"],
+      "trustTier": "verified",
+      "stars": 154,
+      "forks": 100,
+      "skillCount": 25,
+      "detectedFiles": ["SKILL.md"],
       "addedAt": "2026-03-15T01:40:00Z"
     },
     {
@@ -57,6 +87,11 @@
       "description": "A set of ready to use Agent Skills for research, science, engineering, analysis, finance and writing.",
       "repoUrl": "https://github.com/K-Dense-AI/claude-scientific-skills",
       "compatibility": ["claude-code", "claude"],
+      "trustTier": "community",
+      "stars": 14879,
+      "forks": 1639,
+      "skillCount": 200,
+      "detectedFiles": ["SKILL.md"],
       "addedAt": "2026-03-15T01:40:00Z"
     }
   ]

@@ -1,8 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { kits } from '../kits'
+import { getKits } from '../data/kits'
+
+const allKits = getKits()
 
 export function getStaticPaths() {
+  const kits = getKits()
   return kits.map(kit => ({
     params: { id: kit.id },
     props: { kit },

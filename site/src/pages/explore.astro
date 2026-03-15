@@ -1,8 +1,19 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import Explore from '../Explore'
+import { getKits } from '../data/kits'
+
+const kits = getKits()
 ---
 
 <BaseLayout title="Explore - ClawClawGo" description="Browse agent kits from GitHub, ClawHub, and more.">
-  <Explore client:only="react" />
+  <div id="explore-root" data-kits={JSON.stringify(kits)}></div>
+  <script>
+    import { createElement } from 'react'
+    import { createRoot } from 'react-dom/client'
+    import Explore from '../Explore'
+
+    const el = document.getElementById('explore-root')!
+    const kits = JSON.parse(el.dataset.kits!)
+    createRoot(el).render(createElement(Explore, { kits }))
+  </script>
 </BaseLayout>

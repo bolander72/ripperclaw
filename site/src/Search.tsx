@@ -1,31 +1,24 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { IconSearch, IconX } from '@tabler/icons-react'
-import { kits as sampleKits } from './kits'
 import Nav from './components/Nav'
 import Footer from './components/Footer'
 import FeedItem from './components/FeedItem'
-import LoadingSprite from './components/LoadingSprite'
 import type { Kit } from './types'
 
-export default function Search() {
+interface SearchProps {
+  kits: Kit[]
+}
+
+export default function Search({ kits }: SearchProps) {
   const initialQuery = typeof window !== 'undefined' 
     ? new URLSearchParams(window.location.search).get('q') || ''
     : ''
   
-  const [kits, setKits] = useState<Kit[]>([])
   const [searchQuery, setSearchQuery] = useState<string>(initialQuery)
   const [searchFocused, setSearchFocused] = useState<boolean>(false)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [sourceFilter, setSourceFilter] = useState<string | null>(null)
   const [compatFilter, setCompatFilter] = useState<string | null>(null)
-
-  useEffect(() => {
-    setTimeout(() => {
-      setKits(sampleKits)
-      setIsLoading(false)
-    }, 300)
-  }, [])
 
   const filteredKits = useMemo(() => {
     if (!searchQuery.trim() && !sourceFilter && !compatFilter) return []
@@ -81,7 +74,7 @@ export default function Search() {
               onChange={(e) => handleSearchChange(e.target.value)}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
-              placeholder="Search for kits by name, skill, model, or tag"
+              placeholder="Search kits by name, creator, or compatible agent"
               className="flex-1 py-4 px-2 bg-transparent text-rc-text font-grotesk text-base placeholder:text-rc-text-muted/50 focus:outline-none"
               autoFocus
             />
@@ -108,19 +101,9 @@ export default function Search() {
             >
               GitHub
             </button>
-            <button
-              onClick={() => setSourceFilter(sourceFilter === 'clawhub' ? null : 'clawhub')}
-              className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
-                sourceFilter === 'clawhub'
-                  ? 'bg-rc-cyan text-rc-bg font-bold'
-                  : 'bg-rc-surface border border-rc-border text-rc-text-dim hover:border-rc-cyan/40'
-              }`}
-            >
-              ClawHub
-            </button>
             <div className="w-px h-6 bg-rc-border" />
             <span className="text-xs font-mono text-rc-text-muted py-1.5">Agent:</span>
-            {['openclaw', 'claude-code', 'cursor', 'github-copilot', 'windsurf'].map(agent => (
+            {['claude-code', 'cursor', 'github-copilot', 'gemini-cli', 'windsurf'].map(agent => (
               <button
                 key={agent}
                 onClick={() => setCompatFilter(compatFilter === agent ? null : agent)}
@@ -136,25 +119,19 @@ export default function Search() {
           </div>
         </div>
 
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <LoadingSprite size={64} />
-          </div>
-        )}
-
-        {!isLoading && !searchQuery.trim() && !sourceFilter && !compatFilter && (
+        {!searchQuery.trim() && !sourceFilter && !compatFilter && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
               <IconSearch size={32} className="text-rc-text-muted" />
             </div>
             <p className="text-rc-text text-lg font-grotesk font-medium mb-2">Search kits</p>
             <p className="text-rc-text-dim text-sm max-w-md text-center">
-              Start typing to search by name, skill, model, tags, or filter by source and compatibility.
+              Start typing to search by name, creator, or compatible agent.
             </p>
           </div>
         )}
 
-        {!isLoading && (searchQuery.trim() || sourceFilter || compatFilter) && filteredKits.length === 0 && (
+        {(searchQuery.trim() || sourceFilter || compatFilter) && filteredKits.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-rc-surface border border-rc-border flex items-center justify-center mb-4">
               <IconX size={32} className="text-rc-text-muted" />
@@ -166,7 +143,7 @@ export default function Search() {
           </div>
         )}
 
-        {!isLoading && filteredKits.length > 0 && (
+        {filteredKits.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-4">
               <p className="text-rc-text-dim text-sm font-mono">
@@ -182,7 +159,6 @@ export default function Search() {
                     index={i}
                     isNew={false}
                     onClick={() => { window.location.href = `/${kit.id}` }}
-                    onTagClick={(tag) => handleSearchChange(tag)}
                   />
                 ))}
               </AnimatePresence>
