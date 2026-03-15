@@ -29,13 +29,12 @@ No installation needed. Visit [clawclawgo.com](https://clawclawgo.com) to search
 ## Requirements
 
 - **Node.js** 18+ (for CLI)
-- **Git** (for `add` command — clones repos)
-- **GitHub CLI** (`gh`) — optional, for `push` command (auto-creates registry PRs)
+- **Git** (for `add` command)
+- **GitHub CLI** (`gh`) — for `push` command
 
 ## Commands
 
 ```bash
-npx clawclawgo pack [dir] [--out file]         # Pack your skills into a kit
 npx clawclawgo push [dir]                      # Push your kit to the registry
 npx clawclawgo add <owner/repo> [--dest dir]   # Add a kit from GitHub
 ```
@@ -43,5 +42,4 @@ npx clawclawgo add <owner/repo> [--dest dir]   # Add a kit from GitHub
 ## Next Steps
 
 - [Quickstart](/docs/guide/quickstart) — Add your first kit
-- [Packing](/docs/guide/packing) — Learn the pack command
 - [Pushing](/docs/guide/pushing) — Share on the registry

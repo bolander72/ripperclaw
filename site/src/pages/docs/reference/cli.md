@@ -5,26 +5,11 @@ title: CLI Reference
 
 # CLI Reference
 
-Three commands. No install required.
-
-## `pack`
-
-Pack your skills into a `kit.json` file with security scan baked in. Sensitive files (SOUL.md, MEMORY.md, USER.md, memory/, .env) are automatically excluded.
-
-```bash
-npx clawclawgo pack [dir] [--out file]
-```
-
-| Arg | Description |
-|-----|-------------|
-| `[dir]` | Directory to scan (default: `.`) |
-| `--out <file>` | Write to file instead of stdout |
-
-**Detects:** SKILL.md files, CLAUDE.md, .cursorrules, .windsurfrules, AGENTS.md, codex.json, .clinerules, .aider.conf.yml, .continue/config.json
+Two commands. No install required.
 
 ## `push`
 
-Push your kit to the ClawClawGo registry. Runs `pack` + security scan, then auto-creates a PR to `registry/kits.json`.
+Scan your repo, build kit metadata, validate against the schema, and submit to the ClawClawGo registry. Kit metadata is built internally — no intermediate files are generated on disk.
 
 ```bash
 npx clawclawgo push [dir]
@@ -34,9 +19,17 @@ npx clawclawgo push [dir]
 |-----|-------------|
 | `[dir]` | Directory to push (default: `.`) |
 
-**Requires:** Git remote configured, [GitHub CLI](https://cli.github.com/) (`gh`) authenticated. If `gh` isn't available, prints the registry entry JSON for manual submission.
+**What happens:**
+1. Reads all SKILL.md files and agent config files
+2. Builds kit.json internally (never written to disk)
+3. Runs security scan — blocks if issues found
+4. Validates against the kit schema — blocks if invalid
+5. Auto-creates a PR to `registry/kits.json` via `gh` CLI
+6. If repo already exists in registry, updates the existing entry
 
-Kits with blocking security issues can't be pushed.
+**Requires:** Git remote configured, [GitHub CLI](https://cli.github.com/) (`gh`) authenticated.
+
+**Sensitive files excluded:** SOUL.md, USER.md, MEMORY.md, IDENTITY.md, openclaw.json, .env, memory/ — these never leave your machine.
 
 ## `add`
 
@@ -58,13 +51,13 @@ If the security scan finds blocking issues, the clone is removed. Use `--force` 
 
 - **Node.js** 18+
 - **Git** (for `add`)
-- **GitHub CLI** (`gh`) — optional, for `push` auto-PRs
+- **GitHub CLI** (`gh`) — for `push`
 
 ## Examples
 
 ```bash
-npx clawclawgo pack --out kit.json
 npx clawclawgo push
+npx clawclawgo push ~/my-skills
 npx clawclawgo add garrytan/gstack
 npx clawclawgo add anthropics/skills --dest ~/kits
 ```

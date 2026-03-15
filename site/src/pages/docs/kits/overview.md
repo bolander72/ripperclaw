@@ -44,8 +44,8 @@ Config files tell agents how to behave:
 ## Kit Lifecycle
 
 1. **Create** — Organize skills and configs in a directory
-2. **Pack** — `npx clawclawgo pack` generates kit.json
-3. **Push** — `npx clawclawgo push` adds to the registry
+2. **Push to GitHub** — Your repo is the kit
+3. **Push to registry** — `npx clawclawgo push` adds to the index
 4. **Add** — Others clone with `npx clawclawgo add owner/repo`
 
 ## How Others Use Your Kit

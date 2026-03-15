@@ -3,9 +3,8 @@
  * ClawClawGo CLI
  *
  * Usage:
- *   clawclawgo pack [dir] [--out file]     Pack your skills into a kit
  *   clawclawgo push [dir]                  Push your kit to the registry
- *   clawclawgo add <repo|owner/repo>       Add a kit from GitHub
+ *   clawclawgo add <owner/repo> [--dest]   Add a kit from GitHub
  */
 
 import fs from 'fs';
@@ -18,13 +17,15 @@ import { execSync } from 'child_process';
 const REGISTRY_REPO = 'bolander72/clawclawgo';
 const REGISTRY_FILE = 'registry/kits.json';
 
-// Files to exclude from packing (sensitive / personal)
+const KIT_SCHEMA_VERSION = 1;
+
+// Files and dirs that never leave the machine
 const SENSITIVE_FILES = new Set([
   'SOUL.md', 'USER.md', 'MEMORY.md', 'IDENTITY.md',
-  'openclaw.json', '.env', '.env.local',
+  'openclaw.json', '.env', '.env.local', '.env.production',
 ]);
 const SENSITIVE_DIRS = new Set([
-  'memory', '.ssh', '.gnupg', '.openclaw',
+  'memory', '.ssh', '.gnupg', '.openclaw', '.env',
 ]);
 
 // Agent config detection
@@ -41,6 +42,118 @@ const AGENT_MARKERS = {
 };
 
 const SKIP_DIRS = new Set(['.git', 'node_modules', '.next', 'dist', 'build', '.cache']);
+
+// ── Kit Schema ──
+
+/**
+ * @typedef {Object} KitSkill
+ * @property {string} name
+ * @property {string} description
+ * @property {string} path
+ * @property {string} [license]
+ * @property {string} [compatibility]
+ * @property {string[]} [allowedTools]
+ */
+
+/**
+ * @typedef {Object} KitConfig
+ * @property {string} file
+ * @property {string} agent
+ */
+
+/**
+ * @typedef {Object} KitScan
+ * @property {number} trustScore
+ * @property {boolean} blocked
+ * @property {string} summary
+ * @property {Array<{severity: string, message: string, match?: string}>} findings
+ * @property {string} scannedAt
+ */
+
+/**
+ * @typedef {Object} Kit
+ * @property {number} schema        - Must be KIT_SCHEMA_VERSION
+ * @property {string} name
+ * @property {string} description
+ * @property {string} repoUrl
+ * @property {string} owner
+ * @property {string[]} compatibility
+ * @property {KitSkill[]} skills
+ * @property {KitConfig[]} configs
+ * @property {KitScan} scan
+ * @property {string} pushedAt
+ */
+
+// ── Validation ──
+
+function validateKit(kit) {
+  const errors = [];
+
+  if (kit.schema !== KIT_SCHEMA_VERSION)
+    errors.push(`schema must be ${KIT_SCHEMA_VERSION}, got ${kit.schema}`);
+  if (typeof kit.name !== 'string' || !kit.name.trim())
+    errors.push('name is required');
+  if (typeof kit.description !== 'string')
+    errors.push('description must be a string');
+  if (typeof kit.repoUrl !== 'string' || !kit.repoUrl.startsWith('https://github.com/'))
+    errors.push('repoUrl must be a valid GitHub URL');
+  if (typeof kit.owner !== 'string' || !kit.owner.trim())
+    errors.push('owner is required');
+  if (!Array.isArray(kit.compatibility))
+    errors.push('compatibility must be an array');
+  if (!Array.isArray(kit.skills))
+    errors.push('skills must be an array');
+  if (!Array.isArray(kit.configs))
+    errors.push('configs must be an array');
+
+  // Validate skills
+  if (Array.isArray(kit.skills)) {
+    for (const [i, skill] of kit.skills.entries()) {
+      if (typeof skill.name !== 'string' || !skill.name.trim())
+        errors.push(`skills[${i}].name is required`);
+      if (typeof skill.description !== 'string')
+        errors.push(`skills[${i}].description must be a string`);
+      if (typeof skill.path !== 'string')
+        errors.push(`skills[${i}].path must be a string`);
+      if (skill.allowedTools && !Array.isArray(skill.allowedTools))
+        errors.push(`skills[${i}].allowedTools must be an array`);
+    }
+  }
+
+  // Validate configs
+  if (Array.isArray(kit.configs)) {
+    for (const [i, config] of kit.configs.entries()) {
+      if (typeof config.file !== 'string')
+        errors.push(`configs[${i}].file must be a string`);
+      if (typeof config.agent !== 'string')
+        errors.push(`configs[${i}].agent must be a string`);
+    }
+  }
+
+  // Validate scan
+  if (!kit.scan || typeof kit.scan !== 'object')
+    errors.push('scan is required');
+  else {
+    if (typeof kit.scan.trustScore !== 'number' || kit.scan.trustScore < 0 || kit.scan.trustScore > 100)
+      errors.push('scan.trustScore must be 0-100');
+    if (typeof kit.scan.blocked !== 'boolean')
+      errors.push('scan.blocked must be boolean');
+    if (!Array.isArray(kit.scan.findings))
+      errors.push('scan.findings must be an array');
+  }
+
+  // No sensitive content allowed
+  const json = JSON.stringify(kit);
+  if (SENSITIVE_FILES.has(kit.name))
+    errors.push(`name "${kit.name}" matches a sensitive file`);
+  for (const skill of kit.skills || []) {
+    const pathParts = skill.path.split(path.sep);
+    if (pathParts.some(p => SENSITIVE_DIRS.has(p)))
+      errors.push(`skill path "${skill.path}" references a sensitive directory`);
+  }
+
+  return errors;
+}
 
 // ── Security Scanner ──
 
@@ -76,15 +189,6 @@ function tryExec(cmd) {
   } catch { return undefined; }
 }
 
-function scrubPII(text) {
-  if (!text) return text;
-  return text
-    .replace(/\+?1?\d{10,11}/g, '[REDACTED_PHONE]')
-    .replace(/[\w.-]+@[\w.-]+\.\w+/g, '[REDACTED_EMAIL]')
-    .replace(/\d+\s+[\w\s]+(?:St|Ave|Blvd|Dr|Rd|Ln|Way|Ct)\b[^.\n]*/gi, '[REDACTED_ADDRESS]')
-    .replace(/\d{3}-\d{2}-\d{4}/g, '[REDACTED_SSN]');
-}
-
 function parseFrontmatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return {};
@@ -105,14 +209,16 @@ function walkDir(dir, callback) {
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) walkDir(fullPath, callback);
+      if (!SKIP_DIRS.has(entry.name) && !SENSITIVE_DIRS.has(entry.name)) {
+        walkDir(fullPath, callback);
+      }
     } else {
-      callback(fullPath, entry.name);
+      if (!SENSITIVE_FILES.has(entry.name)) {
+        callback(fullPath, entry.name);
+      }
     }
   }
 }
-
-// ── Scanner ──
 
 function runScan(content) {
   const findings = [];
@@ -161,46 +267,30 @@ function formatScanReport(scan) {
   return lines.join('\n');
 }
 
-// ── Pack ──
+// ── Build kit internally (never exposed as a command) ──
 
-function pack(dir = '.') {
+function buildKit(dir, repoUrl, owner) {
   const targetDir = path.resolve(dir);
   const dirName = path.basename(targetDir);
   const compatibility = new Set();
   const skills = [];
   const configs = [];
 
-  // Detect agent config files (skip sensitive ones)
+  // Detect agent config files
   for (const [agent, { files }] of Object.entries(AGENT_MARKERS)) {
     for (const marker of files) {
       if (SENSITIVE_FILES.has(marker)) continue;
       const fullPath = path.join(targetDir, marker);
       if (!fs.existsSync(fullPath)) continue;
       compatibility.add(agent);
-
       if (agent !== 'agent-skills') {
-        try {
-          const stat = fs.statSync(fullPath);
-          if (stat.isFile()) {
-            const content = fs.readFileSync(fullPath, 'utf8');
-            configs.push({
-              file: marker,
-              agent,
-              preview: scrubPII(content.slice(0, 500)) + (content.length > 500 ? '...' : ''),
-            });
-          }
-        } catch { /* skip */ }
+        configs.push({ file: marker, agent });
       }
     }
   }
 
-  // Find SKILL.md files (skip sensitive dirs)
+  // Find SKILL.md files
   walkDir(targetDir, (filePath, fileName) => {
-    // Skip sensitive directories
-    const relPath = path.relative(targetDir, filePath);
-    if (SENSITIVE_DIRS.has(relPath.split(path.sep)[0])) return;
-    if (SENSITIVE_FILES.has(fileName)) return;
-
     if (fileName !== 'SKILL.md') return;
     const content = fs.readFileSync(filePath, 'utf8');
     const fm = parseFrontmatter(content);
@@ -210,7 +300,7 @@ function pack(dir = '.') {
     skills.push({
       name: fm.name || path.basename(skillDir),
       description: fm.description || '',
-      path: relativePath,
+      path: relativePath || '.',
       ...(fm.license && { license: fm.license }),
       ...(fm.compatibility && { compatibility: fm.compatibility }),
       ...(fm['allowed-tools'] && { allowedTools: fm['allowed-tools'].split(/\s+/) }),
@@ -219,19 +309,26 @@ function pack(dir = '.') {
     compatibility.add('agent-skills');
   });
 
+  // Scan all non-sensitive file content
+  const allContent = [];
+  walkDir(targetDir, (filePath) => {
+    try { allContent.push(fs.readFileSync(filePath, 'utf8')); } catch {}
+  });
+  const scan = runScan(allContent.join('\n---\n'));
+
+  /** @type {Kit} */
   const kit = {
+    schema: KIT_SCHEMA_VERSION,
     name: dirName,
     description: `Agent skills from ${dirName}`,
-    version: 1,
-    exportedAt: new Date().toISOString(),
+    repoUrl,
+    owner,
     compatibility: Array.from(compatibility),
     skills,
     configs,
+    scan: { ...scan, scannedAt: new Date().toISOString() },
+    pushedAt: new Date().toISOString(),
   };
-
-  // Bake scan into output
-  const scan = runScan(JSON.stringify(kit));
-  kit.scan = { ...scan, scannedAt: new Date().toISOString() };
 
   return kit;
 }
@@ -241,48 +338,59 @@ function pack(dir = '.') {
 async function push(dir = '.') {
   const targetDir = path.resolve(dir);
 
+  // Must be a git repo with a GitHub remote
   const gitUrl = tryExec(`git -C "${targetDir}" remote get-url origin`);
   if (!gitUrl) {
-    console.error('❌ Not a git repo or no remote origin. Push your code to GitHub first.');
+    console.error('❌ Not a git repo or no remote origin.');
+    console.error('   Push your code to GitHub first, then run `clawclawgo push`.');
     process.exit(1);
   }
 
+  const repoUrl = gitUrl.replace(/\.git$/, '').replace(/^git@github\.com:/, 'https://github.com/');
+  if (!repoUrl.includes('github.com')) {
+    console.error('❌ Only GitHub repos supported.');
+    process.exit(1);
+  }
+
+  // Require gh CLI
   const ghVersion = tryExec('gh --version');
   if (!ghVersion) {
     console.error('❌ GitHub CLI (gh) required. Install: https://cli.github.com/');
     process.exit(1);
   }
-
   const ghAuth = tryExec('gh auth status 2>&1');
   if (!ghAuth || ghAuth.includes('not logged in')) {
-    console.error('❌ Run: gh auth login');
+    console.error('❌ Not authenticated. Run: gh auth login');
     process.exit(1);
   }
 
-  console.log(`\n📤 Pushing: ${gitUrl}\n`);
+  // Get owner from git
+  const match = repoUrl.match(/github\.com\/([^/]+)\//);
+  const owner = match ? match[1] : os.userInfo().username;
 
-  const kit = pack(dir);
-  const { scan } = kit;
+  console.log(`\n📤 Pushing: ${repoUrl}\n`);
+
+  // Build kit internally
+  const kit = buildKit(dir, repoUrl, owner);
+
+  // Validate against schema
+  const errors = validateKit(kit);
+  if (errors.length) {
+    console.error('❌ Kit validation failed:\n');
+    for (const e of errors) console.error(`   • ${e}`);
+    process.exit(1);
+  }
 
   console.log(`   Skills: ${kit.skills.length}`);
+  console.log(`   Configs: ${kit.configs.length}`);
   console.log(`   Compatibility: ${kit.compatibility.join(', ') || 'none detected'}`);
-  console.log(`   Trust Score: ${scan.trustScore}/100`);
+  console.log(`   Trust Score: ${kit.scan.trustScore}/100`);
 
-  if (scan.blocked) {
-    console.log(formatScanReport(scan));
+  if (kit.scan.blocked) {
+    console.log(formatScanReport(kit.scan));
     console.error('\n❌ Fix blocking issues before pushing.');
     process.exit(1);
   }
-
-  const repoUrl = gitUrl.replace(/\.git$/, '').replace(/^git@github\.com:/, 'https://github.com/');
-  const entry = {
-    url: repoUrl,
-    name: kit.name,
-    description: kit.description,
-    compatibility: kit.compatibility,
-    tags: [...new Set(kit.skills.map(s => s.name.split('-')[0]).filter(Boolean))],
-    addedAt: new Date().toISOString().split('T')[0],
-  };
 
   // Fetch current registry
   console.log('\n📥 Fetching registry...');
@@ -301,19 +409,45 @@ async function push(dir = '.') {
   try { registry = JSON.parse(registryContent); } catch { registry = { kits: [] }; }
   if (!registry.kits) registry.kits = [];
 
-  // Check duplicate
-  if (registry.kits.find(k => k.url === entry.url)) {
-    console.log(`\n⚠️  ${entry.url} is already in the registry.`);
-    process.exit(0);
+  // Check duplicate — update if exists, otherwise add
+  const existingIdx = registry.kits.findIndex(k => k.repoUrl === kit.repoUrl);
+  if (existingIdx >= 0) {
+    console.log(`\n🔄 Updating existing entry for ${kit.repoUrl}`);
+    registry.kits[existingIdx] = kit;
+  } else {
+    registry.kits.push(kit);
   }
 
-  registry.kits.push(entry);
+  // Validate every kit in the registry before pushing
+  for (const [i, k] of registry.kits.entries()) {
+    const kitErrors = validateKit(k);
+    if (kitErrors.length) {
+      console.error(`❌ Registry kit at index ${i} ("${k.name}") fails validation:`);
+      for (const e of kitErrors) console.error(`   • ${e}`);
+      console.error('\n   This is a registry integrity issue. Proceeding with your entry only.');
+    }
+  }
+
   const updatedRegistry = JSON.stringify(registry, null, 2) + '\n';
 
   // Create PR
   const branchName = `registry/add-${kit.name.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase()}`;
-  const prTitle = `registry: add ${entry.name}`;
-  const prBody = `## New kit: ${entry.name}\n\n**URL:** ${entry.url}\n**Skills:** ${kit.skills.length}\n**Compatibility:** ${entry.compatibility.join(', ')}\n**Trust Score:** ${scan.trustScore}/100\n\n\`\`\`json\n${JSON.stringify(entry, null, 2)}\n\`\`\`\n\n_Submitted via \`clawclawgo push\`_`;
+  const prTitle = existingIdx >= 0 ? `registry: update ${kit.name}` : `registry: add ${kit.name}`;
+  const prBody = [
+    `## ${existingIdx >= 0 ? 'Updated' : 'New'} kit: ${kit.name}`,
+    '',
+    `**Repo:** ${kit.repoUrl}`,
+    `**Skills:** ${kit.skills.length}`,
+    `**Configs:** ${kit.configs.length}`,
+    `**Compatibility:** ${kit.compatibility.join(', ')}`,
+    `**Trust Score:** ${kit.scan.trustScore}/100`,
+    '',
+    '```json',
+    JSON.stringify(kit, null, 2),
+    '```',
+    '',
+    '_Submitted via `clawclawgo push`_',
+  ].join('\n');
 
   console.log('🔀 Creating PR...\n');
 
@@ -339,16 +473,16 @@ async function push(dir = '.') {
     else console.log(`✅ PR submitted to ${REGISTRY_REPO}`);
   } catch (err) {
     console.log(`\n⚠️  Auto-PR failed: ${err.message}`);
-    console.log('\n📝 Registry entry (submit manually):\n');
-    console.log(JSON.stringify(entry, null, 2));
-    console.log(`\nAdd this to ${REGISTRY_FILE} in ${REGISTRY_REPO} and submit a PR.`);
+    console.log('\nYour kit passed validation. Submit manually:');
+    console.log('1. Fork bolander72/clawclawgo');
+    console.log(`2. Add your kit to ${REGISTRY_FILE}`);
+    console.log('3. Submit a PR');
   }
 }
 
 // ── Add ──
 
 async function add(source, destDir) {
-  // Normalize to GitHub URL
   let repoUrl = source;
   if (!repoUrl.startsWith('http://') && !repoUrl.startsWith('https://')) {
     if (repoUrl.match(/^[\w.-]+\/[\w.-]+$/)) {
@@ -399,7 +533,7 @@ async function add(source, destDir) {
     });
   });
 
-  // Detect agent config files
+  // Detect agent configs
   const detectedConfigs = [];
   for (const [agent, { files }] of Object.entries(AGENT_MARKERS)) {
     if (agent === 'agent-skills') continue;
@@ -410,7 +544,7 @@ async function add(source, destDir) {
     }
   }
 
-  // Scan everything
+  // Scan
   const allContent = [];
   walkDir(cloneDir, (filePath) => {
     try { allContent.push(fs.readFileSync(filePath, 'utf8')); } catch {}
@@ -424,7 +558,7 @@ async function add(source, destDir) {
     process.exit(1);
   }
 
-  // Generate a kit README
+  // Generate CLAWCLAWGO.md
   const readmeLines = [
     `# ${repoName}`,
     '',
@@ -449,6 +583,12 @@ async function add(source, destDir) {
     readmeLines.push('');
   }
 
+  if (scan.findings.length) {
+    readmeLines.push('## Scan Findings', '');
+    for (const f of scan.findings) readmeLines.push(`- ${f.severity === 'block' ? '❌' : '⚠️'} ${f.message}`);
+    readmeLines.push('');
+  }
+
   readmeLines.push('---', `_Generated by [ClawClawGo](https://clawclawgo.com)_`);
   fs.writeFileSync(path.join(cloneDir, 'CLAWCLAWGO.md'), readmeLines.join('\n'), 'utf8');
 
@@ -470,7 +610,7 @@ async function add(source, destDir) {
   }
 
   if (scan.findings.filter(f => f.severity === 'warn').length) {
-    console.log(`\n⚠️  ${scan.findings.filter(f => f.severity === 'warn').length} scan warnings.`);
+    console.log(`\n⚠️  ${scan.findings.filter(f => f.severity === 'warn').length} scan warnings — see CLAWCLAWGO.md`);
   }
 
   console.log(`\n📄 See CLAWCLAWGO.md for details.\n`);
@@ -489,22 +629,6 @@ function getArg(flag) {
 (async () => {
   try {
     switch (command) {
-      case 'pack': {
-        const dir = args.find((a, i) => i > 0 && !a.startsWith('-')) || '.';
-        const outFile = getArg('--out');
-        const kit = pack(dir);
-        const json = JSON.stringify(kit, null, 2);
-        if (outFile) {
-          fs.writeFileSync(outFile, json, 'utf8');
-          console.log(`✅ Packed to ${outFile}`);
-          console.log(`   Skills: ${kit.skills.length}`);
-          console.log(`   Trust Score: ${kit.scan.trustScore}/100`);
-        } else {
-          console.log(json);
-        }
-        break;
-      }
-
       case 'push': {
         const dir = args.find((a, i) => i > 0 && !a.startsWith('-')) || '.';
         await push(dir);
@@ -526,13 +650,12 @@ function getArg(flag) {
         console.log(`ClawClawGo CLI
 
 Commands:
-  pack [dir] [--out file]         Pack your skills into a kit
   push [dir]                      Push your kit to the registry
   add <owner/repo> [--dest dir]   Add a kit from GitHub
 
 Examples:
-  clawclawgo pack . --out kit.json
   clawclawgo push
+  clawclawgo push ~/my-skills
   clawclawgo add garrytan/gstack
   clawclawgo add anthropics/skills --dest ~/kits`);
     }

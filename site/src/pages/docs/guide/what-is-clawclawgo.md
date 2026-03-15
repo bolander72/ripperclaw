@@ -31,15 +31,14 @@ A kit is a GitHub repo containing a collection of skills and agent configs. Exam
 - [anthropics/skills](https://github.com/anthropics/skills) — Anthropic's official skill collection
 - [PatrickJS/awesome-cursorrules](https://github.com/PatrickJS/awesome-cursorrules) — Community Cursor rules
 
-## Three Commands
+## Two Commands
 
 ```bash
-npx clawclawgo pack              # Pack your skills into a kit
 npx clawclawgo push              # Push your kit to the registry
 npx clawclawgo add owner/repo    # Add a kit from GitHub
 ```
 
-**For kit creators:** Pack, push, done.
+**For kit creators:** Push to GitHub, then `push` to the registry. Kit metadata is built internally — no files generated on disk.
 
 **For kit users:** Search on [clawclawgo.com](https://clawclawgo.com), then `add`.
 

@@ -5,7 +5,7 @@ title: Security
 
 # Security
 
-ClawClawGo scans every kit for common threats. Both `pack` and `add` run the same security checks automatically.
+ClawClawGo scans every kit for common threats. Both `push` and `add` run security checks automatically.
 
 ## What Gets Scanned
 
@@ -36,21 +36,13 @@ npx clawclawgo add garrytan/gstack
 
 The `add` command clones the repo, scans all files, and reports findings. If blocking issues are found, it removes the clone and exits unless `--force` is passed.
 
-### When Packing
-
-```bash
-npx clawclawgo pack --out kit.json
-```
-
-Security scan runs automatically and results are baked into the kit.json.
-
 ### When Pushing
 
 ```bash
 npx clawclawgo push
 ```
 
-Push runs pack + scan. Kits with blocking issues can't be pushed to the registry.
+The `push` command scans your repo and validates the kit against the schema. Kits with blocking issues can't be pushed.
 
 ## False Positives
 
@@ -61,7 +53,7 @@ Some legitimate patterns trigger warnings:
 - **API calls** — Flagged as external connections
 - **Documentation mentioning dangerous commands** — Flagged even in educational context
 
-If the kit is from a trusted source and the findings make sense, proceed with `--force`.
+If the kit is from a trusted source and the findings make sense, proceed with `--force` (for `add`).
 
 ## Trust Tiers (Web App)
 

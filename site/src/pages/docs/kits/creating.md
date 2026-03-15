@@ -51,17 +51,16 @@ Include config files for the agents you support:
 - `.windsurfrules` — Windsurf rules
 - `AGENTS.md` — OpenClaw/Codex workspace config
 
-The `pack` command auto-detects these and maps them to the right agents.
+The `push` command auto-detects these and maps them to the right agents.
 
-## Pack and Verify
+## Push to the Registry
 
 ```bash
-npx clawclawgo pack --out kit.json
+cd my-kit
+npx clawclawgo push
 ```
 
-This generates metadata and runs a security scan. Fix any blocking findings before pushing.
-
-Sensitive files (SOUL.md, MEMORY.md, USER.md, memory/) are automatically excluded from the pack output.
+This scans your repo, builds kit metadata internally, validates it, and creates a registry PR. No files are generated on disk — sensitive files never leave your machine.
 
 ## Tips
 

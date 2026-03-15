@@ -5,11 +5,18 @@ title: Pushing
 
 # Pushing to the Registry
 
-Pushing makes your kit discoverable on [clawclawgo.com](https://clawclawgo.com) by adding a pointer to your repo in the registry.
+Pushing makes your kit discoverable on [clawclawgo.com](https://clawclawgo.com).
 
 ## How It Works
 
-Your kit lives in your GitHub repo. Pushing adds a registry entry (URL + metadata) to `registry/kits.json` in the ClawClawGo repo. ClawClawGo never hosts your content — the registry is just an index.
+Your kit lives in your GitHub repo. The `push` command:
+1. Scans your repo for SKILL.md files and agent configs
+2. Builds kit metadata internally (nothing written to disk)
+3. Runs a security scan — blocks if issues found
+4. Validates against the kit schema — blocks if invalid
+5. Submits a PR to `registry/kits.json`
+
+Sensitive files (SOUL.md, USER.md, MEMORY.md, memory/, .env) are automatically excluded.
 
 ## Quick Push
 
@@ -18,52 +25,42 @@ cd ~/my-agent-skills
 npx clawclawgo push
 ```
 
-This will:
-1. Detect your git remote
-2. Pack your skills and run a security scan
-3. Fork the ClawClawGo repo (if needed)
-4. Add your entry to `registry/kits.json`
-5. Open a PR automatically
-
 Requires the [GitHub CLI](https://cli.github.com/) (`gh`) with authentication.
 
 ## What Gets Submitted
 
-A registry entry is a lightweight pointer:
+A full kit object with skills, configs, compatibility, and scan results:
 
 ```json
 {
-  "url": "https://github.com/yourname/your-repo",
-  "name": "Voice Assistant Skills",
-  "description": "Agent skills for voice-controlled assistants",
-  "compatibility": ["claude-code", "cursor", "openclaw"],
-  "tags": ["voice", "tts", "assistant"],
-  "addedAt": "2026-03-14"
+  "schema": 1,
+  "name": "my-agent-skills",
+  "repoUrl": "https://github.com/yourname/my-agent-skills",
+  "owner": "yourname",
+  "compatibility": ["agent-skills", "claude-code", "cursor"],
+  "skills": [...],
+  "configs": [...],
+  "scan": { "trustScore": 95, ... },
+  "pushedAt": "2026-03-15T00:00:00.000Z"
 }
 ```
 
+Every entry is validated against a strict schema. Invalid kits are rejected before the PR is created.
+
+## Updating
+
+Run `push` again. If your repo URL already exists in the registry, it updates the existing entry.
+
 ## Manual Submission
 
-If the auto-PR doesn't work (no `gh` CLI, private fork, etc.):
+If the auto-PR doesn't work (no `gh` CLI, auth issues, etc.):
 
 1. Fork [bolander72/clawclawgo](https://github.com/bolander72/clawclawgo)
-2. Add your entry to `registry/kits.json`
+2. Add your kit entry to `registry/kits.json`
 3. Submit a PR
 
-The `push` command outputs the JSON entry even if it can't create the PR, so you can copy-paste it.
-
-## Best Practices
-
-**Pack first to check your score:**
-```bash
-npx clawclawgo pack --out kit.json
-```
-Aim for 90+ trust score. Kits with blocking issues won't be merged.
-
-**Tag well** — Use tags people search for: `voice`, `coding`, `automation`, `devops`, `email`, etc.
-
-**List compatibility** — The more agents listed in your SKILL.md frontmatter, the more discoverable your kit.
+The kit must pass schema validation — see [Schema Reference](/docs/reference/schema) for the format.
 
 ## Removing from Registry
 
-Submit a PR removing your entry from `registry/kits.json`. Your repo stays on GitHub — only the registry link is removed.
+Submit a PR removing your entry from `registry/kits.json`.
